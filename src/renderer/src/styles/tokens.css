@@ -1,0 +1,63 @@
+/* 应用壳设计 token 与动画关键帧 */
+@theme {
+  --color-primary: #1d1d1f;
+  --color-accent: #718096;
+  --color-accent-soft: #eef1f4;
+  --color-accent-hover: #eaecef;
+  --color-raised: #f2f4f6;
+  --color-panel: #f8f9fa;
+  --color-ink: var(--color-primary);
+  --color-ink-soft: #6e7278;
+  --color-line: #e4e7eb;
+  --color-divider: var(--color-raised);
+  --color-danger: #cf3538;
+  --shadow-panel: 0 1px 2px color-mix(in srgb, var(--color-primary) 5%, transparent);
+  --text-body: 0.875rem;
+  --text-description: 0.75rem;
+  --text-description--line-height: 1rem;
+  --text-title: 1rem;
+  --animate-fade-in: fade-in 200ms ease-out;
+  --animate-fade-out: fade-out 100ms ease-in forwards;
+  --animate-popover-in: popover-in 140ms ease-out;
+  --animate-popover-out: popover-out 100ms ease-in forwards;
+
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes fade-out {
+    from {
+      opacity: 1;
+    }
+    to {
+      opacity: 0;
+    }
+  }
+
+  @keyframes popover-in {
+    from {
+      opacity: 0;
+      transform: translateY(-4px) scale(0.98);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  @keyframes popover-out {
+    from {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+    to {
+      opacity: 0;
+      transform: translateY(-4px) scale(0.98);
+    }
+  }
+}

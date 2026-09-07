@@ -1,0 +1,73 @@
+/* 样式入口：app.css 承载应用壳公共规则，tokens 单独维护；组件样式与组件同目录 */
+@import 'tailwindcss';
+@import './tokens.css';
+
+@layer base {
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+    color: var(--color-ink);
+    background: #ffffff;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  button,
+  a {
+    cursor: pointer;
+  }
+
+  ::selection {
+    background: color-mix(in srgb, var(--color-ink) 12%, transparent);
+  }
+
+  input:focus-visible,
+  select:focus-visible,
+  button:focus-visible,
+  a:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+  }
+
+  * {
+    scrollbar-color: color-mix(in srgb, var(--color-ink-soft) 30%, transparent) transparent;
+    scrollbar-width: thin;
+  }
+}
+
+@layer components {
+  /* 724px 总测宽 = 676px 正文 + 两侧各 24px，所有状态共用。 */
+  .content-column {
+    width: 100%;
+    max-width: 45.25rem;
+    margin-inline: auto;
+    padding-inline: 24px;
+  }
+
+  .reading-viewport {
+    scrollbar-gutter: stable both-edges;
+  }
+
+  .drag-region {
+    -webkit-app-region: drag;
+  }
+
+  .no-drag {
+    -webkit-app-region: no-drag;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
