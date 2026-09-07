@@ -1,0 +1,5 @@
+.number-input:has(input:focus-visible) {
+  border-color: var(--color-accent);
+  outline: 3px solid color-mix(in srgb, var(--color-accent) 16%, transparent);
+  outline-offset: 0;
+}

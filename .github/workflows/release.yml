@@ -1,0 +1,215 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version_type:
+        description: 生成增量中英文日志（合并 PR 后发布）
+        required: true
+        default: minor
+        type: choice
+        options: [major, minor, patch]
+  pull_request:
+    types: [closed]
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: fucha-release
+  cancel-in-progress: false
+
+jobs:
+  prepare:
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Read base version
+        id: base
+        run: |
+          VERSION="$(node -p "require('./package.json').version")"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+      - name: Generate or reuse the release notes PR
+        id: changelog
+        uses: openchic/release-bits/actions/changelog@v1
+        with:
+          version: ${{ steps.base.outputs.version }}
+          version-type: ${{ inputs.version_type }}
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
+      - name: Summarize the notes PR
+        env:
+          PR_URL: ${{ steps.changelog.outputs.pr-url }}
+          WARNINGS: ${{ steps.changelog.outputs.warning-count }}
+        run: printf '请审核 [更新日志 PR](%s)。**合并即批准发布**；风格警告 %s 条。\n' "$PR_URL" "$WARNINGS" >> "$GITHUB_STEP_SUMMARY"
+
+  check:
+    if: >-
+      github.event_name == 'pull_request' && github.event.pull_request.merged == true &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      startsWith(github.event.pull_request.head.ref, 'changelogs/v')
+    runs-on: macos-latest
+    outputs:
+      version: ${{ steps.approval.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.merge_commit_sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Verify reviewed notes and code snapshot
+        id: approval
+        env:
+          PR_BRANCH: ${{ github.event.pull_request.head.ref }}
+        run: |
+          test "$(git rev-parse HEAD)" = "$(git rev-parse origin/main)"
+          node scripts/release.mjs confirm-merge "${PR_BRANCH#changelogs/v}"
+      - uses: pnpm/action-setup@v4
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm check
+      - run: pnpm verify
+
+  build:
+    needs: check
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: mac
+            os: macos-latest
+          - platform: win
+            os: windows-latest
+          - platform: linux
+            os: ubuntu-24.04
+    runs-on: ${{ matrix.os }}
+    outputs:
+      mac_artifact: ${{ steps.artifact-mac.outputs.artifact-id }}
+      win_artifact: ${{ steps.artifact-win.outputs.artifact-id }}
+      linux_artifact: ${{ steps.artifact-linux.outputs.artifact-id }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.merge_commit_sha }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Set package version only in the build workspace
+        shell: bash
+        env:
+          VERSION: ${{ needs.check.outputs.version }}
+        run: node scripts/release.mjs stage-version "$VERSION"
+      - uses: pnpm/action-setup@v4
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+      - name: Sign, notarize and staple universal macOS DMG
+        if: matrix.platform == 'mac'
+        env:
+          CSC_FOR_PULL_REQUEST: 'true'
+          DEVELOPER_ID_CERTIFICATE_P12: ${{ secrets.DEVELOPER_ID_CERTIFICATE_P12 }}
+          DEVELOPER_ID_CERTIFICATE_PASSWORD: ${{ secrets.DEVELOPER_ID_CERTIFICATE_PASSWORD }}
+          APPLE_API_KEY: ${{ secrets.APPLE_API_KEY }}
+          APPLE_API_KEY_ID: ${{ secrets.APPLE_API_KEY_ID }}
+          APPLE_API_ISSUER_ID: ${{ secrets.APPLE_API_ISSUER_ID }}
+        run: node scripts/release.mjs package
+      - name: Package Windows
+        if: matrix.platform == 'win'
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+        run: pnpm exec electron-builder --win --x64 --publish never
+      - name: Package Linux
+        if: matrix.platform == 'linux'
+        run: pnpm exec electron-builder --linux AppImage --x64 --publish never
+      - uses: actions/upload-artifact@v4
+        if: matrix.platform == 'mac'
+        id: artifact-mac
+        with:
+          name: release-mac-${{ github.run_id }}-${{ github.run_attempt }}
+          path: dist/fucha-${{ needs.check.outputs.version }}-mac-universal.dmg
+          if-no-files-found: error
+          retention-days: 30
+      - uses: actions/upload-artifact@v4
+        if: matrix.platform == 'win'
+        id: artifact-win
+        with:
+          name: release-win-${{ github.run_id }}-${{ github.run_attempt }}
+          path: dist/fucha-${{ needs.check.outputs.version }}-win-x64-setup.exe
+          if-no-files-found: error
+          retention-days: 30
+      - uses: actions/upload-artifact@v4
+        if: matrix.platform == 'linux'
+        id: artifact-linux
+        with:
+          name: release-linux-${{ github.run_id }}-${{ github.run_attempt }}
+          path: dist/fucha-${{ needs.check.outputs.version }}-linux-x64.AppImage
+          if-no-files-found: error
+          retention-days: 30
+
+  publish:
+    needs: [check, build]
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.merge_commit_sha }}
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Require all three successful build artifacts
+        env:
+          MAC: ${{ needs.build.outputs.mac_artifact }}
+          WIN: ${{ needs.build.outputs.win_artifact }}
+          LINUX: ${{ needs.build.outputs.linux_artifact }}
+        run: test -n "$MAC" && test -n "$WIN" && test -n "$LINUX"
+      - uses: actions/download-artifact@v4
+        with:
+          artifact-ids: ${{ needs.build.outputs.mac_artifact }},${{ needs.build.outputs.win_artifact }},${{ needs.build.outputs.linux_artifact }}
+          path: artifacts
+          merge-multiple: true
+      - name: Commit version and catalog, tag atomically, then publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          VERSION: ${{ needs.check.outputs.version }}
+          RELEASE_SHA: ${{ github.event.pull_request.merge_commit_sha }}
+        run: node scripts/release.mjs publish "$GITHUB_WORKSPACE/artifacts"
+
+  cleanup:
+    if: >-
+      github.event_name == 'pull_request' &&
+      github.event.pull_request.head.repo.full_name == github.repository &&
+      startsWith(github.event.pull_request.head.ref, 'changelogs/')
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - name: Delete the closed release branch
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BRANCH: ${{ github.event.pull_request.head.ref }}
+        run: |
+          set -euo pipefail
+          ref="repos/${GITHUB_REPOSITORY}/git/ref/heads/${BRANCH}"
+          if output="$(gh api "$ref" 2>&1)"; then
+            gh api --method DELETE "repos/${GITHUB_REPOSITORY}/git/refs/heads/${BRANCH}"
+          elif [[ "$output" == *"HTTP 404"* ]]; then
+            echo "Release branch already deleted"
+          else
+            printf '%s\n' "$output" >&2
+            exit 1
+          fi
