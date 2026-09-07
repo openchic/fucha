@@ -1,0 +1,351 @@
+# 排版主题
+
+排版主题由可调整的 ThemeToken 和实现主题样式的 `theme.css` 组成。
+
+## 目标与非目标
+
+**目标**
+
+- 不同主题共享可调整的排版接口，各自定义默认值与装饰。
+- 应用预览与公众号导出共享主题样式，导出时转换为微信可接受的内联样式。
+
+**非目标**
+
+- 不做应用内 CSS 编辑器。
+- 不把每个元素的 margin/padding/border 都做进 token。
+- 不改变文章内容的 HTML 结构；theme.css 只能作用于已有文章元素。
+- 不引入外部字体、远程图片或 `@import`。
+
+## 两层模型
+
+```text
+Theme A                          Theme B
+  token 默认值 A                   token 默认值 B
+  theme.css A                      theme.css B
+        \                          /
+         \                        /
+          +---- 统一 token 接口 ---+
+                     |
+              用户简单调整 token
+```
+
+`theme.css` 负责 token 表达不了的布局与逐元素盒模型。三套内置主题由 [预设目录](../src/renderer/src/theme/presets)提供，主进程用 [保留 id 与名称](../src/shared/builtin-themes.ts)做冲突校验，两处由测试保证一致。
+
+- [雾紫（`default`）](../src/renderer/src/theme/presets/default.ts)提供新建主题的默认 token。
+- [书卷（`shujuan`）](../src/renderer/src/theme/presets/shujuan.ts)使用暖棕色与衬线字族，通过 `&` 根规则指定字体。
+- [青瓷（`qingci`）](../src/renderer/src/theme/presets/qingci.ts)用浅苔色区分引用、代码和表头，配绿色标题竖条。
+
+## 主题编辑与保存
+
+```text
+data layer                         settings editor
+theme A: token + css        <----   draft A' = A + 用户改动
+article.theme_id = A                 示例预览使用 A'
+                                     |
+                             save -> 更新 theme A（所有引用文章）
+                             save as -> 新建 theme B
+                             new -> 新建 theme C（默认 token、无来源）
+```
+
+- 配置页用内存草稿和固定示例文章实时预览，离开时会确认是否丢弃未保存的改动。
+- 保存自定义主题沿用原 id，各篇引用文章在下次渲染时使用更新后的样式。改名随保存提交。
+- 另存为从当前草稿创建新主题并记录来源。新建从默认 token 起，来源为空。文章仍使用原来选中的主题，回到文章后可在下拉菜单切换。
+- 内置主题只读，用户可以另存为自定义主题。发布后的内置主题需要升级样式时，新增 id 并保留旧 id，以维持历史文章原有的排版。
+
+## Token 契约
+
+### 顶层结构
+
+h1–h6 直接放在 token 顶层，字段名与对应的 CSS 属性对齐。每个标题层级的结构如下。
+
+```ts
+type HeadingLevel = {
+  fontSize: number
+  fontWeight: number
+  lineHeight: number
+  textAlign: 'left' | 'center'
+  decoration: 'none' | 'bar' | 'underline' | 'bracket'
+  marginTop: number
+  marginBottom: number
+}
+```
+
+完整结构见 [ThemeToken 类型](../src/shared/types.ts)，默认值见 [雾紫预设](../src/renderer/src/theme/presets/default.ts)。
+
+### 字段与范围
+
+| 字段                                    | 默认                                    | 范围 / 值                        | 说明                                              |
+| --------------------------------------- | --------------------------------------- | -------------------------------- | ------------------------------------------------- |
+| `text.fontSize`                         | 14px                                    | 12–20                            | 正文、列表字号；行内代码与表格按 0.875 倍缩放     |
+| `text.secondaryFontSize`                | 12px                                    | 12–20                            | 图注、上下标                                      |
+| `text.lineHeight`                       | 1.8                                     | 1–3                              | 正文、列表、引用行高                              |
+| `text.letterSpacing`                    | 0.02em                                  | 0–0.3                            | 正文基础字距                                      |
+| `text.marginBottom`                     | 14px                                    | 0–40                             | 段落、列表、引用、代码块、表格、figure 的段后间距 |
+| `text.color`                            | #333333                                 | 颜色                             | 正文文字颜色                                      |
+| `headingColor`                          | #333333                                 | 颜色                             | 标题文字颜色                                      |
+| `text.secondaryColor`                   | #6b7280                                 | 颜色                             | 次级文字色，当前用于图注                          |
+| `primary`                               | #a8b9f0                                 | 颜色                             | 标题装饰与引用左边条                              |
+| `borderColor`                           | #e3e6f0                                 | 颜色                             | 表格与代码块边框                                  |
+| `h1–h3.fontSize`                        | 20 / 20 / 16                            | 12–40                            | 标题字号                                          |
+| `h4–h6.fontSize`                        | 16 / 16 / 16                            | 12–40                            | 标题字号                                          |
+| 各级 `fontWeight`                       | 700 / 700 / 600 / 600 / 600 / 600       | 100–700, step 100                | 标题字重                                          |
+| 各级 `lineHeight`                       | 1.4 / 1.4 / 1.5 / 1.5 / 1.5 / 1.5       | 1–3                              | 标题行高倍数                                      |
+| 各级 `textAlign`                        | left                                    | left / center                    | 标题对齐                                          |
+| 各级 `decoration`                       | none / none / none / none / none / none | none / bar / underline / bracket | 标题装饰                                          |
+| 各级 `marginTop`                        | 24 / 24 / 18 / 18 / 18 / 18             | 0–40                             | 标题上外边距                                      |
+| 各级 `marginBottom`                     | 10 / 10 / 8 / 8 / 8 / 8                 | 0–40                             | 标题下外边距                                      |
+| `quote.backgroundColor`                 | #f7f8fe                                 | 颜色                             | 引用块背景色                                      |
+| `quote.fontSize`                        | 14px                                    | 12–20                            | 引用文字字号；初始等于正文，之后独立              |
+| `quote.decoration`                      | bar                                     | none / bar                       | 引用装饰（无 / 左条）                             |
+| `quote.paddingBlock`                    | 14px                                    | 0–40                             | 引用块上下内边距                                  |
+| `quote.paddingInline`                   | 14px                                    | 0–40                             | 引用块左右内边距                                  |
+| `quote.borderRadius`                    | 4px                                     | 0–20                             | 引用块圆角                                        |
+| `code.hljsTheme`                        | github                                  | github / atom-one-light / xcode  | highlight.js 语法色主题，未知值拒绝               |
+| `code.backgroundColor`                  | #f6f7fa                                 | 颜色或缺省                       | 代码块背景色，缺省跟随语法主题                    |
+| `code.fontSize`                         | 13px                                    | 10–16, step 0.5                  | 代码块文字字号；三套内置主题统一 13px，之后独立   |
+| `code.lineHeight`                       | 1.6                                     | 1–3                              | 代码块行高                                        |
+| `code.paddingBlock`                     | 14px                                    | 0–40                             | 代码块上下内边距                                  |
+| `code.paddingInline`                    | 14px                                    | 0–40                             | 代码块左右内边距                                  |
+| `code.inlineBackgroundColor`            | #f3f4f8                                 | 颜色                             | 行内代码背景色                                    |
+| `code.borderRadius`                     | 4px                                     | 0–20                             | 代码块圆角                                        |
+| `code.inlineBorderRadius`               | 4px                                     | 0–20                             | 行内代码圆角                                      |
+| `code.borderStyle`                      | none                                    | solid / dashed / none            | 代码块外边框                                      |
+| `code.captionDivider.borderBottomStyle` | solid                                   | solid / dashed / none            | 文件名下方分隔线的线型                            |
+| `code.captionDivider.borderBottomColor` | #eceef4                                 | 颜色或缺省                       | 文件名分隔线颜色，缺省跟随 `borderColor`          |
+| `table.headerBackgroundColor`           | #f7f8fb                                 | 颜色                             | 表头背景色                                        |
+| `table.paddingBlock`                    | 8px                                     | 0–40                             | th / td 上下内边距                                |
+| `table.paddingInline`                   | 8px                                     | 0–40                             | th / td 左右内边距                                |
+| `image.marginTop`                       | 14px                                    | 0–40                             | 图片上外边距                                      |
+| `image.marginBottom`                    | 14px                                    | 0–40                             | 图片下外边距                                      |
+| `image.borderRadius`                    | 4px                                     | 0–20                             | 图片圆角                                          |
+| `page.backgroundColor`                  | 未设置                                  | 颜色或缺省                       | 页面背景色；缺省透明，导出不写背景                |
+| `page.paddingTop`                       | 40px                                    | 0–80                             | 页面内容上内边距                                  |
+| `page.paddingRight`                     | 0px                                     | 0–80                             | 平台留白之外的额外右内边距                        |
+| `page.paddingBottom`                    | 40px                                    | 0–80                             | 页面内容下内边距                                  |
+| `page.paddingLeft`                      | 0px                                     | 0–80                             | 平台留白之外的额外左内边距                        |
+| `divider.borderTopStyle`                | solid                                   | solid / dashed / none            | 分割线样式                                        |
+| `divider.borderTopColor`                | #ccd4e6                                 | 颜色                             | 分割线颜色                                        |
+| `divider.marginTop`                     | 18px                                    | 0–40                             | 分割线上外边距                                    |
+| `divider.marginBottom`                  | 18px                                    | 0–40                             | 分割线下外边距                                    |
+
+字族等根级表现属于 theme.css 的 `&` 根规则；页面背景是例外，使用可选的 `page.backgroundColor`，`&` 仍可覆盖。标题颜色统一使用 `headingColor`。行内代码与表格不读 `secondaryFontSize`，字号按正文的 0.875 倍缩放，随 `text.fontSize` 变化；代码块使用 `code.fontSize`，引用使用 `quote.fontSize`，两者都是固定 token，修改正文字号或语法主题不会联动修改。带标题代码块的标题条使用 `secondaryFontSize` 与 `secondaryColor`。表头背景色由 `table.headerBackgroundColor` 单独控制。
+
+### 标题装饰
+
+| 值          | 生成样式                                                  |
+| ----------- | --------------------------------------------------------- |
+| `none`      | 无边框与额外内边距                                        |
+| `bar`       | `border-left: 3px solid primary`，`padding-left: 12px`    |
+| `underline` | `border-bottom: 2px solid primary`，`padding-bottom: 6px` |
+| `bracket`   | 左右各 `2px solid primary`，`padding: 0 10px`             |
+
+装饰使用真实边框。引用的 `quote.decoration` 选 `bar` 时使用主色左条，选 `none` 时隐藏左条。旧主题缺少该字段时按 `bar` 读取。
+
+### CSS 变量契约
+
+主题 CSS 只能引用以下类型变量：
+
+```text
+--theme-primary
+--theme-quote-background-color
+--theme-quote-border-left-style
+--theme-table-header-background-color
+--theme-border-color
+--theme-quote-border-radius
+--theme-quote-font-size
+--theme-image-border-radius
+--theme-code-border-radius
+--theme-code-inline-border-radius
+--theme-code-font-size
+--theme-text-font-size
+--theme-text-secondary-font-size
+--theme-text-line-height
+--theme-text-letter-spacing
+--theme-text-margin-bottom
+--theme-text-color
+--theme-text-secondary-color
+--theme-h1-font-size ... --theme-h6-font-size
+--theme-h1-font-weight ... --theme-h6-font-weight
+--theme-h1-line-height ... --theme-h6-line-height
+--theme-h1-color ... --theme-h6-color
+--theme-h1-text-align ... --theme-h6-text-align
+--theme-h1-margin-top ... --theme-h6-margin-bottom
+--theme-quote-padding-block
+--theme-quote-padding-inline
+--theme-code-line-height
+--theme-code-padding-block
+--theme-code-padding-inline
+--theme-code-background-color
+--theme-code-inline-background-color
+--theme-code-caption-border-bottom-style
+--theme-code-caption-border-bottom-color
+--theme-table-padding-block
+--theme-table-padding-inline
+--theme-image-margin-top
+--theme-image-margin-bottom
+--theme-divider-border-top-style
+--theme-divider-border-top-color
+--theme-divider-margin-top
+--theme-divider-margin-bottom
+--theme-page-background-color
+--theme-page-padding-top
+--theme-page-padding-right
+--theme-page-padding-bottom
+--theme-page-padding-left
+```
+
+`hljsTheme` 不是 CSS 变量，由导出/预览直接选择语法主题，可选 `github`、`atom-one-light`、`xcode`。未知值拒绝。语法主题决定语法色与缺省代码块背景；`code.backgroundColor` 可选，设置后覆盖代码块背景。引用背景使用 `quote.backgroundColor`，行内代码使用 `code.inlineBackgroundColor`；表头背景色由 `table.headerBackgroundColor` 提供；自定义 `theme.css` 可以继续覆盖 `pre` 与 `th` 背景及 `.hljs` 颜色。
+
+## 样式归属与元素盒模型
+
+应用维护一份 `base.css`，覆盖正文默认排版、引用、代码、表格、图片、分割线与微信安全属性；行内代码与表格按正文 0.875 倍取字号，代码块与引用使用各自字号 token，其余样式只引用 token 变量。正文代码块统一使用 `borderColor` 外框、`code.borderStyle` 边框样式与 `code.borderRadius` 圆角；带标题的代码块使用 `figure.code-block` + `figcaption`，在卡片顶部增加标题条（复用 `code.paddingBlock` / `code.paddingInline`、`text.secondaryColor` / `text.secondaryFontSize` 与等宽字体），标题下的 1px 分隔线由 `code.captionDivider` 控制，可用实线、虚线或隐藏。颜色缺省跟随 `borderColor`，旧主题缺少该组时继续用边框色实线。主题用 `pre`、`.code-block` / `.code-block figcaption` 覆盖。预览与导出均保留代码块横向滚动；导出把代码按行拆成 `width: max-content` 的块，`code` 撑到最宽行使滚动条落在 `pre` 底部，空格用不可折叠空格，`pre` 及其子元素豁免微信全局 `max-width`，微信保存后的触摸滑动见 [兼容性清单](wechat-checklist.md)。导出的引用块使用 section 承载同样的内联样式，避免微信叠加 blockquote 默认左条；预览仍使用 blockquote。正文表格在预览与导出中由 `figure.table-scroll` 承担 1px `borderColor` 外框与代码块圆角。一至两列表格铺满容器并允许换行；三列及以上的表格额外标记 `table-scroll-wide`，按内容自然宽度排布，用 `min-width: 100%` 在内容较少时铺满容器，单元格限制在 `5em` 至 `18em`，超长内容在单元格内换行。内容放得下时不出现滚动条，放不下时在边框内显示原生横向滚动条。
+
+标题中的 `strong` 和 `b` 继承标题字重和颜色。图注紧跟图片或带链接的图片时，两者相隔 8px，`image.marginBottom` 用于图注下方。
+
+主题的 `theme.css` 只写差异。加载顺序固定为 `base.css` → 装饰规则 → hljs 语法色 → `theme.css`，同选择器后写覆盖，主题永远有最终决定权。
+
+逐元素 margin/padding/border 不进入 token，写在 theme.css：
+
+| 范围                | 元素                                                                                                |
+| ------------------- | --------------------------------------------------------------------------------------------------- |
+| 完整盒模型          | `p`、`h1`–`h6`、`ul`、`ol`、`li`、`blockquote`、`pre`、`table`、`figure`、`figcaption`、`img`、`hr` |
+| 仅 padding + border | `th`、`td`（table-cell 的 margin 不生效）                                                           |
+| 不开放盒模型        | `a`、`strong`、`em`、`b`、`i`、`u`、`s`、行内 `code`、`sup`、`sub`、`svg`                           |
+
+代码块外边框样式单列为 `code.borderStyle`，由配置页的边框选项控制。书卷预设将它设为 `none`，用浅纸色 `#faf7f2` 底区分代码块与正文。
+
+`img` 左右外边距固定为 `auto`，theme.css 控制上下外边距。
+
+## Theme CSS 契约
+
+`theme.css` 只能使用元素、类与后代选择器；另可单独使用 `&` 指向文章根节点：
+
+```css
+& { font-family: 'Songti SC', serif; }
+h2 { ... }
+pre code { ... }
+.hljs-keyword { ... }
+```
+
+`&` 必须单独成条，不能与元素或类组合；预览作用于 `.article-body`，导出时解析 token 变量并合并到最外层 `section` 的 style。字族等根级样式写在这里，不要枚举正文标签；页面背景优先用 `page.backgroundColor`，`&` 仍可覆盖。
+
+禁止：
+
+- `&` 与其他选择器组合：`& h1`
+- 伪类与伪元素：`:hover`、`::before`、`:first-child`
+- `@` 规则：`@media`、`@import`、`@font-face`、`@keyframes`、`@layer`
+- `!important`
+- 外部资源：`url(http...)`、远程字体与图片
+- token 契约之外的 `var(--theme-*)`
+- 微信不支持的属性：`position`、`float`、`grid`、`flex` 布局等
+
+导入时做 fail-closed 静态校验：任何一条不通过就拒绝整个主题包，并给出行号与原因，不做部分导入。
+
+## 主题包与导入导出
+
+主题包使用 zip：
+
+```text
+my-theme.article-theme
+  theme.json
+  theme.css
+```
+
+`theme.json`：
+
+```json
+{
+  "id": "my-theme",
+  "name": "我的主题",
+  "version": "1.0.0",
+  "tokenVersion": 1,
+  "token": { "...": "完整 token 默认值" }
+}
+```
+
+- 导入会校验主题包与 `tokenVersion`，拒绝不受支持的版本或与已有主题冲突的 id。成功后新增一条自定义主题记录，当前文章继续使用原主题。
+- 设置页可以导出自定义主题。需要导出内置主题时，先另存为自定义主题再导出。包内保存 token 与 CSS，序列化时将 `builtin` 设为 `false`。
+
+## 预览与导出
+
+```text
+preview:
+  token -> .article-body CSS 变量
+  base.css + theme.css -> 注入预览
+
+export:
+  token -> 具体值变量表
+  base.css + theme.css -> 解析 var()
+  -> juice 内联
+  -> 微信属性过滤
+```
+
+- 预览不解析 `var()`，直接用浏览器变量。
+- 导出必须把所有 `var(--theme-*)` 替换成具体值，再交给 juice；juice 不解析 CSS 变量。
+- 预览注入时统一加 `.article-body` 作用域；导出由 juice 直接作用于正文子树。
+- 预览把 `page.padding*` 应用到 `.article-body`，左右各加 20px 模拟公众号的基础留白。导出只把 token 内边距写入外层 `section`，基础留白由微信提供。
+- 页面背景由 `page.backgroundColor` 控制：设置时预览作用在 `.article-body` 并至少铺满阅读区，导出写入外层 section 的 `background-color`；未设置时不写背景，保留宿主深色模式。
+
+## 正文结构与导出边界
+
+```text
+Article.html 语义快照（由提取管线生成）
+        |
+        +-- normalize：去重复标题 / 表格包滚动容器 / 清引用末段距
+        +-- highlight：代码高亮
+        |
+        +--------------------------+
+        |                          |
+        v                          v
+   预览投影                     导出投影
+ theme CSS + 本地图片          外链降级 / 列表包 p / 引用转 section
+        |                      代码逐行拆块 / juice 内联 / 微信属性过滤
+        v                          v
+   手机预览                    公众号 HTML
+```
+
+预览与导出都读取 [提取与净化](design.md#提取与净化)生成的 `Article.html`。两端共用 `normalizeArticleDom` 与代码高亮。归一时清除引用末段的段后距，避免与引用块内边距叠加。导出将正文外链转为普通文本，来源地址由预览工具栏展示。
+
+**快照边界**
+
+- 提取阶段的规则——Readability 正文判定、站点 profile、标签与属性白名单、SVG 内联、Rspress 代码块归一——在抓取时写入 `Article.html`；之后修改这些规则只影响新抓取的文章，旧快照保持原样，不自动迁移或重写。
+- 渲染与导出阶段的规则——`normalizeArticleDom`、语法高亮、引用转 section、列表包 p、代码逐行拆块、微信属性过滤、SVG 表现属性提升——在读取快照时执行，对所有文章生效，且不改写快照。
+- 旧文章需要应用新提取规则时，使用「重新提取」更新快照。
+
+**内容覆盖**
+
+| 内容                                                                     | 结果          | 说明                                               |
+| ------------------------------------------------------------------------ | ------------- | -------------------------------------------------- |
+| 标题、段落、列表、引用、代码、表格、图片、分割线                         | 完整支持      | 有主题样式、微信结构修复与测试覆盖            |
+| 静态 SVG                                                                 | 支持          | 样式提升为表现属性、烘平实色 mask、补 viewBox 尺寸 |
+| 行内粗斜体、上下标、`u` / `s`                                            | 支持          | 在白名单内                                         |
+| `div` / `section` / `article` 等布局容器                                 | 结构丢失      | 解包后只留子内容，布局、分栏与卡片样式丢失         |
+| `dl` / `dt` / `dd`                                                       | 语义丢失      | 标签被解包，术语与说明可能连成一段                 |
+| `details` / `summary`                                                    | 展开态丢失    | 内容保留，折叠交互消失                             |
+| `mark` / `kbd` / `samp` / `var` / `cite` / `q` / `small` / `del` / `ins` | 样式/语义丢失 | 只保留文字                                         |
+| 视频、iframe、音频、嵌入演示                                             | 不保留        | 标签被禁用，没有占位或降级链接                     |
+| MathML 或依赖定位样式的公式                                              | 高风险        | MathML 被禁用；KaTeX/MathJax 的定位样式会被剥离    |
+| 交互组件（tab、轮播、代码沙盒）                                          | 不可控        | Readability 可能只取到部分面板，结构会被拆平       |
+| 富文本内联样式（彩色提示、标注）                                         | 丢失          | 非 SVG 的 `style` 不保留，只按主题排版             |
+| 脚注与目录锚点                                                           | 不完整        | `sup` 保留，但外链降级为文本，锚点不可点击         |
+| 懒加载图片                                                               | 仅微信适配    | 其他站点依赖 `src`，`data-src` 不映射              |
+| 深色模式                                                                 | 未适配        | 依赖微信客户端处理，见兼容性清单                   |
+
+**当前非目标**
+
+- 不追求原始页面的版式、交互和富媒体还原；导出目标是语义化文章正文在公众号中的一致排版。
+- 扩展支持范围时优先补显式降级（视频转链接、公式转图、`details` 展开）与内容丢失提示，而不是放开任意 HTML。
+
+## 存储
+
+渲染与导出按文章的 `theme_id` 解析主题。主题字段、名称约束和删除规则见 [本地存储](local-store.md#themes)。
+
+## 设置页与主题管理
+
+- 文章页的主题下拉用于选择主题和打开主题管理。主题列表按内置与自定义分组，顶部有新建与导入入口，另存为从列表发起。自定义主题另外提供编辑、导出和删除。
+- 配置页左侧是示例文章，覆盖标题、正文、列表、引用、行内代码、代码块、表格、图片、图注、上下标与分割线。右侧检查器依次是主题名称、分组控件和固定于底部的取消与保存。
+- 顶部工具栏显示返回、标题与保存状态。打开另存为或新建时，底部主操作为「创建主题」。名称冲突时保留表单内容并提示。
+- 控件偏离打开编辑器时的保存值时提供恢复入口：有右对齐值的字段在值左侧显示重置图标，分段与复选框放在标签行右侧；代码块背景保留「重置」清空为跟随语法主题，保存值本身带背景色时额外显示恢复图标。恢复只影响该字段。
+- 颜色行不常驻显示色值；点击色块打开取色弹层，使用 `@uiw/react-color` 的 Sketch，含饱和度/色相、3/6 位 Hex 与 RGB 输入；关闭 alpha，只产生不透明 hex。
+- 正文色与标题色对白底、引用背景色、行内代码背景色、表头背景色，以及次级文字色与白底的对比度低于 4.5:1 时，在该行说明位显示最低的一对与具体比值，不增加行高、不阻止保存；装饰色与代码语法色不参与校验。
+- 颜色与数值控件的说明通过 `aria-describedby` 关联到输入，读屏会同时读出用途说明和对比度提示。

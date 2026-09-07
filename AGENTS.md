@@ -1,0 +1,57 @@
+# AGENTS.md
+
+## 文档分工
+
+- [README](README-zh_CN.md)：产品说明、使用、开发、测试、打包与发布入口。
+- 本文件：代码规范、验证要求、OpenSpec 变更流程等 Agent 与贡献者规则。
+- [docs](docs)：设计、主题、存储、发布等专题细节。
+
+## 项目
+
+浮槎是基于 Electron + React + TypeScript 的桌面应用。产品说明见 [README](README-zh_CN.md)，架构见 [设计文档](docs/design.md)。
+
+代码标识与品牌解耦：图片协议 `app://`、preload 命名空间 `window.api`、主题变量 `--theme-*`、数据库 `app.db`、主题包 `.article-theme`；品牌名只出现在界面与安装包显示名。
+
+## 代码规范
+
+代码规范按 `code-style` skill 执行。与本文冲突时以本文为准，样式上本项目走 Tailwind，不是 CSS Modules。
+
+## 样式约定
+
+应用壳的单元素样式写 Tailwind 工具类；全局公共规则放 `app.css`，设计 token 放 `tokens.css`；组件专属样式与组件同目录（如 `Button/index.css`），只有确有组件级样式时才拆文件。文章正文与导出样式不经 Tailwind，只由 ThemeToken 与 theme.css 决定，见 `docs/theme-system.md`。存量按改动收敛，不为此单开全量重写。
+
+## 开发调试
+
+测试命令与提交前检查见 [README](README-zh_CN.md#测试)；本节只规定验证方式与收尾要求。端到端测试以隐藏的 Electron 窗口运行，避免闪窗和抢焦点。
+
+验证界面与交互一律启动本地应用（`pnpm dev`）在真实窗口里操作，不用浏览器打开 dev server 页面替代：那里没有 preload 暴露的 IPC，抓取、预览与错误态都跑不通。
+
+代码改动后先确认本地应用是否在运行：没启动就主动启动 `pnpm dev`；已启动则依靠它自动热更新或重启，在真实窗口里验证后再收尾，不等用户提醒。
+
+## OpenSpec 变更管理规则
+
+### 1. Change 边界
+
+- 除非用户明确要求，不要把后续需求混入当前 change。
+- 后续改动默认归入当前相关且尚未归档的 change，并同步更新该 change 的 `proposal`、`spec`、`design`、`tasks` 文档。
+- 只有满足以下任一条件时才创建新 change：
+  - 用户明确要求新建 change；
+  - 当前 change 与该改动无关；
+  - 当前 change 已归档。
+- 创建新 change 前，先归档其他尚未归档的 change。
+
+### 2. 归档
+
+- 归档前自动将 delta spec 同步到主规格（`openspec/specs/`），并确认同步结果。
+- 每次归档后，提交归档文档及相关变更。
+
+### 3. Bug 的 Spec 规范
+
+- Bug 的 spec 必须记录：已确认的用户可见现象、根因、最终处理约束。
+- 排查日志、临时诊断代码、失败的试改只保留在 `design` 或归档记录中，不混入长期规格。
+
+### 4. Explore → Fast-forward → Apply 流程
+
+- `openspec-explore` 阶段只探索并确认方案，不写实现代码。
+- 用户确认 proposal 后结束 Explore，切换到 fast-forward 和 apply 流程：连续生成剩余文档（specs、design、tasks）、实现代码并完成必要验证，直到代码写完。
+- 除非遇到需求歧义、设计冲突或错误，否则不逐项请求确认。

@@ -1,0 +1,40 @@
+appId: com.ls63cc.fucha
+productName: 浮槎
+executableName: fucha
+artifactName: ${name}-${version}-${os}-${arch}.${ext}
+directories:
+  buildResources: build
+files:
+  - out/**
+  - resources/**
+  - '!out/e2e-checks.js'
+asarUnpack:
+  - resources/**
+win:
+  executableName: fucha
+  artifactName: ${name}-${version}-windows-${arch}.${ext}
+  target: nsis
+nsis:
+  shortcutName: ${productName}
+  uninstallDisplayName: ${productName}
+  createDesktopShortcut: always
+mac:
+  icon: build/macos-icon.icns
+  artifactName: ${name}-${version}-macos.${ext}
+  target:
+    - dmg
+    - zip
+  entitlementsInherit: build/entitlements.mac.plist
+  notarize: false
+linux:
+  target:
+    - AppImage
+    - snap
+    - deb
+  category: Utility
+# ${arch} 对 AppImage 会被渲染成 x86_64，固定为 x64 与其他平台一致
+appImage:
+  artifactName: ${name}-${version}-linux-x64.${ext}
+npmRebuild: false
+electronDownload:
+  mirror: https://npmmirror.com/mirrors/electron/
