@@ -1,0 +1,36 @@
+## 1. 契约与骨架
+
+- [ ] 1.1 安装 @mozilla/readability 与 dompurify，确认类型在两个 tsconfig（node/web）下均可解析
+- [ ] 1.2 建 shared/types.ts：Article、ImageAsset（status 三值）、抓取错误四分类、IPC 方法签名（fetchArticle、downloadImages、进度事件），并通过 npm run typecheck
+- [ ] 1.3 preload 经 contextBridge 暴露单一命名空间，主进程建 ipc.ts 空实现接线，验证渲染进程可调用并拿到类型提示
+
+## 2. 抓取（article-fetch）
+
+- [ ] 2.1 主进程实现 fetchArticle：原生 fetch 加超时，失败按网络不可达 / 超时 / 目标拒绝 / 验证码四类抛出可序列化错误；验证：对一个 404 链接与一个不可达域名分别得到对应分类
+- [ ] 2.2 建 profiles.ts 最小域名表：微信域名的图片属性映射（src → data-src）与下载请求头（Referer）；验证：真实微信文章链接抓取后图片地址来自 data-src
+- [ ] 2.3 微信验证码 / 环境异常页特征识别，命中走"需要验证"错误；验证：构造样例 HTML 命中，正常文章不误伤
+
+## 3. 提取与净化（article-extract）
+
+- [ ] 3.1 渲染进程 DOMParser 转 Document 后跑 Readability，产出正文与元信息；正文过短或为空标记提取失败；验证：样例文章页提取出标题与正文，站点首页返回失败
+- [ ] 3.2 DOMPurify 白名单净化：移除 script、事件属性、javascript: 链接与 iframe，保留段落 / 标题 / 列表 / 引用 / 代码块 / 表格 / 图片语义结构；验证：注入样例净化单测通过
+- [ ] 3.3 组装 Article：标题、作者、发布时间、cover、来源 URL、净化后 html 与 images 数组；验证：缺失元信息时字段留空不报错
+
+## 4. 图片（image-assets）
+
+- [ ] 4.1 主进程实现 downloadImages：并发限 3、单图超时、支持按域名附加请求头，结果回写 status；验证：混合有效与失效图片的链接，done 与 failed 各归其位
+- [ ] 4.2 文章按 hash 归档 userData/article-cache/，图片以内容 hash 命名实现复用；验证：同一链接第二次提交无重复网络下载
+- [ ] 4.3 下载失败图片保留 originalUrl 降级展示；验证：含失效图片的文章预览正常出稿，失效图显示占位
+
+## 5. 界面（preview-ui）
+
+- [ ] 5.1 四态状态机（idle / loading / preview / error）与居中输入框态；验证：粘贴链接回车进入 loading
+- [ ] 5.2 加载态三阶段提示（正在请求 / 正在解析 / 正在下载图片），由主进程进度事件驱动；验证：真实链接走查三阶段依次出现
+- [ ] 5.3 预览态布局：左侧元信息栏（标题、来源链接、作者、发布时间、图片清单，来源与作者固定可见），右侧只读正文；验证：预览内容不可编辑
+- [ ] 5.4 最小可读样式基线（正文排版从简，为主题渲染留位）；验证：二十链接样张目视可读
+- [ ] 5.5 错误态：展示分类错误信息并提供返回输入态重试；验证：提交不可达链接后可一键返回重试
+
+## 6. 验收
+
+- [ ] 6.1 二十个不同类型链接（博客、文档站、微信公众号）验证清单跑一遍，记录提取正确率与 bad case；bad case 沉淀进 profiles.ts
+- [ ] 6.2 npm run typecheck 与 npm run lint 全绿，Electron 安全基线核对（contextIsolation、sandbox 开启，nodeIntegration 关闭）
