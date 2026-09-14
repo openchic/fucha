@@ -1,9 +1,7 @@
 {
   "name": "fucha",
   "version": "1.0.0",
-  "description": "An Electron application with React and TypeScript",
-  "homepage": "https://electron-vite.org",
-  "author": "example.com",
+  "description": "把一个链接，变成一篇可以直接发进公众号的文章",
   "main": "./out/main/index.js",
   "scripts": {
     "build": "npm run typecheck && electron-vite build",
@@ -54,7 +52,7 @@
     "electron": "^39.2.6",
     "electron-builder": "^26.0.12",
     "electron-vite": "^5.0.0",
-    "eslint": "^10.10.0",
+    "eslint": "^9.39.5",
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.4.24",
@@ -63,13 +61,7 @@
     "prettier": "^3.9.6",
     "react": "^19.2.1",
     "react-dom": "^19.2.1",
-    "typescript": "^7.0.2",
+    "typescript": "^5.9.3",
     "vite": "^7.2.6"
-  },
-  "pnpm": {
-    "onlyBuiltDependencies": [
-      "electron",
-      "esbuild"
-    ]
   }
 }

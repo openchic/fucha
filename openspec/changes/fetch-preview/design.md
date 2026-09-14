@@ -1,6 +1,6 @@
 ## Context
 
-绿地项目，electron-vite 脚手架已就位（main / preload / renderer 三进程骨架），架构边界见 docs/DESIGN.md。本 change 对应里程碑 M0。
+绿地项目，electron-vite 脚手架已就位（main / preload / renderer 三进程骨架，窗口、安全基线与应用壳配色已按设计就位），架构边界见 docs/DESIGN.md。本 change 对应里程碑 M0。
 
 ## Goals / Non-Goals
 
@@ -19,6 +19,8 @@
 
 ## Decisions
 
+**本地图片经自定义协议供渲染进程，窗口尺寸按两栏定。** 已下载图片注册 `fucha://` 协议由主进程服务，渲染进程用该 scheme 引用本地文件：dev 下渲染源是 http（localhost）、打包后是 file，`file://` 图片在 dev 会被 CSP 拦，自定义协议把两端行为拉平，CSP 只需放行 `'self'`、`data:` 与 `fucha:`。备选把图片字节经 IPC 传成 blob URL：每张图一次跨进程拷贝且需放行 `blob:`，否。窗口默认 1180 × 800、最小 1000 × 700，按左列约 240px 加预览 677px 推算。
+
 **抓取放主进程，原生 fetch，IPC 单入口。** 渲染进程 fetch 受同源策略限制，主进程不受；备选 Electron `net` 模块能力等价但类型与测试不如原生 fetch 直接。失败按"网络不可达 / 超时 / 目标拒绝 / 验证码"四类抛出，错误对象跨 IPC 可序列化。
 
 **提取与净化放渲染进程。** 渲染进程本身有 DOM，`DOMParser` 转 Document 后跑 Readability，随后 DOMPurify 净化，净化后的 HTML 才进 React 状态。备选主进程 jsdom：多一份 DOM 实现、多内存，否。净化紧贴解析入口，保证进入预览的数据源已安全。
@@ -29,7 +31,9 @@
 
 **图片按文章归档 userData，状态机三值。** 目录 `userData/article-cache/<文章hash>/`，图片以内容 hash 命名实现复用；`ImageAsset.status` 为 pending / done / failed 三值，下载失败保留 originalUrl 降级展示。下载并发限制 3，单图超时，失败不重试（M0 不做退避）。
 
-**界面用单一状态机，不引路由。** idle / loading / preview / error 四态，loading 内部细分为请求、解析、下载三个阶段，阶段由主进程进度事件推送。备选 react-router：单窗口单流程，否。
+**界面用单一状态机，不引路由。** idle / loading / preview / error 四态，阶段由主进程进度事件推送。加载呈现为右侧骨架屏动画展开（约 240ms ease-out），三阶段以小字标注在骨架屏内；布局自提交起稳定为左右结构，成功后骨架屏原地淡出为预览，失败原位展示错误。右栏顶部预留操作栏区域，加载与失败态不显示，控件由后续 change 填充。备选独立加载页：整页切换闪跳，否；react-router：单窗口单流程，否。
+
+**应用配色与文章主题分离。** 应用壳用主色 #8fae96（焦点环、生成按钮、激活态）与辅助色 #eadfcf（面板与骨架屏底），实底按钮配深色文字；文章预览样式只由 ThemeToken 决定，不吃应用配色，预览保真优先。视觉基调：留白分组不画框、层级靠底色不靠投影、动效轻短、色彩克制。
 
 **M0 预览用最小可读样式基线。** 目的是验证提取正确性，不是还原排版；主题渲染是 change 2 的事，本期样式刻意从简。
 

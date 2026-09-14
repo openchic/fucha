@@ -61,11 +61,11 @@
 
 ### Requirement: 一键复制与保存
 
-系统 SHALL 提供一键复制内联 HTML 到剪贴板，并提供保存为 HTML 文件；两者产物 SHALL 一致。
+系统 SHALL 在预览区操作栏右侧末位提供复制按钮（主按钮），一键复制内联 HTML 到剪贴板；保存 HTML SHALL 为复制旁的次要按钮；两者产物 SHALL 一致。
 
 #### Scenario: 一键复制
 
-- **WHEN** 用户点击复制
+- **WHEN** 用户点击操作栏的复制按钮
 - **THEN** 剪贴板内容为内联 HTML，粘贴进微信编辑器格式正确
 
 #### Scenario: 保存文件

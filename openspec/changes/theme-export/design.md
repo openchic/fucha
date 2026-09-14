@@ -20,7 +20,7 @@
 
 **CSS 生成函数单源，双输出。** 一个纯函数 `generateCss(token)` 内部先产出声明表（属性 → 值），再按路径物化：预览路径物化为 CSS 变量注入容器；导出路径直接输出带具体值的样式表喂给 juice。禁止在组件里手写样式字面量绕过生成函数——这是一致性的唯一保证。备选两套样式各自维护：必然漂移，否。
 
-**高亮选 highlight.js 而非 shiki。** hljs 同步、体积轻一个量级，输出 class 由 juice 统一内联成 style，最终效果与 shiki 等价（微信只认内联样式，TextMate 级高亮精度在这里收益趋零）。`codeTheme` 字段存 hljs 主题名。
+**高亮选 highlight.js 而非 shiki。** hljs 同步、体积轻一个量级，输出 class 由 juice 统一内联成 style，最终效果与 shiki 等价（微信只认内联样式，TextMate 级高亮精度在这里收益趋零）。`code.hljsTheme` 字段存 hljs 主题名。
 
 **图片 base64 内联放导出管道末端。** 已下载（status=done）的图转 data URI；超 5MB 或 failed 的跳过并降级为占位。不在净化阶段做，保持 Article.html 可复用于两条路径。
 
@@ -29,6 +29,8 @@
 **来源行在导出时附加，不在预览渲染。** 来源信息预览态已固定展示于元信息栏（change 1），导出产物末尾自动附脚注式来源行；两处内容同源于 Article，避免双份维护。
 
 **剪贴板走主进程写 HTML 格式。** 渲染进程 Clipboard API 写 text/html 在 Electron 下可行，但主进程 clipboard.writeHtml 保证格式与跨平台行为一致，复用 saveFile 通道落盘。备选渲染进程 API：行为差异不可控，否。
+
+**预设中性配色，操作栏落位。** technical.json 默认值为中性色（primary #0969da、正文 #333333、引用与代码底 #f6f8fa、边框 #d0d7de、hljs github），与应用壳配色（#8fae96 / #eadfcf）严格分离——预览保真不吃应用品牌。操作栏右侧依次为主题选择与复制（主按钮），保存 HTML 为复制旁次要按钮；主题选择本期仅展示当前预设，自定义列表与编辑入口由下一 change 扩展。
 
 **兼容性清单落 docs/，产物示例落 artifacts。** 清单本身是流程资产（每项含验证步骤与预期），bad case 样张存仓库便于规则变化时对比。
 

@@ -1,6 +1,8 @@
-# fucha
+# 浮槎（fú chá）
 
-An Electron application with React and TypeScript
+把一个链接，变成一篇可以直接发进公众号的文章。
+
+Electron + React + TypeScript。需求与变更走 openspec 的 spec-driven 流程（见 AGENTS.md），设计与架构见 docs/DESIGN.md。
 
 ## Recommended IDE Setup
 
