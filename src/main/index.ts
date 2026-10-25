@@ -2,6 +2,9 @@ import { join } from 'path'
 import { app, shell, BrowserWindow } from 'electron'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
+import { registerFuchaProtocol, registerIpcHandlers, serveFuchaProtocol } from './ipc'
+
+registerFuchaProtocol()
 
 function createWindow(): void {
   const mainWindow = new BrowserWindow({
@@ -36,6 +39,8 @@ function createWindow(): void {
 
 app.whenReady().then(() => {
   electronApp.setAppUserModelId('com.fucha.app')
+  serveFuchaProtocol()
+  registerIpcHandlers()
 
   app.on('browser-window-created', (_, window) => {
     optimizer.watchWindowShortcuts(window)

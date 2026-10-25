@@ -1,8 +1,10 @@
-import { contextBridge } from 'electron'
-import { electronAPI } from '@electron-toolkit/preload'
+import type { DownloadImagesPayload, FuchaApi } from '@shared/types'
+import { contextBridge, ipcRenderer } from 'electron'
 
-// Custom APIs for renderer
-const api = {}
+const api: FuchaApi = {
+  fetchArticle: (url: string) => ipcRenderer.invoke('fetch-article', url),
+  downloadImages: (payload: DownloadImagesPayload) =>
+    ipcRenderer.invoke('download-images', payload),
+}
 
-contextBridge.exposeInMainWorld('electron', electronAPI)
-contextBridge.exposeInMainWorld('api', api)
+contextBridge.exposeInMainWorld('fucha', api)

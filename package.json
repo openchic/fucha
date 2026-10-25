@@ -10,7 +10,7 @@
     "build:unpack": "npm run build && electron-builder --dir",
     "build:win": "npm run build && electron-builder --win",
     "changelog": "conventional-changelog -p angular -i CHANGELOG.md -s",
-    "dev": "electron-vite dev",
+    "dev": "electron-vite dev --watch",
     "format": "prettier --write .",
     "preinstall": "npx only-allow pnpm",
     "postinstall": "electron-builder install-app-deps",
@@ -35,6 +35,8 @@
   "dependencies": {
     "@electron-toolkit/preload": "^3.0.2",
     "@electron-toolkit/utils": "^4.0.0",
+    "@mozilla/readability": "^0.6.0",
+    "dompurify": "^3.4.15",
     "electron-updater": "^6.3.9"
   },
   "devDependencies": {
@@ -43,6 +45,8 @@
     "@electron-toolkit/eslint-config-prettier": "^3.0.0",
     "@electron-toolkit/eslint-config-ts": "^3.1.0",
     "@electron-toolkit/tsconfig": "^2.0.0",
+    "@tailwindcss/vite": "^4.3.3",
+    "@types/mozilla-readability": "^0.2.1",
     "@types/node": "^22.19.1",
     "@types/react": "^19.2.7",
     "@types/react-dom": "^19.2.3",
@@ -61,6 +65,7 @@
     "prettier": "^3.9.6",
     "react": "^19.2.1",
     "react-dom": "^19.2.1",
+    "tailwindcss": "^4.3.3",
     "typescript": "^5.9.3",
     "vite": "^7.2.6"
   }

@@ -6,7 +6,7 @@
 
 ### Requirement: 主题 token 固定结构
 
-系统 SHALL 以固定结构的 ThemeToken 描述主题，按组组织：page（contentWidth 与 padding，仅预览用，导出不携带）、text（字号 px、行高倍数、字距 em、段距 px、正文色、次要色、强调色）、primary、heading（h1 至 h3 字号、对齐、装饰、装饰色、上下间距）、quote（背景、边条色、内距、圆角）、code（hljs 主题名、背景、字号、行高、内距、圆角）、table（表头背景、边框色、字号、单元格内距）、image（圆角、图注字号、间距）、divider（样式与色）、footnote（色、字号）。圆角按块分离。数值字段 SHALL 携带单位与取值范围（滑杆与校验共用边界），正文 fontSize 限定 15 至 17。
+系统 SHALL 以固定结构的 ThemeToken 描述主题，按组组织：text（正文字号、小字字号、行高倍数、字距 em、段距 px、正文色、次要色）、primary、surface、border、borderRadius、heading（h1 至 h3 字号、对齐、装饰、上下间距与可选标题色）、quote（内距）、code（hljs 主题名、行高、内距）、table（单元格内距）、image（间距）、divider（样式）。强调文字继承正文色，代码、表格、图注与来源脚注共用 smallSize，标题装饰与引用边条共用 primary，脚注使用 muted，不另设重复 token。预览画布的 contentWidth 与 padding 是固定常量，不属于 token。数值字段 SHALL 携带单位与取值范围（滑杆与校验共用边界），正文 fontSize 限定 14 至 18。heading.color 未填时 SHALL 回退到 text.color。
 
 #### Scenario: 合法 token 通过校验
 
@@ -18,10 +18,15 @@
 - **WHEN** fontSize 为 10
 - **THEN** 校验不通过并给出可读原因
 
-#### Scenario: page 组不进导出
+#### Scenario: 可选颜色回退
 
-- **WHEN** 从 token 生成导出样式
-- **THEN** contentWidth 与 padding 不出现在导出产物中
+- **WHEN** token 未填 heading.color
+- **THEN** 渲染与导出使用 text.color 作为标题色
+
+#### Scenario: 预览常量不进 token
+
+- **WHEN** 读取或导出 ThemeToken
+- **THEN** contentWidth 与 padding 不出现在 token 或导出产物中
 
 ### Requirement: 内置预设可用
 

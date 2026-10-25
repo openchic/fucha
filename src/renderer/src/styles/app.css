@@ -1,0 +1,88 @@
+@import 'tailwindcss';
+
+@theme {
+  --color-primary: #8fae96;
+  --color-primary-ink: #2f3e33;
+  --color-shell: #242a25;
+  --color-shell-raised: #333b34;
+  --color-shell-border: #4a554b;
+  --color-shell-text: #f2f4f0;
+  --color-shell-muted: #b9c0b8;
+  --color-canvas: #f2f4f1;
+  --color-ink: #292e2a;
+  --color-ink-soft: #656d66;
+  --color-line: #dfe4de;
+  --color-skeleton: #e8ece7;
+  --radius-control: 8px;
+  --text-body: 14px;
+  --text-secondary: 13px;
+  --text-title: 16px;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  font-family:
+    system-ui,
+    -apple-system,
+    'PingFang SC',
+    'Microsoft YaHei',
+    sans-serif;
+  color: var(--color-ink);
+  background: var(--color-canvas);
+  -webkit-font-smoothing: antialiased;
+}
+
+button,
+input {
+  font: inherit;
+}
+
+button:not(:disabled),
+a {
+  cursor: pointer;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--color-primary) 35%, transparent);
+}
+
+.fade-in {
+  animation: fade-in 200ms ease-out;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+input:focus-visible,
+button:focus-visible,
+a:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+* {
+  scrollbar-color: color-mix(in srgb, var(--color-ink-soft) 30%, transparent) transparent;
+  scrollbar-width: thin;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

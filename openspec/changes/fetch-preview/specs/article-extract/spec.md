@@ -41,6 +41,25 @@
 - **WHEN** 正文含 javascript: 等危险协议链接
 - **THEN** 该链接被移除或降级为纯文本
 
+### Requirement: 内嵌 SVG 安全保留
+
+正文中的内嵌 SVG SHALL 保留静态矢量结构，包括图形、路径、文本、渐变与本地引用；SVG SHALL 可正常显示且不超出正文宽度。SVG 内部及页面级 `<style>` 中匹配 SVG 的安全 presentation 属性 SHALL 在提取前内联到对应图形，并与元素原有内联样式按属性合并；最终正文 SHALL 不保留这些 `style` 标签或 class。净化 SHALL 移除 SVG 内的脚本、事件属性、动画、`foreignObject`、嵌套位图、`use`、外部 `href`、非本地 `url()` 与不安全 CSS。曾因白名单整体禁止 `svg` 导致图形消失，后续又因 Readability 清理 `<style>` 与 class、以及内联样式覆盖已计算颜色，导致 `rect` 回落默认黑色；最终实现 SHALL 使用独立 SVG 白名单，在提取前完成安全样式合并。
+
+#### Scenario: 静态图形保留
+
+- **WHEN** 正文包含由 `svg`、`path`、`rect`、`text` 与本地 `linearGradient` 组成的图形
+- **THEN** 预览保留图形结构、文本、渐变与尺寸，且 SVG 不超出正文宽度
+
+#### Scenario: 内部样式上色
+
+- **WHEN** SVG 的 `rect` 仅通过内部 class 规则获得 `fill`
+- **THEN** 该颜色在提取前内联到 `rect`，预览显示规则颜色而非 SVG 默认黑色
+
+#### Scenario: 可执行与外部内容移除
+
+- **WHEN** 内嵌 SVG 包含脚本、事件属性、动画、外部图片、外部渐变引用或 `foreignObject`
+- **THEN** 上述内容全部被移除，预览不执行源页面脚本、不加载外部 SVG 资源
+
 ### Requirement: 来源信息保留
 
 净化 SHALL 保留正文语义结构（段落、标题、列表、引用、代码块、表格、图片），且文章保留原始来源链接与作者信息，供界面固定展示与导出附来源行。

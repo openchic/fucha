@@ -1,8 +1,7 @@
-import type { ElectronAPI } from '@electron-toolkit/preload'
+import type { FuchaApi } from '@shared/types'
 
 declare global {
   interface Window {
-    electron: ElectronAPI
-    api: unknown
+    fucha: FuchaApi
   }
 }
