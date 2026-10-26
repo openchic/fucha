@@ -1,9 +1,10 @@
 import type { Article, FetchError, ImageDownloadResult } from '@shared/types'
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { Icon } from './components'
 import { ExtractError, extractArticle } from './pipeline/extract'
 import { renderPreviewHtml } from './pipeline/images'
+import { ArticleMeta } from './views/ArticleMeta'
 import ComposeView from './views/ComposeView'
-import PreviewView, { ArticleMeta } from './views/PreviewView'
 
 type Stage = 'request' | 'extract'
 
@@ -50,7 +51,10 @@ export default function App() {
       setDraft(rawUrl)
       setState({ view: 'loading', stage: 'request' })
 
-      const fetched = await window.fucha.fetchArticle(url)
+      const fetched = await window.fucha.fetchArticle(url).catch(() => ({
+        ok: false as const,
+        error: { kind: 'network' as const, message: '连接中断，请稍后重试。' },
+      }))
       if (currentRequest !== requestId.current) return
       if (!fetched.ok) {
         setState({ view: 'error', error: fetched.error })
@@ -107,121 +111,152 @@ export default function App() {
     if (state.view === 'error') void submit(draft)
   }, [state.view, draft, submit])
 
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent): void => {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === 'l') {
+        if (state.view !== 'idle') return
+        event.preventDefault()
+        document.querySelector<HTMLInputElement>('.url-form input')?.select()
+      }
+    }
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [state.view])
+
+  const goHome = useCallback(() => {
+    requestId.current += 1
+    setDraft('')
+    setState({ view: 'idle' })
+  }, [])
+
+  const cancelLoading = useCallback(() => {
+    requestId.current += 1
+    setState({ view: 'idle' })
+  }, [])
+
   const busy = state.view === 'loading'
-  const spread = state.view !== 'idle'
+
+  if (state.view === 'idle') {
+    return (
+      <main className="compose-screen">
+        <div aria-hidden="true" className="drag-region absolute inset-x-0 top-0 h-20" />
+        <div className="compose-layout">
+          <ComposeView url={draft} onUrlChange={setDraft} onSubmit={submit} disabled={busy} />
+        </div>
+      </main>
+    )
+  }
 
   return (
-    <div className="flex h-screen w-screen flex-col overflow-hidden bg-canvas">
-      <header className="flex h-16 shrink-0 items-center gap-6 bg-shell px-5">
-        <div className="flex shrink-0 items-baseline gap-3">
-          <span className="text-title font-medium tracking-[0.12em] text-shell-text">浮槎</span>
-          <span className="text-secondary text-shell-muted">渡文过海</span>
-        </div>
-        {spread && (
-          <PreviewView url={draft} onUrlChange={setDraft} onSubmit={submit} disabled={busy} />
+    <main className="h-full overflow-hidden bg-white">
+      <div className="flex h-full min-h-0 flex-col overflow-hidden bg-white">
+        {state.view === 'preview' && <ArticleMeta article={state.article} onGoHome={goHome} />}
+        {state.view === 'loading' && <LoadingPanel stage={state.stage} onCancel={cancelLoading} />}
+        {state.view === 'preview' && <PreviewPanel html={state.previewHtml} />}
+        {state.view === 'error' && (
+          <ErrorPanel
+            error={state.error}
+            label={ERROR_LABEL[state.error.kind]}
+            onRetry={retry}
+            onGoHome={goHome}
+          />
         )}
-        {state.view === 'preview' && (
-          <nav aria-label="文章操作" className="flex shrink-0 items-center gap-2">
-            <button
-              type="button"
-              disabled
-              className="h-9 rounded-control px-3 text-secondary text-shell-muted disabled:cursor-not-allowed disabled:opacity-50"
-              title="主题选择（后续版本提供）">
-              主题
-            </button>
-            <button
-              type="button"
-              disabled
-              className="h-9 rounded-control px-3 text-secondary text-shell-muted disabled:cursor-not-allowed disabled:opacity-50"
-              title="保存 HTML（后续版本提供）">
-              保存
-            </button>
-            <button
-              type="button"
-              disabled
-              className="h-9 rounded-control bg-primary px-4 text-secondary font-medium text-primary-ink disabled:cursor-not-allowed disabled:opacity-40"
-              title="复制到公众号编辑器（后续版本提供）">
-              复制
-            </button>
-          </nav>
-        )}
-      </header>
-
-      {state.view === 'idle' ? (
-        <main className="min-h-0 flex-1 overflow-y-auto bg-canvas">
-          <ComposeView url={draft} onUrlChange={setDraft} onSubmit={submit} disabled={busy} />
-        </main>
-      ) : (
-        <main className="flex min-h-0 flex-1 flex-col bg-white">
-          {state.view === 'preview' && <ArticleMeta article={state.article} />}
-          <div className="min-h-0 flex-1">
-            {state.view === 'loading' && <LoadingPanel stage={state.stage} />}
-            {state.view === 'preview' && <PreviewPanel html={state.previewHtml} />}
-            {state.view === 'error' && (
-              <ErrorPanel
-                error={state.error}
-                label={ERROR_LABEL[state.error.kind]}
-                onRetry={retry}
-              />
-            )}
-          </div>
-        </main>
-      )}
-    </div>
+      </div>
+    </main>
   )
 }
 
-function LoadingPanel({ stage }: { stage: Stage }) {
+const LoadingPanel = (props: { stage: Stage; onCancel: () => void }) => {
+  const { stage, onCancel } = props
   const label = stage === 'request' ? '正在请求' : '正在解析'
   return (
-    <div className="h-full overflow-y-auto bg-white">
-      <div className="mx-auto w-full max-w-[45.25rem] px-6 py-10">
-        <p aria-live="polite" className="mb-8 text-secondary text-ink-soft">
-          {label}…
-        </p>
-        <div className="h-7 w-3/4 rounded-control bg-skeleton" />
-        <div className="mt-4 h-4 w-1/3 rounded-control bg-skeleton" />
-        <div className="mt-12 space-y-4">
-          {[92, 100, 96, 88, 100, 72].map((width, index) => (
-            <div
-              key={index}
-              className="h-4 rounded-control bg-skeleton"
-              style={{ width: `${width}%` }}
-            />
-          ))}
+    <div className="flex h-full min-h-0 flex-col" aria-busy="true">
+      <div className="article-header drag-region">
+        <div className="content-column">
+          <div className="article-toolbar">
+            <span className="loading-brand">浮槎</span>
+            <button type="button" onClick={onCancel} className="button button-secondary">
+              <Icon name="close" />
+              取消
+            </button>
+          </div>
+          <div className="article-heading-slot">
+            <h1>正在读取文章</h1>
+          </div>
+          <p role="status" className="loading-status">
+            {label}，请稍候…
+          </p>
+        </div>
+      </div>
+      <div className="reading-viewport min-h-0 flex-1 overflow-y-auto">
+        <div className="content-column skeleton-content" aria-hidden="true">
+          <div className="skeleton-line skeleton-heading" />
+          <div className="skeleton-paragraph">
+            {[96, 100, 93, 100, 76].map((width, index) => (
+              <div key={index} className="skeleton-line" style={{ width: `${width}%` }} />
+            ))}
+          </div>
+          <div className="skeleton-paragraph">
+            {[100, 91, 98, 65].map((width, index) => (
+              <div key={index} className="skeleton-line" style={{ width: `${width}%` }} />
+            ))}
+          </div>
         </div>
       </div>
     </div>
   )
 }
 
-function PreviewPanel({ html }: { html: string }) {
+LoadingPanel.displayName = 'LoadingPanel'
+
+const PreviewPanel = ({ html }: { html: string }) => {
   return (
-    <div className="fade-in h-full overflow-y-auto bg-white">
+    <div className="reading-viewport fade-in min-h-0 flex-1 overflow-y-auto">
       <div className="article-body" dangerouslySetInnerHTML={{ __html: html }} />
     </div>
   )
 }
 
-function ErrorPanel({
-  error,
-  label,
-  onRetry,
-}: {
+PreviewPanel.displayName = 'PreviewPanel'
+
+type ErrorPanelProps = {
   error: AppError
   label: string
   onRetry: () => void
-}) {
+  onGoHome: () => void
+}
+
+const ErrorPanel = (props: ErrorPanelProps) => {
+  const { error, label, onRetry, onGoHome } = props
   return (
-    <div className="flex h-full flex-col items-center justify-center bg-white px-10 text-center">
-      <p className="text-title font-medium text-ink">{label}</p>
-      <p className="mt-3 max-w-[26rem] text-body leading-relaxed text-ink-soft">{error.message}</p>
-      <button
-        type="button"
-        onClick={onRetry}
-        className="mt-6 h-10 rounded-control bg-primary px-5 text-body font-medium text-primary-ink transition-opacity duration-200 hover:opacity-85">
-        重试
-      </button>
+    <div className="flex h-full min-h-0 flex-col">
+      <div className="article-header drag-region">
+        <div className="content-column">
+          <div className="article-toolbar">
+            <button type="button" onClick={onGoHome} className="button button-back">
+              <Icon name="arrow-left" />
+              首页
+            </button>
+          </div>
+          <div className="article-heading-slot">
+            <h1>{label}</h1>
+          </div>
+        </div>
+      </div>
+      <div className="reading-viewport min-h-0 flex-1 overflow-y-auto">
+        <div className="content-column error-content">
+          <div className="error-notice" role="alert">
+            <Icon name="alert" />
+            <p>{error.message}</p>
+          </div>
+          <button type="button" onClick={onRetry} className="button button-primary retry-button">
+            重新尝试
+            <Icon name="arrow-right" />
+          </button>
+        </div>
+      </div>
     </div>
   )
 }
+
+ErrorPanel.displayName = 'ErrorPanel'

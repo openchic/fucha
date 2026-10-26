@@ -28,5 +28,5 @@ M0 打通了"链接进、预览出"，但预览只是样式基线，产出物无
 ## Impact
 
 - 新依赖：`highlight.js`、`juice`。
-- 代码：`src/renderer/src/theme/`（tokens、apply、presets）、`src/renderer/src/pipeline/export.ts`、`src/renderer/src/views/PreviewView.tsx`（主题渲染接入）、`src/shared/types.ts`（ThemeToken 契约）。
+- 代码：`src/renderer/src/theme/`（tokens、apply、presets）、`src/renderer/src/pipeline/export.ts`、`src/renderer/src/views/ArticleMeta.tsx`（主题渲染接入）、`src/shared/types.ts`（ThemeToken 契约）。
 - 依赖 change 1 产出的 Article 契约与预览态宿主。

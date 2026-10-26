@@ -12,6 +12,8 @@ function placeholder(label: string): string {
 const PENDING_PLACEHOLDER = placeholder('图片加载中')
 const FAILED_PLACEHOLDER = placeholder('图片加载失败')
 
+const normalizeText = (value: string): string => value.replace(/\s+/g, ' ').trim()
+
 export function renderPreviewHtml(
   article: Article,
   articleHash: string,
@@ -19,6 +21,13 @@ export function renderPreviewHtml(
 ): string {
   const byId = new Map(results.map((result) => [result.id, result]))
   const doc = new DOMParser().parseFromString(article.html, 'text/html')
+  const first = doc.body.firstElementChild
+  if (
+    (first?.tagName === 'H1' || first?.tagName === 'H2') &&
+    normalizeText(first.textContent ?? '') === normalizeText(article.title)
+  ) {
+    first.remove()
+  }
   doc.querySelectorAll('img').forEach((img) => {
     const src = img.getAttribute('src')
     if (!src) return

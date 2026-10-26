@@ -162,6 +162,7 @@ function testImageMapping(): void {
     { id: article.images[0]!.id, status: 'done', file: 'abc123.png' },
   ])
   check('4.3 成功图片走 fucha://', done.includes(`fucha://img/${hash}/abc123.png`))
+  check('5.3 预览去除与元信息重复的首标题', !/<h[12][^>]*>\s*示例文章标题\s*<\/h[12]>/i.test(done))
 
   const failed = renderPreviewHtml(article, hash, [{ id: article.images[0]!.id, status: 'failed' }])
   check(
