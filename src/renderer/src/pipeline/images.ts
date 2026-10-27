@@ -1,10 +1,11 @@
 import type { Article, ImageDownloadResult } from '@shared/types'
 
+/** 占位图是 data URI，读不到文档的 CSS 变量，颜色按 article.css 的 surface 与 soft 基线写死 */
 function placeholder(label: string): string {
   return (
     'data:image/svg+xml;utf8,' +
     encodeURIComponent(
-      `<svg xmlns="http://www.w3.org/2000/svg" width="640" height="360"><rect width="100%" height="100%" fill="#f0efec"/><text x="50%" y="50%" fill="#b8b2a6" font-family="system-ui" font-size="20" text-anchor="middle" dominant-baseline="middle">${label}</text></svg>`
+      `<svg xmlns="http://www.w3.org/2000/svg" width="640" height="360"><rect width="100%" height="100%" fill="#f6f7f8"/><text x="50%" y="50%" fill="#6b7280" font-family="system-ui" font-size="20" text-anchor="middle" dominant-baseline="middle">${label}</text></svg>`
     )
   )
 }
@@ -14,6 +15,7 @@ const FAILED_PLACEHOLDER = placeholder('图片加载失败')
 
 const normalizeText = (value: string): string => value.replace(/\s+/g, ' ').trim()
 
+/** 重写正文图片地址为本地缓存或占位图，返回可注入的 HTML */
 export function renderPreviewHtml(
   article: Article,
   articleHash: string,

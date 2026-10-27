@@ -1,5 +1,5 @@
 import DOMPurify from 'dompurify'
-import { hasOnlyLocalReferences, SVG_STYLE_PROPERTIES } from './svg'
+import { hasOnlyLocalReferences, SVG_NAMESPACE, SVG_STYLE_PROPERTIES } from './svg'
 
 // 语义结构白名单：保留段落/标题/列表/引用/代码块/表格/图片/静态 SVG，其余剥除。
 const ALLOWED_TAGS = [
@@ -171,8 +171,6 @@ const ALLOWED_ATTR = [
   'style',
 ]
 
-const SVG_NAMESPACE = 'http://www.w3.org/2000/svg'
-
 const SVG_URL_ATTRS = [
   'fill',
   'stroke',
@@ -223,6 +221,7 @@ DOMPurify.addHook('afterSanitizeAttributes', (node) => {
   }
 })
 
+/** 白名单净化正文，保留语义结构与静态 SVG，剥离脚本、事件与外链资源 */
 export function sanitizeHtml(html: string): string {
   return DOMPurify.sanitize(html, {
     ALLOWED_TAGS,

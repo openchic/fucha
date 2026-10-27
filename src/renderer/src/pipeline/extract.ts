@@ -7,6 +7,7 @@ import { inlineSvgStyles } from './svg'
 /** 正文置信度阈值：低于该字符数视为非文章页 */
 const MIN_TEXT_LENGTH = 200
 
+/** 正文无法提取时抛出，message 直接展示在错误态 */
 export class ExtractError extends Error {}
 
 function metaContent(doc: Document, selectors: string[]): string | undefined {
@@ -47,6 +48,7 @@ function applyImageProfile(doc: Document, url: string): void {
   })
 }
 
+/** 从 HTML 提取正文与元信息，无法提取时抛 ExtractError */
 export function extractArticle(html: string, url: string): Article {
   const doc = new DOMParser().parseFromString(html, 'text/html')
   applyImageProfile(doc, url)
@@ -82,15 +84,6 @@ export function extractArticle(html: string, url: string): Article {
   }
 }
 
-if (import.meta.hot) {
-  import.meta.hot.accept(() => {
-    if (sessionStorage.getItem('fucha:last-url')) {
-      sessionStorage.setItem('fucha:reprocess-on-load', '1')
-    }
-    window.location.reload()
-  })
-}
-
 function collectImages(html: string): ImageAsset[] {
   const doc = new DOMParser().parseFromString(html, 'text/html')
   const seen = new Set<string>()
@@ -106,4 +99,9 @@ function collectImages(html: string): ImageAsset[] {
     })
   })
   return images
+}
+
+// 改提取器后整页重载，路由里的 ?url= 会让预览页自动重跑管线。
+if (import.meta.hot) {
+  import.meta.hot.accept(() => window.location.reload())
 }

@@ -1,6 +1,6 @@
 // 站点适配：按域名配置抓取与图片下载的差异行为。微信必须，其余站点按需添加。
 
-interface SiteProfile {
+type SiteProfile = {
   /** 图片真实地址所在的属性（微信把 src 换成占位图，真实地址在 data-src） */
   imageSourceAttr?: string
   /** 图片下载需要附加的请求头（微信图片带 Referer 绕防盗链） */
@@ -20,6 +20,7 @@ const PROFILES: { hostSuffix: string; profile: SiteProfile }[] = [
   { hostSuffix: 'weixin.qq.com', profile: WECHAT },
 ]
 
+/** 按域名后缀匹配站点适配，未命中返回 undefined */
 export function matchProfile(url: string): SiteProfile | undefined {
   let host: string
   try {

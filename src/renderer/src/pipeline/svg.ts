@@ -1,4 +1,4 @@
-const SVG_NAMESPACE = 'http://www.w3.org/2000/svg'
+export const SVG_NAMESPACE = 'http://www.w3.org/2000/svg'
 
 export const SVG_STYLE_PROPERTIES = new Set([
   'fill',
@@ -33,6 +33,7 @@ export const SVG_STYLE_PROPERTIES = new Set([
 
 const UNSAFE_STYLE_VALUE = /[\\<>]|expression\s*\(|@import|!important|var\s*\(/i
 
+/** 只允许 `#` 本地引用，拦下外链与可执行表达式 */
 export function hasOnlyLocalReferences(value: string): boolean {
   if (UNSAFE_STYLE_VALUE.test(value)) return false
   if (!/url\s*\(/i.test(value)) return true
@@ -53,7 +54,7 @@ function safeDeclarations(style: CSSStyleDeclaration): [string, string][] {
   return declarations
 }
 
-// Readability 会清理全文 style 与 class，必须在提取前把 SVG 内部样式落到元素上。
+/** Readability 会清理全文 style 与 class，必须在提取前把 SVG 内部样式落到元素上 */
 export function inlineSvgStyles(root: ParentNode): void {
   const doc = root instanceof Document ? root : root.ownerDocument
   if (!doc) return

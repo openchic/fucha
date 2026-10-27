@@ -2,11 +2,19 @@
 
 ## 项目概览
 
-fucha —— 基于 Electron + React + TypeScript 的桌面应用，使用 openspec 的 spec-driven 工作流管理需求与变更。
+fucha —— 基于 Electron + React + TypeScript 的桌面应用。
 
-- 变更目录：`openspec/changes/<change-id>/`，包含 `proposal.md`、`specs/`、`design.md`、`tasks.md`
-- 主规格目录：`openspec/specs/`
-- 归档目录：`openspec/changes/archive/`
+## 代码规范
+
+代码规范按 `code-style` skill 执行。与本文冲突时以本文为准，样式上本项目走 Tailwind，不是 CSS Modules。
+
+## 样式约定
+
+应用壳的单元素样式写 Tailwind 工具类；`app.css` 只留 `@theme` token、元素级重置、伪元素与关键帧、滚动条、窗口拖动这类平台标记，以及被多个组件或多重状态复用的规则。文章正文与导出样式不经 Tailwind，只由 ThemeToken 决定，见 `docs/DESIGN.md` 的配色节。存量按改动收敛，不为此单开全量重写。
+
+## 开发调试
+
+验证界面与交互一律启动本地应用（`pnpm dev`）在真实窗口里操作，不用浏览器打开 dev server 页面替代：那里没有 preload 暴露的 IPC，抓取、预览与错误态都跑不通。
 
 ## OpenSpec 变更管理规则
 

@@ -26,7 +26,7 @@ export const Icon = ({ name, className }: IconProps) => (
     strokeWidth="1.6"
     strokeLinecap="round"
     strokeLinejoin="round"
-    className={className ?? 'ui-icon'}>
+    className={className ?? 'h-4 w-4 flex-none'}>
     <path d={PATHS[name]} />
   </svg>
 )

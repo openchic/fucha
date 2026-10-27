@@ -11,6 +11,7 @@ const IMAGE_CONCURRENCY = 3
 const UA =
   'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36'
 
+/** 文章图片与缓存索引的根目录 */
 export function articleCacheDir(): string {
   return join(app.getPath('userData'), 'article-cache')
 }
@@ -93,6 +94,7 @@ function classifyFetchError(error: unknown): FetchResult {
   }
 }
 
+/** 抓取文章 HTML，失败按原因分类返回 */
 export async function fetchArticle(rawUrl: string): Promise<FetchResult> {
   let url: URL
   try {
@@ -194,7 +196,7 @@ function extFor(contentType: string | null, url: string): string {
 
 async function downloadOne(
   articleDir: string,
-  item: { id: string; originalUrl: string }
+  item: DownloadImagesPayload['images'][number]
 ): Promise<ImageDownloadResult> {
   const profile = matchProfile(item.originalUrl)
   const indexFile = join(articleDir, 'index.json')
@@ -236,6 +238,7 @@ async function downloadOne(
   }
 }
 
+/** 按文章归档下载正文图片，返回逐图结果 */
 export async function downloadImages(
   payload: DownloadImagesPayload
 ): Promise<ImageDownloadResult[]> {
@@ -257,6 +260,7 @@ export async function downloadImages(
 
 // ---------- IPC 接线 ----------
 
+/** app ready 之后注册抓取与图片下载的 IPC 处理器 */
 export function registerIpcHandlers(): void {
   ipcMain.handle('fetch-article', (_event, url: string) => fetchArticle(url))
   ipcMain.handle('download-images', (_event, payload: DownloadImagesPayload) =>
