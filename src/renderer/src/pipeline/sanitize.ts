@@ -1,5 +1,11 @@
 import DOMPurify from 'dompurify'
-import { hasOnlyLocalReferences, SVG_NAMESPACE, SVG_STYLE_PROPERTIES } from './svg'
+import {
+  appendSafeSvgFontFaces,
+  hasOnlyLocalReferences,
+  SVG_NAMESPACE,
+  SVG_STYLE_PROPERTIES,
+  type SvgFontFace,
+} from './svg'
 
 // 语义结构白名单：保留段落/标题/列表/引用/代码块/表格/图片/静态 SVG，其余剥除。
 const ALLOWED_TAGS = [
@@ -95,6 +101,8 @@ const ALLOWED_ATTR = [
   'xmlns',
   'x',
   'y',
+  'dx',
+  'dy',
   'width',
   'height',
   'x1',
@@ -181,9 +189,25 @@ const SVG_URL_ATTRS = [
   'marker-end',
 ]
 
+const SVG_OFFSET_NUMBER = '[+-]?(?:\\d+(?:\\.\\d*)?|\\.\\d+)(?:e[+-]?\\d+)?'
+const SAFE_SVG_OFFSET_VALUE = new RegExp(
+  `^${SVG_OFFSET_NUMBER}(?:[\\s,]+${SVG_OFFSET_NUMBER})*$`,
+  'i'
+)
+
 function keepOnlyLocalPaintReferences(element: Element, attribute: string): void {
   const value = element.getAttribute(attribute)
   if (value !== null && !hasOnlyLocalReferences(value)) {
+    element.removeAttribute(attribute)
+  }
+}
+
+function keepOnlySafeTextOffset(element: Element, attribute: 'dx' | 'dy'): void {
+  const value = element.getAttribute(attribute)
+  if (
+    value !== null &&
+    (!['text', 'tspan'].includes(element.localName) || !SAFE_SVG_OFFSET_VALUE.test(value.trim()))
+  ) {
     element.removeAttribute(attribute)
   }
 }
@@ -210,11 +234,15 @@ DOMPurify.addHook('afterSanitizeAttributes', (node) => {
   if (!(node instanceof Element)) return
   if (node.namespaceURI !== SVG_NAMESPACE) {
     node.removeAttribute('style')
+    node.removeAttribute('dx')
+    node.removeAttribute('dy')
     return
   }
   node.removeAttribute('class')
   keepOnlySafeStyle(node)
   for (const attribute of SVG_URL_ATTRS) keepOnlyLocalPaintReferences(node, attribute)
+  keepOnlySafeTextOffset(node, 'dx')
+  keepOnlySafeTextOffset(node, 'dy')
   if (node.localName !== 'a') {
     const href = node.getAttribute('href')
     if (href !== null && !href.trim().startsWith('#')) node.removeAttribute('href')
@@ -222,11 +250,16 @@ DOMPurify.addHook('afterSanitizeAttributes', (node) => {
 })
 
 /** 白名单净化正文，保留语义结构与静态 SVG，剥离脚本、事件与外链资源 */
-export function sanitizeHtml(html: string): string {
-  return DOMPurify.sanitize(html, {
+export function sanitizeHtml(html: string, svgFontFaces: SvgFontFace[] = []): string {
+  const sanitizedHtml = DOMPurify.sanitize(html, {
     ALLOWED_TAGS,
     FORBID_TAGS,
     ALLOWED_ATTR,
     ALLOW_DATA_ATTR: false,
   })
+
+  if (svgFontFaces.length === 0) return sanitizedHtml
+  const doc = new DOMParser().parseFromString(sanitizedHtml, 'text/html')
+  appendSafeSvgFontFaces(doc, svgFontFaces)
+  return doc.body.innerHTML
 }

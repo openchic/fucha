@@ -12,21 +12,14 @@ const ERROR_LABEL: Record<AppError['kind'], string> = {
 type ErrorPanelProps = {
   error: AppError
   onRetry: () => void
-  onGoHome: () => void
 }
 
 export const ErrorPanel = (props: ErrorPanelProps) => {
-  const { error, onRetry, onGoHome } = props
+  const { error, onRetry } = props
   return (
     <div className="flex h-full min-h-0 flex-col">
-      <div className="flex-none border-b border-line bg-white pt-9 pb-5 drag-region">
+      <div className="flex-none border-b border-line bg-white pt-[86px] pb-5">
         <div className="content-column">
-          <div className="mb-4.5 flex h-8 items-center justify-between gap-4">
-            <button type="button" onClick={onGoHome} className="button button-back">
-              <Icon name="arrow-left" />
-              首页
-            </button>
-          </div>
           <h1 className="text-[26px] font-semibold leading-[1.4] tracking-[-0.025em] [overflow-wrap:anywhere]">
             {ERROR_LABEL[error.kind]}
           </h1>

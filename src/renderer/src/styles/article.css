@@ -68,6 +68,10 @@
   border-radius: 0 8px 8px 0;
 }
 
+.article-body blockquote > :last-child {
+  margin-bottom: 0;
+}
+
 .article-body pre {
   background: var(--article-surface);
   border-radius: 8px;

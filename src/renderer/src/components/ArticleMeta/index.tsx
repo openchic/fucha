@@ -3,30 +3,26 @@ import { Icon } from '../Icon'
 
 type ArticleMetaProps = {
   article: Article
-  onGoHome: () => void
+  onRefresh: () => void
+  refreshing: boolean
+  refreshError?: string
 }
 
 export const ArticleMeta = (props: ArticleMetaProps) => {
-  const { article, onGoHome } = props
+  const { article, onRefresh, refreshing, refreshError } = props
   const source = new URL(article.sourceUrl).hostname.replace(/^www\./, '')
 
   return (
     <section
       aria-labelledby="article-title"
-      className="flex-none border-b border-line bg-white pt-9 pb-5 drag-region">
+      className="flex-none border-b border-line bg-white pt-15 pb-3">
       <div className="content-column">
-        <div className="mb-4.5 flex h-8 items-center justify-between gap-4">
-          <button type="button" onClick={onGoHome} className="button button-back">
-            <Icon name="arrow-left" />
-            首页
-          </button>
-        </div>
         <h1
           id="article-title"
           className="text-[26px] font-semibold leading-[1.4] tracking-[-0.025em] [overflow-wrap:anywhere]">
           {article.title}
         </h1>
-        <dl className="no-drag mt-3 flex flex-wrap items-center gap-x-[18px] gap-y-2 text-secondary leading-[1.6] text-ink-soft [overflow-wrap:anywhere]">
+        <dl className="mt-2 flex flex-wrap items-center gap-x-[18px] gap-y-2 text-secondary leading-[1.6] text-ink-soft [overflow-wrap:anywhere]">
           <div className="flex min-w-0 items-center gap-[7px]">
             <span
               aria-hidden="true"
@@ -39,15 +35,41 @@ export const ArticleMeta = (props: ArticleMetaProps) => {
                 target="_blank"
                 rel="noreferrer"
                 title={article.sourceUrl}
-                className="text-ink underline decoration-line underline-offset-[3px] transition-[text-decoration-color] duration-150 ease-out hover:decoration-ink">
+                className="text-ink no-underline!">
                 {source}
               </a>
             </dd>
           </div>
-          {article.author && (
+          <div className="group relative flex min-w-0 items-center">
+            <dt className="sr-only">重新提取</dt>
+            <dd>
+              <button
+                type="button"
+                onClick={onRefresh}
+                disabled={refreshing}
+                aria-label="重新提取"
+                aria-busy={refreshing}
+                aria-describedby="refresh-tooltip"
+                className="flex h-7 w-7 flex-none items-center justify-center rounded-full text-ink-soft transition-colors hover:bg-raised hover:text-ink active:scale-95">
+                <Icon
+                  name="refresh"
+                  className={`h-4 w-4 flex-none ${refreshing ? 'animate-spin' : ''}`}
+                />
+              </button>
+            </dd>
+            <span
+              id="refresh-tooltip"
+              role="tooltip"
+              className="pointer-events-none absolute left-1/2 top-full z-10 mt-1 -translate-x-1/2 whitespace-nowrap rounded-md bg-ink px-2 py-1 text-xs leading-5 text-white opacity-0 transition-opacity duration-100 group-hover:opacity-100 group-focus-within:opacity-100">
+              {refreshing ? '正在重新提取' : '重新提取'}
+            </span>
+          </div>
+          {(refreshing || refreshError) && (
             <div className="min-w-0">
-              <dt className="sr-only">作者</dt>
-              <dd>{article.author}</dd>
+              <dt className="sr-only">刷新状态</dt>
+              <dd role="status" className={refreshError ? 'text-danger' : 'sr-only'}>
+                {refreshing ? '正在重新提取文章' : '重新提取失败，已保留当前文章'}
+              </dd>
             </div>
           )}
           {article.publishedAt && (

@@ -84,6 +84,15 @@ async function main(): Promise<void> {
     wechatProfile?.imageSourceAttr === 'data-src' && !!wechatProfile.imageHeaders?.Referer
   )
   check('2.2 非微信站点不套用', matchProfile('https://example.com/post') === undefined)
+  check(
+    '2.2 微信正文容器解除隐藏',
+    wechatProfile?.revealSelectors?.includes('#js_content') === true
+  )
+  check(
+    '2.2 微信图片域名带 Referer',
+    matchProfile('https://mmbiz.qpic.cn/sz_mmbiz_png/a/640')?.imageHeaders?.Referer ===
+      'https://mp.weixin.qq.com/'
+  )
 
   // 2.3 验证码特征
   check(

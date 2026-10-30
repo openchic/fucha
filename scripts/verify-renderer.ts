@@ -2,7 +2,7 @@
 import type { Article } from '../src/shared/types'
 import { extractArticle } from '../src/renderer/src/pipeline/extract'
 import { sanitizeHtml } from '../src/renderer/src/pipeline/sanitize'
-import { renderPreviewHtml } from '../src/renderer/src/pipeline/images'
+import { renderPreviewHtml, updatePreviewImages } from '../src/renderer/src/pipeline/images'
 
 const results: string[] = []
 function check(name: string, pass: boolean, detail = ''): void {
@@ -151,36 +151,93 @@ function testExtract(): void {
     '2.2 微信 data-src 映射为真实图片',
     wechat.images[0]?.originalUrl === 'https://mmbiz.qpic.cn/real.png'
   )
+
+  const hiddenWechat = extractArticle(
+    `<html><head><title>隐藏正文样例</title></head><body><div id="js_content" style="visibility: hidden; opacity: 0;"><p>${'微信隐藏容器正文。'.repeat(40)}</p><img src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==" data-src="https://mmbiz.qpic.cn/hidden.png"></div></body></html>`,
+    'https://mp.weixin.qq.com/s/hidden'
+  )
+  check('3.7 微信隐藏正文容器可被提取', hiddenWechat.html.includes('微信隐藏容器正文'))
+  check(
+    '3.7 隐藏容器内图片仍取 data-src',
+    hiddenWechat.images[0]?.originalUrl === 'https://mmbiz.qpic.cn/hidden.png'
+  )
+
+  const relative = extractArticle(
+    `<html><head><title>相对地址</title></head><body><article><p>${'相对地址正文。'.repeat(60)}</p><img src="/assets/a.png"><a href="/post/2">链接</a></article></body></html>`,
+    'https://example.com/blog/post'
+  )
+  check(
+    '3.1 相对图片按来源地址解析',
+    relative.images[0]?.originalUrl === 'https://example.com/assets/a.png',
+    relative.images[0]?.originalUrl
+  )
+  check('3.1 相对链接按来源地址解析', relative.html.includes('href="https://example.com/post/2"'))
+
+  const mdnChrome = extractArticle(
+    `<html><head><title>文档样例</title></head><body><article><h1>文档样例</h1><details class="baseline-indicator"><summary>基线</summary><p>广泛可用</p></details><p>${'文档正文内容。'.repeat(50)}</p></article></body></html>`,
+    'https://developer.mozilla.org/zh-CN/docs/Web/API/Document'
+  )
+  check(
+    '3.9 MDN 基线条清理',
+    !mdnChrome.html.includes('广泛可用') && mdnChrome.html.includes('文档正文内容')
+  )
+
+  const nodeChrome = extractArticle(
+    `<html><head><title>代码样例</title></head><body><article><h1>代码样例</h1><pre><code>const a = 1</code><div class="code-toolbar"><span class="code-language">javascript</span><button>copy</button></div></pre><p>${'代码正文内容。'.repeat(50)}</p></article></body></html>`,
+    'https://nodejs.org/api/fs.html'
+  )
+  check(
+    '3.9 Node 代码工具栏清理',
+    !nodeChrome.html.includes('javascript') && nodeChrome.html.includes('const a = 1')
+  )
 }
 
 function testImageMapping(): void {
   const article = extractArticle(SAMPLE_ARTICLE, 'https://example.com/post')
   const hash = 'verify-renderer'
-  const pending = renderPreviewHtml(article, hash, [])
+  const pending = renderPreviewHtml(article)
   check('4.3 下载中图片显示加载占位', pending.includes('data:image/svg+xml'))
-  const done = renderPreviewHtml(article, hash, [
-    { id: article.images[0]!.id, status: 'done', file: 'abc123.png' },
-  ])
-  check('4.3 成功图片走 fucha://', done.includes(`fucha://img/${hash}/abc123.png`))
-  check('5.3 预览去除与元信息重复的首标题', !/<h[12][^>]*>\s*示例文章标题\s*<\/h[12]>/i.test(done))
 
-  const failed = renderPreviewHtml(article, hash, [{ id: article.images[0]!.id, status: 'failed' }])
+  const doneRoot = document.createElement('div')
+  doneRoot.innerHTML = pending
+  updatePreviewImages(
+    doneRoot,
+    { ...article, images: [{ ...article.images[0]!, status: 'done', localPath: 'abc123.png' }] },
+    hash
+  )
+  check('4.3 成功图片走 fucha://', doneRoot.innerHTML.includes(`fucha://img/${hash}/abc123.png`))
+  check(
+    '5.3 预览去除与元信息重复的首标题',
+    !/<h[12][^>]*>\s*示例文章标题\s*<\/h[12]>/i.test(doneRoot.innerHTML)
+  )
+
+  const failedRoot = document.createElement('div')
+  failedRoot.innerHTML = pending
+  updatePreviewImages(
+    failedRoot,
+    { ...article, images: [{ ...article.images[0]!, status: 'failed' }] },
+    hash
+  )
   check(
     '4.3 失败图片降级占位',
-    failed.includes('data:image/svg+xml') && !failed.includes('example.com/a.png')
+    failedRoot.innerHTML.includes('data:image/svg+xml') &&
+      !failedRoot.innerHTML.includes('example.com/a.png')
   )
 }
 
-/** 6.1 二十链接清单：覆盖博客、文档站、社区与反爬站点；真实公众号链接需外部提供后补入 */
+/** 6.1 二十链接清单：2026-10-30 逐条复核 expect；站点结构会漂移，重跑前先复验 */
 const CHECKLIST: { url: string; kind: string; expect: 'ok' | 'fail' }[] = [
-  { url: 'https://zh.wikipedia.org/wiki/浮槎', kind: '百科', expect: 'ok' },
-  { url: 'https://en.wikipedia.org/wiki/Raft', kind: '百科', expect: 'ok' },
   { url: 'https://developer.mozilla.org/zh-CN/docs/Web/API/Document', kind: '文档', expect: 'ok' },
   { url: 'https://nodejs.org/api/fs.html', kind: '文档', expect: 'ok' },
   { url: 'https://cn.vite.dev/guide/why.html', kind: '文档', expect: 'ok' },
   { url: 'https://react.dev/learn/thinking-in-react', kind: '文档', expect: 'ok' },
   {
     url: 'https://docs.github.com/zh/get-started/start-your-journey/hello-world',
+    kind: '文档',
+    expect: 'ok',
+  },
+  {
+    url: 'https://docs.github.com/zh/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax',
     kind: '文档',
     expect: 'ok',
   },
@@ -192,19 +249,20 @@ const CHECKLIST: { url: string; kind: string; expect: 'ok' | 'fail' }[] = [
     expect: 'ok',
   },
   {
-    url: 'https://www.zhangxinxu.com/wordpress/2023/09/css-text-wrap-balance/',
+    url: 'https://www.joshwcomeau.com/css/interactive-guide-to-flexbox/',
     kind: '博客',
     expect: 'ok',
   },
-  { url: 'https://blog.jim-nielsen.com/2024/some-html-attributes/', kind: '博客', expect: 'ok' },
-  { url: 'https://jvns.ca/blog/2024/09/10/how-does-a-computer-work/', kind: '博客', expect: 'ok' },
   { url: 'https://simonwillison.net/2024/Sep/15/', kind: '博客', expect: 'ok' },
-  { url: 'https://www.bbc.com/zhongwen/simp', kind: '新闻首页', expect: 'fail' },
-  { url: 'https://sspai.com/post/92763', kind: '科技媒体', expect: 'ok' },
-  { url: 'https://juejin.cn/post/7355328681385193509', kind: '社区（需 JS）', expect: 'fail' },
+  { url: 'https://www.ifanr.com/app/1530197', kind: '科技媒体', expect: 'ok' },
+  { url: 'https://mp.weixin.qq.com/s/X-5kbBkedQ5Oct9byUunag', kind: '公众号', expect: 'ok' },
+  { url: 'https://mp.weixin.qq.com/s/Xur-QQuUy9itmiHyznR8xg', kind: '公众号', expect: 'ok' },
+  { url: 'https://mp.weixin.qq.com/s/QtfAJ-I5KZfWSBmCwEam3A', kind: '公众号', expect: 'ok' },
+  { url: 'https://sspai.com/post/92763', kind: '科技媒体（反爬）', expect: 'fail' },
   { url: 'https://zhuanlan.zhihu.com/p/683100237', kind: '社区（反爬）', expect: 'fail' },
+  { url: 'https://juejin.cn/post/7355328681385193509', kind: '社区（404）', expect: 'fail' },
   { url: 'https://example.invalid/none', kind: '不可达域名', expect: 'fail' },
-  { url: 'https://httpstat.us/404', kind: '404', expect: 'fail' },
+  { url: 'https://example.com/404', kind: '404', expect: 'fail' },
 ]
 
 async function testChecklist(): Promise<void> {

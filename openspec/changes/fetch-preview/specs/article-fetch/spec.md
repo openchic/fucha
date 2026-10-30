@@ -34,7 +34,7 @@
 
 ### Requirement: 微信文章适配
 
-对微信公众号文章，系统 SHALL 做站点级适配：图片真实地址以 `data-src` 为准；图片下载请求 SHALL 携带微信 Referer 以绕过防盗链；验证码或环境异常页 SHALL 显式抛错。
+对微信公众号文章，系统 SHALL 做站点级适配：图片真实地址以 `data-src` 为准；图片下载请求 SHALL 携带微信 Referer 以绕过防盗链；验证码或环境异常页 SHALL 显式抛错。正文图片域名 `mmbiz.qpic.cn` SHALL 与文章域名一样命中站点表；仅按文章域名匹配会使图片下载不带 Referer。
 
 #### Scenario: data-src 取图
 
@@ -43,8 +43,8 @@
 
 #### Scenario: 防盗链绕过
 
-- **WHEN** 下载微信文章的图片
-- **THEN** 请求携带微信域名 Referer
+- **WHEN** 下载微信文章的图片，图片域名与文章域名不同
+- **THEN** 请求按图片自身域名命中站点表并携带微信域名 Referer
 
 #### Scenario: 验证码显式抛错
 

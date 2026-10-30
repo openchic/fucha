@@ -13,7 +13,14 @@ export type Stage = 'request' | 'extract'
 
 export type ArticlePreviewState =
   | { view: 'loading'; stage: Stage }
-  | { view: 'preview'; article: Article; previewHtml: string }
+  | {
+      view: 'preview'
+      article: Article
+      articleHash: string
+      previewHtml: string
+      refreshing: boolean
+      refreshError?: string
+    }
   | { view: 'error'; error: AppError }
 
 export type UseArticlePreviewResult = {
@@ -36,56 +43,83 @@ export function useArticlePreview(url: string): UseArticlePreviewResult {
   const [state, setState] = useState<ArticlePreviewState>({ view: 'loading', stage: 'request' })
   const requestId = useRef(0)
 
-  const run = useCallback(async () => {
-    const currentRequest = ++requestId.current
-    setState({ view: 'loading', stage: 'request' })
+  const run = useCallback(
+    async (keepPreviousPreview = false) => {
+      const currentRequest = ++requestId.current
+      if (keepPreviousPreview) {
+        setState((current) =>
+          current.view === 'preview'
+            ? { ...current, refreshing: true, refreshError: undefined }
+            : { view: 'loading', stage: 'request' }
+        )
+      } else {
+        setState({ view: 'loading', stage: 'request' })
+      }
 
-    const fetched = await window.fucha.fetchArticle(url).catch(() => ({
-      ok: false as const,
-      error: { kind: 'network' as const, message: '连接中断，请稍后重试。' },
-    }))
-    if (currentRequest !== requestId.current) return
-    if (!fetched.ok) {
-      setState({ view: 'error', error: fetched.error })
-      return
-    }
+      const fetched = await window.fucha.fetchArticle(url).catch(() => ({
+        ok: false as const,
+        error: { kind: 'network' as const, message: '连接中断，请稍后重试。' },
+      }))
+      if (currentRequest !== requestId.current) return
+      if (!fetched.ok) {
+        setState((current) =>
+          keepPreviousPreview && current.view === 'preview'
+            ? { ...current, refreshing: false, refreshError: fetched.error.message }
+            : { view: 'error', error: fetched.error }
+        )
+        return
+      }
 
-    setState({ view: 'loading', stage: 'extract' })
-    await paint()
-    if (currentRequest !== requestId.current) return
-    let article: Article
-    try {
-      article = extractArticle(fetched.html, fetched.finalUrl)
-    } catch (error) {
-      const message = error instanceof ExtractError ? error.message : '解析正文时出现意外错误'
-      setState({ view: 'error', error: { kind: 'extract', message } })
-      return
-    }
+      if (!keepPreviousPreview) {
+        setState({ view: 'loading', stage: 'extract' })
+        await paint()
+      }
+      if (currentRequest !== requestId.current) return
+      let article: Article
+      try {
+        article = extractArticle(fetched.html, fetched.finalUrl)
+      } catch (error) {
+        const message = error instanceof ExtractError ? error.message : '解析正文时出现意外错误'
+        setState((current) =>
+          keepPreviousPreview && current.view === 'preview'
+            ? { ...current, refreshing: false, refreshError: message }
+            : { view: 'error', error: { kind: 'extract', message } }
+        )
+        return
+      }
 
-    const hash = await urlHash(fetched.finalUrl)
-    if (currentRequest !== requestId.current) return
-    setState({ view: 'preview', article, previewHtml: renderPreviewHtml(article, hash, []) })
-
-    const results: ImageDownloadResult[] = await window.fucha
-      .downloadImages({
+      const hash = await urlHash(fetched.finalUrl)
+      if (currentRequest !== requestId.current) return
+      setState({
+        view: 'preview',
+        article,
         articleHash: hash,
-        images: article.images.map(({ id, originalUrl }) => ({ id, originalUrl })),
+        previewHtml: renderPreviewHtml(article),
+        refreshing: false,
       })
-      .catch(() => article.images.map(({ id }) => ({ id, status: 'failed' as const })))
-    if (currentRequest !== requestId.current) return
-    const completedArticle: Article = {
-      ...article,
-      images: article.images.map((asset) => {
-        const result = results.find((item) => item.id === asset.id)
-        return { ...asset, status: result?.status ?? 'failed', localPath: result?.file }
-      }),
-    }
-    setState({
-      view: 'preview',
-      article: completedArticle,
-      previewHtml: renderPreviewHtml(completedArticle, hash, results),
-    })
-  }, [url])
+
+      const results: ImageDownloadResult[] = await window.fucha
+        .downloadImages({
+          articleHash: hash,
+          images: article.images.map(({ id, originalUrl }) => ({ id, originalUrl })),
+        })
+        .catch(() => article.images.map(({ id }) => ({ id, status: 'failed' as const })))
+      if (currentRequest !== requestId.current) return
+      const completedArticle: Article = {
+        ...article,
+        images: article.images.map((asset) => {
+          const result = results.find((item) => item.id === asset.id)
+          return { ...asset, status: result?.status ?? 'failed', localPath: result?.file }
+        }),
+      }
+      setState((current) =>
+        current.view === 'preview'
+          ? { ...current, article: completedArticle, refreshing: false }
+          : current
+      )
+    },
+    [url]
+  )
 
   useEffect(() => {
     if (!url) return
@@ -96,7 +130,7 @@ export function useArticlePreview(url: string): UseArticlePreviewResult {
   }, [run, url])
 
   const retry = useCallback(() => {
-    void run()
+    void run(true)
   }, [run])
 
   return { state, retry }

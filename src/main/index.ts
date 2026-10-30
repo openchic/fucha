@@ -29,7 +29,9 @@ function createWindow(): void {
 
   mainWindow.on('ready-to-show', () => {
     mainWindow.show()
-    if (is.dev) mainWindow.webContents.openDevTools({ mode: 'detach' })
+    if (is.dev && process.env['FUCHA_OPEN_DEVTOOLS'] !== '0') {
+      mainWindow.webContents.openDevTools({ mode: 'detach' })
+    }
   })
 
   mainWindow.webContents.setWindowOpenHandler((details) => {

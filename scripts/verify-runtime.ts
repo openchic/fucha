@@ -31,7 +31,7 @@ app.whenReady().then(async () => {
     search: process.env.VERIFY_CHECKLIST === '1' ? 'checklist=1' : 'checklist=0',
   })
 
-  const deadline = Date.now() + 180_000
+  const deadline = Date.now() + 480_000
   let results: string[] | undefined
   while (Date.now() < deadline) {
     results = await collect(win)

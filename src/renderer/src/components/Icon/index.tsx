@@ -1,4 +1,4 @@
-type IconName = 'link' | 'close' | 'arrow-right' | 'arrow-left' | 'alert' | 'sail'
+type IconName = 'link' | 'close' | 'arrow-right' | 'arrow-left' | 'refresh' | 'alert' | 'sail'
 
 type IconProps = {
   name: IconName
@@ -10,6 +10,7 @@ const PATHS: Record<IconName, string> = {
   close: 'm7 7 10 10M17 7 7 17',
   'arrow-right': 'M5 12h14m-6-6 6 6-6 6',
   'arrow-left': 'M19 12H5m6-6-6 6 6 6',
+  refresh: 'M20 11a8 8 0 0 0-15.5-2M4 4v5h5M4 13a8 8 0 0 0 15.5 2M20 20v-5h-5',
   alert:
     'M12 8v5m0 3h.01M10.3 3.9 2.5 17.4A2 2 0 0 0 4.2 20h15.6a2 2 0 0 0 1.7-2.6L13.7 3.9a2 2 0 0 0-3.4 0Z',
   sail: 'M12 3v13H4L12 3Zm3 4 5 9h-5M3 19c2 2 4 2 6 0 2 2 4 2 6 0 2 2 4 2 6 0',

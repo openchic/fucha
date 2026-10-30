@@ -128,16 +128,6 @@
   .drag-region {
     -webkit-app-region: drag;
   }
-
-  .no-drag {
-    -webkit-app-region: no-drag;
-  }
-
-  .drag-region a,
-  .drag-region button,
-  .drag-region input {
-    -webkit-app-region: no-drag;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {

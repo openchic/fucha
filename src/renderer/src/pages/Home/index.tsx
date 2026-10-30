@@ -34,10 +34,9 @@ const Home = () => {
   }
 
   return (
-    <main className="relative h-full overflow-y-auto bg-white pt-20 pb-16">
-      <div aria-hidden="true" className="drag-region absolute inset-x-0 top-0 h-20" />
+    <main className="h-full overflow-y-auto bg-white pt-20 pb-16">
       <div className="flex min-h-full items-center justify-center">
-        <div className="content-column no-drag pb-6">
+        <div className="content-column pb-6">
           <div className="flex items-center gap-3.5">
             <Icon name="sail" className="h-9 w-9 flex-none text-primary [stroke-width:1.35]" />
             <h1 className="text-[32px] font-semibold leading-[1.3] tracking-[-0.04em]">浮槎</h1>

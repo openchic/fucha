@@ -1,4 +1,4 @@
-import type { Article, ImageDownloadResult } from '@shared/types'
+import type { Article } from '@shared/types'
 
 /** 占位图是 data URI，读不到文档的 CSS 变量，颜色按 article.css 的 surface 与 soft 基线写死 */
 function placeholder(label: string): string {
@@ -16,12 +16,8 @@ const FAILED_PLACEHOLDER = placeholder('图片加载失败')
 const normalizeText = (value: string): string => value.replace(/\s+/g, ' ').trim()
 
 /** 重写正文图片地址为本地缓存或占位图，返回可注入的 HTML */
-export function renderPreviewHtml(
-  article: Article,
-  articleHash: string,
-  results: ImageDownloadResult[]
-): string {
-  const byId = new Map(results.map((result) => [result.id, result]))
+export function renderPreviewHtml(article: Article): string {
+  const byUrl = new Map(article.images.map((asset) => [asset.originalUrl, asset]))
   const doc = new DOMParser().parseFromString(article.html, 'text/html')
   const first = doc.body.firstElementChild
   if (
@@ -33,15 +29,35 @@ export function renderPreviewHtml(
   doc.querySelectorAll('img').forEach((img) => {
     const src = img.getAttribute('src')
     if (!src) return
-    const asset = article.images.find((item) => item.originalUrl === src)
+    const asset = byUrl.get(src)
     if (!asset) return
-    const result = byId.get(asset.id)
-    if (result?.status === 'done' && result.file) {
-      img.setAttribute('src', `fucha://img/${articleHash}/${result.file}`)
-    } else {
-      img.setAttribute('src', result ? FAILED_PLACEHOLDER : PENDING_PLACEHOLDER)
-    }
+    img.dataset.fuchaImageId = asset.id
+    img.setAttribute('src', PENDING_PLACEHOLDER)
     img.setAttribute('loading', 'lazy')
   })
   return doc.body.innerHTML
+}
+
+/** 更新已渲染的图片节点，避免图片下载完成时替换整篇正文 */
+export function updatePreviewImages(
+  root: HTMLElement | null,
+  article: Article,
+  articleHash: string
+): void {
+  if (!root) return
+
+  const assetsById = new Map(article.images.map((asset) => [asset.id, asset]))
+  root.querySelectorAll<HTMLImageElement>('img[data-fucha-image-id]').forEach((img) => {
+    const asset = assetsById.get(img.dataset.fuchaImageId ?? '')
+    if (!asset) return
+
+    const nextSrc =
+      asset.status === 'done' && asset.localPath
+        ? `fucha://img/${articleHash}/${asset.localPath}`
+        : asset.status === 'failed'
+          ? FAILED_PLACEHOLDER
+          : PENDING_PLACEHOLDER
+
+    if (img.getAttribute('src') !== nextSrc) img.setAttribute('src', nextSrc)
+  })
 }

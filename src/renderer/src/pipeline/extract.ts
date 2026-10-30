@@ -2,7 +2,12 @@ import type { Article, ImageAsset } from '@shared/types'
 import { Readability } from '@mozilla/readability'
 import { matchProfile } from '@shared/profiles'
 import { sanitizeHtml } from './sanitize'
-import { inlineSvgStyles } from './svg'
+import {
+  collectEmbeddedSvgFonts,
+  inlineSvgStyles,
+  normalizeSvgTextLinePositions,
+  preserveSvgHeadings,
+} from './svg'
 
 /** 正文置信度阈值：低于该字符数视为非文章页 */
 const MIN_TEXT_LENGTH = 200
@@ -36,6 +41,43 @@ function extractCover(doc: Document): string | undefined {
   return metaContent(doc, ['meta[property="og:image"]', 'meta[name="twitter:image"]'])
 }
 
+/** 以最终地址作为文档 base，Readability 按 doc.baseURI 解析相对图片与链接 */
+function applyBaseUrl(doc: Document, url: string): void {
+  doc.querySelectorAll('base').forEach((node) => node.remove())
+  const base = doc.createElement('base')
+  base.setAttribute('href', url)
+  doc.head.prepend(base)
+}
+
+/** 微信等站点：正文容器先被内联隐藏，提取前解除，否则 Readability 会判为不可见 */
+function revealProfileContent(doc: Document, url: string): void {
+  const selectors = matchProfile(url)?.revealSelectors
+  if (!selectors) return
+  for (const selector of selectors) {
+    doc.querySelectorAll(selector).forEach((node) => {
+      const style = (node as HTMLElement).style
+      style.visibility = ''
+      style.opacity = ''
+    })
+  }
+}
+
+/** 站点级清理：提前删除不影响判定的控件，标记参与判定但不应出现在正文中的组件 */
+function dropProfileChrome(doc: Document, url: string): void {
+  const profile = matchProfile(url)
+  if (!profile) return
+  for (const selector of profile.dropSelectors ?? []) {
+    doc.querySelectorAll(selector).forEach((node) => node.remove())
+  }
+  for (const selector of profile.postDropSelectors ?? []) {
+    doc.querySelectorAll(selector).forEach((node) => node.setAttribute('data-fucha-chrome', ''))
+  }
+}
+
+function removeProfileChrome(doc: Document): void {
+  doc.querySelectorAll('[data-fucha-chrome]').forEach((node) => node.remove())
+}
+
 /** 微信等站点：图片真实地址在 data-src，先映射回 src 再交给后续流程 */
 function applyImageProfile(doc: Document, url: string): void {
   const attr = matchProfile(url)?.imageSourceAttr
@@ -51,7 +93,12 @@ function applyImageProfile(doc: Document, url: string): void {
 /** 从 HTML 提取正文与元信息，无法提取时抛 ExtractError */
 export function extractArticle(html: string, url: string): Article {
   const doc = new DOMParser().parseFromString(html, 'text/html')
+  applyBaseUrl(doc, url)
+  revealProfileContent(doc, url)
+  dropProfileChrome(doc, url)
   applyImageProfile(doc, url)
+  const svgFontFaces = collectEmbeddedSvgFonts(doc)
+  preserveSvgHeadings(doc)
   inlineSvgStyles(doc)
 
   const cover = extractCover(doc)
@@ -67,7 +114,10 @@ export function extractArticle(html: string, url: string): Article {
     throw new ExtractError('正文过短，该链接可能不是文章页')
   }
 
-  const sanitizedHtml = sanitizeHtml(parsed.content)
+  const contentDoc = new DOMParser().parseFromString(parsed.content, 'text/html')
+  removeProfileChrome(contentDoc)
+  normalizeSvgTextLinePositions(contentDoc)
+  const sanitizedHtml = sanitizeHtml(contentDoc.body.innerHTML, svgFontFaces)
   if (!sanitizedHtml.trim()) {
     throw new ExtractError('正文净化后为空，该链接可能包含不支持的内容')
   }
