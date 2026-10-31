@@ -1,6 +1,6 @@
 ## Context
 
-绿地项目，electron-vite 脚手架已就位（main / preload / renderer 三进程骨架，窗口、安全基线与应用壳配色已按设计就位），架构边界见 docs/DESIGN.md。本 change 对应里程碑 M0。
+绿地项目，electron-vite 脚手架已就位（main / preload / renderer 三进程骨架，窗口、安全基线与应用壳配色已按设计就位），架构边界见 docs/design.md。本 change 对应里程碑 M0。
 
 ## Goals / Non-Goals
 
@@ -27,7 +27,7 @@
 
 图片状态的已确认问题是存在 failed 图片时界面仍显示「正在下载」。根因是原显示逻辑只比较 done 与总数；现在依据 pending、done、failed 分别给出下载中、全部就绪或成功/失败数量。按后续界面精简要求，元信息带不再渲染任何图片状态或数量，也不保留占位；三态仍由下载管道内部维护。IPC Promise 拒绝也进入可重试错误态，避免停留在加载屏。
 
-机制与常量以 docs/DESIGN.md 的「架构」「抓取」「提取与净化」「图片」「界面」为准，本文只保留本 change 当时的取舍：
+机制与常量以 docs/design.md 的「架构」「抓取」「提取与净化」「图片」「界面」为准，本文只保留本 change 当时的取舍：
 
 **本地图片用自定义协议，不把字节经 IPC 传成 blob URL。** 每张图一次跨进程拷贝且需放行 `blob:`，否。
 
@@ -106,7 +106,7 @@
 
 ## Open Questions
 
-无。预览样式基线、图片复用粒度均已在 DESIGN.md 中定值。
+无。预览样式基线、图片复用粒度均已在 design.md 中定值。
 
 ### 本次界面验收
 

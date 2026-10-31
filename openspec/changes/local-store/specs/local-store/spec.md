@@ -1,0 +1,175 @@
+## ADDED Requirements
+
+### Requirement: 本地数据库初始化与版本迁移
+
+系统 SHALL 在主进程使用 Electron 自带 `node:sqlite` 打开 `userData/fucha.db`，以 `PRAGMA user_version` 管理 schema 版本；首次创建 SHALL 建立当前 schema（v4），已有 v1/v2/v3 库 SHALL 顺序迁移补齐文章主题字段、统一默认主题 id 并为主题表增加快照字段。数据库打开、迁移失败或 `user_version` 高于代码支持版本时，系统 SHALL 将存储标记为不可用，且不阻断抓取、提取与预览主链路。
+
+#### Scenario: 首次创建当前数据库
+
+- **WHEN** 用户数据目录中尚不存在 `fucha.db`
+- **THEN** 系统创建数据库与当前四张表，并把 `user_version` 设置为 4
+
+#### Scenario: v1 库升级
+
+- **WHEN** 数据库已有文章且 `user_version = 1`
+- **THEN** 系统在事务中为 `articles` 增加 `theme_id` 与主题索引，保留原有文章数据并升级到 4
+
+#### Scenario: v2 库升级默认主题 id
+
+- **WHEN** 数据库为 v2，文章或偏好使用 `technical`
+- **THEN** 系统把默认主题 id 统一为 `default`，保留自定义主题 id 与文章数据，并继续升级到 v4
+
+#### Scenario: 重复初始化不重复建表
+
+- **WHEN** 已存在 `user_version = 1` 的数据库再次初始化
+- **THEN** 系统不重复创建表或索引，已有数据保持不变
+
+#### Scenario: 数据库不可用
+
+- **WHEN** 数据库无法打开或迁移失败
+- **THEN** 系统记录存储不可用状态，抓取与预览仍可正常进行
+
+#### Scenario: 数据库版本高于代码
+
+- **WHEN** 数据库的 `user_version` 高于当前代码支持的版本
+- **THEN** 系统不执行迁移，将存储标记为不可用并保持原库内容不变
+
+### Requirement: 存储访问边界
+
+SQLite 访问 SHALL 只存在于主进程，渲染进程 SHALL 只能通过后续领域接口使用存储能力，不得提交或执行任意 SQL。
+
+#### Scenario: 渲染进程无数据库能力
+
+- **WHEN** 本 change 完成且尚未接入历史或主题界面
+- **THEN** preload 不暴露通用 SQL 或数据库对象，渲染进程不能直接访问 `fucha.db`
+
+### Requirement: 偏好键值存储
+
+系统 SHALL 在 `preferences` 表按唯一 key 保存 JSON 编码的偏好值，并记录更新时间；读取不存在的 key SHALL 返回空值而不创建记录。
+
+#### Scenario: 写入后读取
+
+- **WHEN** 主进程写入 `theme.active` 为 `default`
+- **THEN** 随后读取同一 key 得到 `default`
+
+#### Scenario: 重复写入更新
+
+- **WHEN** 同一偏好 key 被再次写入新值
+- **THEN** 表中仍只有一条记录，值与更新时间被替换
+
+#### Scenario: 读取缺失偏好
+
+- **WHEN** 查询一个从未写入的 key
+- **THEN** 返回空值且不插入记录
+
+### Requirement: 自定义主题存储
+
+系统 SHALL 在 `themes` 表只保存用户自定义主题，内置主题继续由代码提供；主题 token 与 CSS SHALL 在写入前分别通过 `src/shared/theme.ts` 与 `src/shared/theme-css.ts` 的共享校验，读取结果 SHALL 仍是合法 ThemeToken。主题是不可变快照：`token` 与 `css` 写入后不再修改，保存调整 SHALL 创建新 id，同 id 已存在时 SHALL 拒绝；名称、排序等元信息允许更新并同步 `updated_at`。删除仍被文章引用的主题 SHALL 被拒绝；删除来源主题时 SHALL 把其他主题的 `source_theme_id` 置空。
+
+#### Scenario: 保存并列出自定义主题
+
+- **WHEN** 主进程保存一份合法自定义主题
+- **THEN** 主题列表返回该主题，token 可还原为合法 ThemeToken
+
+#### Scenario: 非法主题被拒
+
+- **WHEN** 主进程尝试保存一份越界或字段缺失的主题 token
+- **THEN** 共享校验拒绝写入，表中不新增记录
+
+#### Scenario: 拒绝覆盖快照
+
+- **WHEN** 以已存在的主题 id 再次创建快照
+- **THEN** 写入被拒绝，旧快照保持不变
+
+#### Scenario: 改名不改内容
+
+- **WHEN** 重命名自定义主题
+- **THEN** 只有名称与更新时间变化，token 与 css 不变
+
+#### Scenario: 删除自定义主题
+
+- **WHEN** 删除存在且未被文章引用的主题 id
+- **THEN** 该主题不再出现在列表中
+
+#### Scenario: 被引用的主题不能删除
+
+- **WHEN** 删除仍被文章引用的主题
+- **THEN** 删除被拒绝并报告引用数量
+
+### Requirement: 文章快照与历史元数据
+
+系统 SHALL 在 `articles` 表保存成功提取的文章快照，以 `SHA-256(finalUrl)` 前 32 位作为 hash；首次 upsert SHALL 写入 `last_visited_at` 与默认或指定的 `theme_id`（缺省 `default`），同一 hash 再次写入 SHALL 更新快照与 `updated_at`、保留已有 `theme_id` 且不产生重复记录。文章主题 SHALL 只存主题引用 id，不复制 token；主题是不可变快照，编辑主题生成新 id，历史文章 SHALL 不被静默改版。列表 SHALL 按最近活动时间倒序读取，活动时间取 `MAX(COALESCE(last_visited_at, updated_at), updated_at)`；新建、重新提取与打开的文章都 SHALL 排到顶部。`touch` SHALL 更新最近访问时间并递增访问次数。
+
+#### Scenario: 首次保存文章快照
+
+- **WHEN** 主进程写入包含 hash、来源地址、最终地址、标题与净化正文的文章
+- **THEN** 按 hash 可完整读回该快照，且 `last_visited_at` 已设置
+
+#### Scenario: 重新提取同一文章
+
+- **WHEN** 同一 finalUrl 的文章再次 upsert
+- **THEN** 原记录被更新，不新增第二条记录
+
+#### Scenario: 历史列表排序
+
+- **WHEN** 存在多条文章且最近访问时间或更新时间不同
+- **THEN** 列表按 `MAX(COALESCE(last_visited_at, updated_at), updated_at) DESC` 返回
+
+#### Scenario: 文章主题关联
+
+- **WHEN** 一篇文章首次保存或修改主题
+- **THEN** `articles.theme_id` 保存主题引用，重新提取保留已有主题，`setArticleTheme` 可更新引用 id
+
+#### Scenario: 主题快照不变
+
+- **WHEN** 用户基于主题 A 调整并保存为主题 B
+- **THEN** 引用 A 的文章仍按 A 渲染，只有当前文章可切到 B
+
+#### Scenario: 新建文章排到顶部
+
+- **WHEN** 主进程首次保存一篇文章快照
+- **THEN** 该文章位于历史列表首位
+
+#### Scenario: 重新提取回到顶部
+
+- **WHEN** 主进程再次 upsert 一篇已有文章
+- **THEN** `updated_at` 刷新，该文章回到历史列表首位
+
+#### Scenario: 打开文章计数
+
+- **WHEN** 主进程 touch 一个已存在 hash
+- **THEN** 该文章的 `last_visited_at` 更新且 `visit_count` 加一
+
+### Requirement: 图片元数据与级联删除
+
+系统 SHALL 在 `article_images` 表按文章 hash 与图片 id 保存状态、尺寸与顺序；物理文件名 SHALL 继续由 `article-cache/<hash>/index.json` 作为唯一映射，数据库不保存 `local_path`。重新提取或下载状态变化时 SHALL 以完整图片集合替换该文章的旧记录。删除文章 SHALL 级联删除其图片元数据，但不删除缓存目录。
+
+#### Scenario: 保存图片状态
+
+- **WHEN** 文章快照携带 pending、done、failed 三态图片元数据
+- **THEN** 读取文章时逐图状态、尺寸与顺序保持一致，文件映射从缓存索引解析
+
+#### Scenario: 重新提取后图片集合变化
+
+- **WHEN** 同一 hash 的新快照图片数量少于旧快照
+- **THEN** 旧图片记录被完整替换，不留下已不存在的图片
+
+#### Scenario: 下载状态更新
+
+- **WHEN** 图片下载完成后主进程提交完整图片列表
+- **THEN** 对应状态与尺寸被更新，文章其余字段不变
+
+#### Scenario: 删除文章
+
+- **WHEN** 删除一个文章 hash
+- **THEN** 该文章的所有 `article_images` 记录同时消失，缓存目录保持不变
+
+#### Scenario: 缓存索引缺失
+
+- **WHEN** 数据库记录图片为 done，但缓存索引中没有对应文件
+- **THEN** 快照消费方按失败占位处理，不回退为数据库内文件名
+
+#### Scenario: 非法图片状态
+
+- **WHEN** 尝试写入 CHECK 约束之外的图片状态
+- **THEN** 数据库拒绝写入

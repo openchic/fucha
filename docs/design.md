@@ -20,7 +20,7 @@
 
 选 Electron 而非 Tauri：渲染内核可控，界面不受系统 WebView 差异影响，代价是包体与内存偏高，可接受。
 
-依赖按环节分组，其中 highlight.js 与 juice 尚未安装，其余已就位：
+依赖按环节分组，其中 highlight.js 与 juice 已安装，其余已就位：
 
 - `界面`：tailwindcss 与 @tailwindcss/vite，应用壳样式载体，@theme 承接配色与基调 token，preflight 兼作样式重置。
 - `路由`：react-router，首页与预览两条 Hash 路由。
@@ -29,7 +29,7 @@
 - `高亮`：highlight.js，输出 class，导出时由 juice 一并内联成 style。
 - `内联`：juice。
 
-存储不引库：自定义主题与偏好都是 userData 下的 JSON 文件，fs 直接读写。写盘只发生在主进程，渲染进程经 IPC 调用。
+结构化数据用 Electron 自带 `node:sqlite` 存 `userData/fucha.db`，图片字节仍按文章存 `userData/article-cache/`。数据库与文件读写只在主进程，渲染进程经后续 IPC 调用；表结构见 `docs/local-store.md`。
 
 工具链版本锁在 TypeScript 5.9 与 ESLint 9：@vainjs/eslint-config 的 peer 要求 TS ^5.9，typescript-eslint 只支持 TS 小于 6.1，eslint 插件（import、react、react-hooks）最高到 9。三者互相牵制，升 TS 或 ESLint 要同时换掉这一组，不能单独抬版本。ESLint 用该包的 react 预设，React 19 走自动运行时故关掉 react-in-jsx-scope，并忽略 out/ 与 dist/ 构建产物。
 
@@ -53,8 +53,7 @@
 | `downloadImages` | articleHash + 图片 id/originalUrl 列表   | 每张图的 done/failed 与缓存文件名      | M0   |
 | `exportHtml`     | articleHash + 已内联样式的 HTML          | 图片已转 data URI 的最终 HTML          | M1   |
 | `copyHtml`       | 最终 HTML                                | 无                                     | M1   |
-| `saveFile`       | 最终 HTML                                | 无                                     | M1   |
-| `store`          | 主题与偏好的读写、重命名、删除、导入导出 | JSON                                   | M2   |
+| `store`          | 主题与偏好的读写、重命名、删除、导入导出 | 结构化记录                             | M2   |
 
 ### 主链路
 
@@ -75,9 +74,9 @@
   │
   └──────────────► 导出链路
                     ThemeToken → 具体值 CSS → juice 内联
-                    微信属性过滤 → 来源行
+                    微信属性过滤
                     exportHtml（主进程）图片转 base64
-                    copyHtml / saveFile
+                    copyHtml
 ```
 
 ### 进程通信与错误模型
@@ -96,9 +95,9 @@
 
 - 文章图片按文章归档：`userData/article-cache/<articleHash>/<内容 hash>.<ext>`，文件名取内容 SHA-1；同目录的 `index.json` 记 URL 到文件名的映射，重复提交直接复用。
 - 文章 hash 取 `finalUrl` 的 SHA-256 前 32 位。
-- 主题存 `userData/themes/<id>/token.json`，偏好存 `userData/preferences.json`（记 lastThemeId）。
-- 所有 fs 读写只在主进程。渲染进程的 `theme/store.ts` 只是 IPC 客户端，不是第二份存储实现。
-- 偏好或主题文件损坏时回默认预设，不阻断启动。
+- 结构化数据存 `userData/fucha.db`：自定义主题进 `themes`、偏好进 `preferences`、文章快照与图片元数据进 `articles` / `article_images`；文章快照的 `theme_id` 只存指向不可变主题快照的引用，编辑主题会生成新 id，历史文章不受影响。schema 与迁移策略见 `docs/local-store.md`。
+- 所有数据库与文件读写只在主进程。渲染进程的 `theme/store.ts` 将来只是 IPC 客户端，不是第二份存储实现。
+- 数据库不可用时回默认预设与空历史，不阻断抓取、提取与预览。
 - 缓存跨提交复用，清理动作不放在导出完成时，避免当前预览裂图；具体清理策略后置。
 
 ### 安全基线
@@ -163,110 +162,36 @@ interface ImageAsset {
 
 ## 主题系统
 
-### Token 契约
+### 主题契约与实现
 
-主题 token 是纯数据，单位随字段注明。预览画布的 contentWidth 676 是内容宽度上限，padding 24 是固定内边距；这两个是预览常量，不进入 token，也不参与导出，空间不足时内容随可用宽度收窄。微信正文宽度由客户端决定。圆角统一成 borderRadius，引用、代码、图片共用。
+主题系统以 `docs/theme-system.md` 为准，本节只保留边界：
 
-```ts
-interface ThemeToken {
-  id: string
-  name: string
-  builtin: boolean
-  text: {
-    fontSize: number // px 正文
-    smallSize: number // px 代码、表格、图注、来源脚注
-    lineHeight: number // 倍数
-    letterSpacing: number // em
-    paragraphSpacing: number // px
-    color: string
-    muted: string
-  }
-  primary: string // 标题装饰与引用边条共用
-  surface: string // 引用、代码、表头共用的块底色
-  border: string // 表格边框与分割线共用的线色
-  borderRadius: number // px 引用、代码、图片共用
-  heading: {
-    color?: string // 缺省随 text.color
-    h1: number // px 章节级，文章大标题由微信平台渲染
-    h2: number
-    h3: number // h4 起回落正文加粗
-    align: 'left' | 'center'
-    decoration: 'none' | 'bar' | 'underline' | 'bracket'
-    spacingAbove: number // px
-    spacingBelow: number // px
-  }
-  quote: {
-    padding: number // px
-  }
-  code: {
-    hljsTheme: string // highlight.js 主题名，只提供语法色
-    lineHeight: number // 倍数，代码块通常比正文紧
-    padding: number // px
-  }
-  table: {
-    cellPadding: number // px
-  }
-  image: {
-    spacing: number // px 图与上下文的间距
-  }
-  divider: {
-    style: 'line' | 'dots' | 'none'
-  }
-}
+- token 是稳定接口：正文、颜色、圆角、quote/code/table/image/divider，以及顶层 h1–h6；每级标题有字号、可选颜色、对齐、装饰与上下边距。字段名对齐 CSS 属性名。
+- 内置主题 `default` 与 `serif` 各自带 token 默认值与 `theme.css`，只读；升级视觉时新增 id，旧 id 保留。
+- 应用维护 `base.css`，元素规则只引用 token 变量；主题 CSS 只写差异。加载顺序为 base.css → 装饰规则 → hljs 语法色 → theme.css。
+- 文章只保存 `theme_id`；主题快照不可变，编辑在渲染进程草稿中进行，另存为生成新主题并只切换当前文章。
+- 自定义主题以 `.fucha-theme` 主题包导入导出（`theme.json` + `theme.css`），导入时 fail-closed 校验 token 与 CSS。
+
+### 预览与导出
+
+预览与导出共用同一份 CSS 与同一份正文归一，差异只有样式形态与图片传输：
+
+```text
+preview:
+  token -> .article-body CSS 变量
+  base.css + theme.css -> 注入 .article-body 作用域
+
+export:
+  token -> 具体值变量表
+  base.css + theme.css -> 解析 var()
+  -> juice 内联
+  -> 微信属性过滤
 ```
 
-强调文字只加粗并继承正文色，小字统一使用 smallSize，标题装饰与引用边条统一使用 primary，来源脚注使用 muted，不再为同一视觉职责设置第二份 token。
-
-数值字段的范围与技术长文预设默认值（滑杆与校验共用这套边界）。整数项取偶数，滑杆步长 2；行高与字距是倍数，保留小数：
-
-| 字段                         | 范围                  | 默认         |
-| ---------------------------- | --------------------- | ------------ |
-| text.fontSize                | 14 至 18              | 16           |
-| text.smallSize               | 12 至 16              | 14           |
-| text.lineHeight              | 1.5 至 2.2            | 1.75         |
-| text.letterSpacing           | 0 至 0.1em            | 0.03         |
-| text.paragraphSpacing        | 4 至 20               | 12           |
-| heading.h1 / h2 / h3         | 18-26 / 16-22 / 16-20 | 22 / 20 / 18 |
-| heading.spacingAbove / Below | 12-36 / 8-24          | 24 / 12      |
-| quote.padding                | 8 至 20               | 12           |
-| code.padding                 | 8 至 20               | 16           |
-| code.lineHeight              | 1.4 至 2.0            | 1.6          |
-| table.cellPadding            | 4 至 12               | 8            |
-| image.spacing                | 8 至 24               | 16           |
-| borderRadius                 | 0 至 12               | 4            |
-
-校验只要求必填字段；heading.color 未显式覆盖时随 text.color 变化。其余颜色不设覆盖分支，避免同一元素同时受基础色与派生色两个入口控制。
-
-技术长文预设配色为中性，与应用配色无关：primary #0969da、text #333333、muted #6b7280、surface #f6f8fa、border #d0d7de、hljsTheme github，标题左对齐加装饰条。中文行高 1.75 是公众号舒适区；主色只上装饰元素，链接与脚注用深灰加下划线。标题装饰只用真实元素实现，`bar` 用边框、`underline` 用底边、`bracket` 用首尾内联元素，不依赖伪元素，因为微信会剥离伪元素。
-
-### 一份生成逻辑，两条渲染路径
-
-预览与导出是两条渲染路径，这是最容易出偏差的地方。预览用 CSS 变量加 class，快；导出用 juice 把样式表内联进 style 属性，准。两者必须共用同一份 CSS 生成函数 `generateCss(token)`：函数先产出声明表，预览路径物化为 CSS 变量，导出路径输出解析后的具体值。juice 不解析 `var()`，导出路径不能留变量。组件不手写文章样式字面量，全部经 `generateCss`，这是一致性的唯一保证。
-
-两条硬约束保证一致性：生成函数只输出元素级选择器（h1、p、blockquote、pre code、table 等），不生成嵌套与伪类，避开 juice 内联不全；文章样式的全部排版属性由生成函数显式给出，不依赖 Tailwind preflight 或浏览器默认值，否则预览（应用文档）与微信（自有基线）必然分叉。
-
-高亮选 highlight.js 而非 shiki：hljs 同步、体积轻一个量级，输出 class 由 juice 统一内联成 style；微信只认内联样式，TextMate 级高亮精度在这里收益趋零。常用语言子集显式注册，检测失败落纯文本。hljsTheme 只提供语法色；生成 CSS 时剥掉 hljs 主题自带的背景声明，代码块底色统一取 surface，避免主题名与底色两个来源。
-
-### 主题面板、持久化与自动生成（M2）
-
-三层：内置预设、用户自定义、会话内临时调整。前期只做一套面向技术长文的预设，代码块与表格优先。
-
-主题面板切换预设、逐项调 token，色值用取色器，数值用滑杆，取值范围取自 token 契约的常量表，改动实时反映到预览；可选颜色字段是「跟随基础色 / 显式覆盖」两态，覆盖可清除。另存为自定义主题落到 userData 目录，支持重命名、删除、导出 JSON、导入（复用 token 校验）。入口在主题选择下拉：列表为内置预设加自定义主题，底部动作项是编辑当前主题与管理自定义主题；面板位于预览上方的元信息区域，编辑时替换元信息带——预览永不被遮挡，实时反馈是硬约束。
-
-编辑走会话草稿：改动只进内存工作副本，另存为才落盘，离开或切换时未保存的调整给提示。
-
-token 生成作为面板的增强：从 og:image 与 favicon 取主色写入 primary，标题装饰与引用边条随之更新，surface 与 border 保持预设中性色。按内容特征（代码块、表格密度）自动选预设，实现是纯函数 `deriveToken(article): Partial<ThemeToken>`。生成结果作为基于当前预设的微调建议，可见可改、一键还原，不静默覆盖；取色需过对比度校验（阈值 3.0），不达标降级为默认色。不做从源站学整套排版——公众号正文的最佳实践是收敛的，生成的价值在给一个对的起点。封面与 favicon 的字节由主进程读取后交给渲染进程取色，避免跨域 canvas 污染。
-
-### 导出
-
-导出输入是净化后的 `Article.html`（原始图片地址），不是预览 HTML（`fucha://` 地址），否则本地协议地址会漏进产物。管道按顺序：
-
-1. 渲染进程用 `generateCss(token)` 生成导出用具体值样式表，highlight.js 高亮代码块。
-2. juice 把样式内联到元素的 `style` 属性。
-3. 过微信安全属性表，剔除 position、float、grid 等不支持属性。结构层黑名单在净化阶段已经处理。
-4. 附加来源行，文末脚注式，含原文链接与作者。来源信息与预览元信息栏同源于 Article。
-5. 主进程 `exportHtml` 从缓存读取图片，转 base64 data URI 写入 `img` 的 `src`；超过单图上限或缓存中不存在的换成位图占位。
-6. `copyHtml` 走主进程 `clipboard.write` 写 HTML 格式，`saveFile` 走系统对话框落盘；两者产物一致。
+- 导出必须把所有 `var(--fucha-*)` 替换成具体值；juice 不解析 CSS 变量。
+- 预览与导出共用 `normalizeArticleDom`：去重复首标题、清引用末段距。
+- 导出输入是净化后的 `Article.html`（原始图片地址），不是预览 HTML；正文外链降级为文本。
+- hljsTheme 只提供语法色，背景由 token 的 `backgroundColor` 统一提供。
 
 单图上限先定 5MB（按原始文件字节），实测后调整。webp/avif 的微信端兼容性在 M1 清单中实测，不通过则在导出前转成 jpeg/png。占位图导出用位图 data URI，不用 SVG。
 
@@ -274,7 +199,7 @@ token 生成作为面板的增强：从 og:image 与 favicon 取主色写入 pri
 
 - `只认内联样式`：style 标签、外部 CSS、class 样式一律被剥离，样式必须落到元素 style 属性。
 - `图片必须 base64 内联`：外链图片会裂图，产物里的图片必须是 base64 data URI；微信编辑器粘贴时会自动转存。
-- `正文不能放外链`：可选脚注、二维码或挂到阅读原文。本应用只自动做文末脚注，二维码与阅读原文由用户按需自行处理。
+- `正文不能放外链`：正文内已有外链在导出时降级为文本并保留文字；来源只在预览信息带显示，不写入导出产物。
 - `布局能力受限`：position 与 float 基本失效，伪元素不可用，flex 部分可用，grid 别想，复杂排版靠 table 与 section 拼。
 - `代码块`：包 pre 加 `overflow-x: auto`，保证横向滚动不折行。
 
@@ -295,25 +220,29 @@ macOS 隐藏系统标题栏，红绿灯直接覆盖在内容上，不保留系�
 | 状态   | 正文区域                                                                                                                                                                                         | 去向                           |
 | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------ |
 | 初始态 | 白色内容区上一列内容：品牌字标、说明与链接表单；说明句写明链接需能公开访问；表单是单个药丸字段，占位提示「请输入一个链接」，右端内嵌「生成预览」，按钮常亮、空链接点击给就地提示；回车与点击等价 | 提交后进入加载态               |
-| 加载态 | 顶部标题骨架与「取消」并排，不显示品牌文字；阶段提示在下一行显示骨架，屏幕阅读器可读取请求/解析阶段；正文区显示同宽骨架行；允许取消并保留已提交链接回到输入态                                                               | 成功后进入预览，失败进入失败态 |
-| 预览态 | 窗口左侧、红绿灯下方固定「首页」；文章列显示完整标题、来源、重新提取按钮与发布时间，文章操作就绪后加入信息带；下方只读正文，图片原位更新                                                               | 首页回到初始态                 |
-| 失败态 | 窗口左侧固定「首页」，信息带显示错误分类；正文区用浅底色块给出具体原因，其后提供「重新尝试」                                                                                                                 | 重试回到加载态，首页回到初始态 |
+| 加载态 | 顶部标题骨架与「取消」并排，不显示品牌文字；阶段提示在下一行显示骨架，屏幕阅读器可读取请求/解析阶段；正文区显示同宽骨架行；允许取消并保留已提交链接回到输入态                                    | 成功后进入预览，失败进入失败态 |
+| 预览态 | 窗口左侧、红绿灯下方固定「首页」；文章列显示完整标题、来源、重新提取按钮与发布时间，文章操作就绪后加入信息带；下方只读正文，图片原位更新                                                         | 首页回到初始态                 |
+| 失败态 | 窗口左侧固定「首页」，信息带显示错误分类；正文区用浅底色块给出具体原因，其后提供「重新尝试」                                                                                                     | 重试回到加载态，首页回到初始态 |
 
 路由用 Hash，`/` 是首页，`/preview?url=` 是预览，加载与失败是预览页内的子状态；生产从 `file://` 加载，History 路由在刷新时会请求不存在的路径。链接随 `?url=` 进地址，刷新即按该链接重跑，不再另存上次链接。
 
-「首页」清空当前链接与文章，终止尚未完成的图片更新，并返回初始输入态。不常驻长链接，也不显示不可用的文章操作占位。输入框整只药丸是一个焦点目标，聚焦时边框由浅灰转主色 #5e7b6f，1px、不叠描边（实测对白底 4.63:1、对未聚焦边框 3.79:1，过焦点指示建议的 3:1）。校验错误文案左缩进 19px，与字段内链接图标左边缘对齐（实测同为 271px）。字段内提供清除按钮，生成按钮始终可点，空链接与无效链接都在字段下方就地提示；省略协议的有效域名自动补全 HTTPS，无效、非 HTTP(S)、带账户密码或包含空白的链接在原位提示。骨架屏在成功后原地淡出为预览。导出不是独立页面，操作就绪后主题选择、复制与保存依次排在信息带首行右侧，产物是一致的内联样式 HTML。返回入口独立位于窗口左侧（箭头距左边 24px、按钮顶部 64px），文章操作就绪后可使用信息带完整的 676px 列宽；三件控件按 160 + 80 + 80 加 8px 间距约占 336px，最窄窗口 1000px 下列宽不变，不会挤压标题。预览信息带单行标题时高约 146px（顶部 60、26px 标题、间距 8、元信息、底部 12），按标题和元信息的换行自然增高。
+「首页」清空当前链接与文章，终止尚未完成的图片更新，并返回初始输入态。不常驻长链接，也不显示不可用的文章操作占位。输入框整只药丸是一个焦点目标，聚焦时边框由浅灰转主色 #5e7b6f，1px、不叠描边（实测对白底 4.63:1、对未聚焦边框 3.79:1，过焦点指示建议的 3:1）。校验错误文案左缩进 19px，与字段内链接图标左边缘对齐（实测同为 271px）。字段内提供清除按钮，生成按钮始终可点，空链接与无效链接都在字段下方就地提示；省略协议的有效域名自动补全 HTTPS，无效、非 HTTP(S)、带账户密码或包含空白的链接在原位提示。骨架屏在成功后原地淡出为预览。导出不是独立页面，操作就绪后主题选择与复制依次排在元信息行右侧，与来源、刷新同一行，产物是一致的内联样式 HTML。返回入口独立位于窗口左侧（箭头距左边 24px、按钮顶部 64px），标题保持信息带完整的 676px 列宽；两件控件在元信息行右侧约占 171px（主题触发 92px、复制 71px、间距 8px），最窄窗口 1000px 下元信息与操作区同行且无横向溢出。预览信息带单行标题时高约 146px（顶部 60、26px 标题、间距 8、元信息、底部 12），按标题和元信息的换行自然增高。
 
 预览直接渲染净化后的 HTML，主题切换走 CSS 变量即时生效。加载态与预览态的标题和元信息从同一垂直位置开始，骨架首行与正文首内容共用 40px 顶部内边距。进入预览后阅读区保持稳定；图片下载完成时按图片 ID 更新已有 `img` 的 `src`，不重新设置整篇 `innerHTML`，保留正文节点与滚动位置。元信息带固定显示来源、重新提取入口和可用的发布时间，不展示作者；来源主机名可点击打开原始链接，不显示下划线。刷新入口按当前链接重新抓取和提取，并用锚定的应用内提示说明操作与当前刷新状态，支持鼠标悬浮和键盘聚焦。pending/done/failed 三态仅由图片下载管道内部维护，元信息带不显示图片状态、数量或占位。
 
 ## 目录结构
 
-标 + 的为待建，其余已在仓库。需求与规格在 `openspec/` 下按 change 组织，规则见 AGENTS.md，实现清单看对应 change 的 `tasks.md`。本文维护跨 change 的架构、机制与常量；change 文档只记录本次取舍与任务，不重复本文细节。
+需求与规格在 `openspec/` 下按 change 组织，规则见 AGENTS.md，实现清单看对应 change 的 `tasks.md`。本文维护跨 change 的架构、机制与常量；change 文档只记录本次取舍与任务，不重复本文细节。
 
 ```
 src/
   main/
     index.ts              窗口创建与生命周期
-    ipc.ts                抓取、图片下载、fucha:// 协议、导出图片内嵌
+    ipc.ts                抓取、图片下载、fucha:// 协议、存储 IPC、导出图片内嵌、剪贴板
+    db.ts                 SQLite 初始化、schema 迁移与存储可用状态
+    store.ts              偏好、自定义主题快照、文章快照与图片元数据仓储
+    theme-package.ts      主题包生成、解析与导入导出
+    zip.ts                主题包 zip 读写（stored 写出，stored/deflate 读入）
   preload/
     index.ts              暴露 IPC 接口
     index.d.ts            暴露接口的类型声明
@@ -325,30 +254,44 @@ src/
       env.d.ts
       pages/
         Home/            初始输入表单、链接校验与就地提示
-        Preview/         只读预览：文章信息带与正文
+        Preview/         只读预览：文章信息带、主题面板与正文
       components/
         Icon/            应用壳线性图标
-        ArticleMeta/     文章信息带：标题与来源元信息，首页返回位于 Preview 页壳
+        Dropdown/        应用壳下拉选择（主题选择与管理入口）
+        ArticleMeta/     文章信息带：标题、主题选择、复制与来源元信息
+        ThemePanel/      按颜色/正文/标题/组件分组的 token 草稿编辑
+        ThemeManager/    自定义主题导入导出、改名与删除
         LoadingPanel/    加载态骨架与阶段提示
         ErrorPanel/      失败分类、原因与重试
-      + ThemePanel/      主题下拉、编辑面板（M2）
       hooks/
         useArticlePreview.ts    按 ?url= 跑抓取、提取与图片下载
+        useArticleExport.ts     导出与复制状态
+        useThemeLibrary.ts      内置主题与自定义主题合并
+        useArticleTheme.ts      当前文章主题、编辑草稿与另存为
       pipeline/
         extract.ts        Readability 提取与置信度判断
         sanitize.ts       DOMPurify 白名单
         images.ts         图片路径映射与预览重写
-        export.ts         token 内联、微信属性过滤与来源行（M1）
+        export.ts         高亮、juice 内联与微信属性过滤
       theme/
-      + tokens.ts         token 类型、校验与范围常量表（M1）
-      + apply.ts          token 转 CSS 变量与导出样式（M1）
-      + derive.ts         由文章生成 token 建议（M2）
-      + store.ts          主题与偏好读写（IPC 客户端，M2）
-      + presets/technical.json  内置技术长文预设（M1）
+        tokens.ts         shared 校验的兼容导出
+        base-css.ts       正文基础排版（只引用 token 变量）
+        apply.ts          预览变量/作用域 CSS 与导出变量解析 CSS
+        highlight.ts      代码高亮与 hljs 主题
+        hljs-github.ts    github 语法色常量
+        library.ts        主题解析与可用主题合并
+        presets/
+          index.ts        内置主题加载
+          default.json    内置默认主题 token
+          default-css.ts  默认主题 theme.css
+          serif.json      内置衬线主题 token
+          serif-css.ts    衬线主题 theme.css
       styles/
         app.css           Tailwind 入口与 @theme（应用壳配色与基调）
-        article.css       M0 预览基线样式（M1 起由主题渲染取代）
   shared/
+    theme.ts              ThemeToken 范围常量与校验（主进程/渲染层共用）
+    theme-css.ts          主题 CSS 契约校验、作用域与变量解析
+    store-types.ts        本地存储记录类型
     types.ts              跨进程数据契约（含 IPC 接口签名）
     profiles.ts           域名适配（微信必须，其余按需）
 ```
@@ -359,7 +302,7 @@ src/
 
 `M1`：内置主题加导出内联 HTML，产出物直接粘进公众号后台不改格式。建微信兼容性检查清单，逐条验证标题、列表、引用、代码块、表格、图片、分割线，另加深色模式代码块配色、图片宽度降级两项实测，规则一变立刻重跑。
 
-`M2`：主题编辑面板加自定义主题持久化，加 token 自动生成（取主色与自动选预设）。
+`M2`：主题系统落地（不可变快照、base.css + theme.css、多套内置主题、主题包导入导出）与主题编辑面板；文章快照与主题绑定写入本地存储。token 自动生成不包含在本里程碑。
 
 后置（需要时再排）：自绘标题栏与系统控件、Windows 一致性对照、签名与公证分发。打包链路有一处上游版本不匹配待处理：app-builder-lib 需要 @electron/get 3.1 的 ElectronDownloadCacheMode，lockfile 仍锁在 3.0.0，`build:unpack` 会报错。
 

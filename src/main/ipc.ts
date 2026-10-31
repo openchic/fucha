@@ -1,15 +1,46 @@
-import type { DownloadImagesPayload, FetchResult, ImageDownloadResult } from '@shared/types'
+import type {
+  CopyHtmlPayload,
+  DownloadImagesPayload,
+  ExportHtmlPayload,
+  FetchResult,
+  ImageDownloadResult,
+} from '@shared/types'
+import type {
+  ArticleSnapshotInput,
+  JsonValue,
+  StoredImageInput,
+  ThemeSnapshotInput,
+} from '@shared/store-types'
 import { createHash } from 'crypto'
 import { promises as fs } from 'fs'
 import { join, normalize, resolve, sep } from 'path'
-import { app, ipcMain, protocol } from 'electron'
+import { app, BrowserWindow, clipboard, ipcMain, protocol } from 'electron'
 import { looksLikeCaptcha, matchProfile } from '@shared/profiles'
+import { exportThemePackage, importThemePackage } from './theme-package'
+import {
+  createTheme,
+  deleteTheme,
+  getArticle,
+  getPreference,
+  listThemes,
+  renameTheme,
+  replaceArticleImages,
+  setArticleTheme,
+  setPreference,
+  touchArticle,
+  upsertArticle,
+} from './store'
 
 const FETCH_TIMEOUT_MS = 15_000
 const IMAGE_TIMEOUT_MS = 20_000
 const IMAGE_CONCURRENCY = 3
+const EXPORT_IMAGE_LIMIT = 5 * 1024 * 1024
 const UA =
   'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36'
+
+/** 导出占位图：640×360 的浅灰位图，不用 SVG */
+const EXPORT_PLACEHOLDER =
+  'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAoAAAAFoCAIAAABIUN0GAAAEgklEQVR42u3VMQ0AAAgEsfcvGBgJJpiaVMEtl+oBAJ5FAgAwYAAwYADAgAHAgAEAAwYAAwYADBgADBgAMGAAMGAAMGAAwIABwIABAAMGAAMGAAwYAAwYADBgADBgADBgAMCAAcCAAQADBgADBgAMGAAMGAAwYAAwYAAwYADAgAHAgAEAAwYAAwYADBgADBgAMGAAMGAAMGAAwIABwIABAAMGAAMGAAwYAAwYADBgADBgADBgAMCAAcCAAQADBgADBgAMGAAMGAAwYAAwYAAwYADAgAHAgAEAAwYAAwYADBgADBgAMGAAMGAAMGAAwIABwIABAAMGAAMGAAwYAAwYADBgADBgADBgAMCAAcCAAQADBgADBgAMGAAMGAAwYAAwYAAwYBUAwIABwIABAAMGAAMGAAwYAAwYADBgADBgAMCAAcCAAcCAAQADBgADBgAMGAAMGAAwYAAwYADAgAHAgAHAgAEAAwYAAwYADBgADBgAMGAAMGAAwIABwIABwIABAAMGAAMGAAwYAAwYADBgADBgAMCAAcCAAcCAAQADBgADBgAMGAAMGAAwYAAwYADAgAHAgAHAgAEAAwYAAwYADBgADBgAMGAAMGAAwIABwIABwIABAAMGAAMGAAwYAAwYADBgADBgAMCAAcCAAcCAAQADBgADBgAMGAAMGAAwYAAwYADAgAHAgAHAgAEAAwYAAwYADBgADBgAMGAAMGAAwIABwIABwIBVAAADBgADBgAMGAAMGAAwYAAwYADAgAHAgAEAAwYAAwYAAwYADBgADBgAMGAAMGAAwIABwIABAAMGAAMGAAMGAAwYAAwYADBgADBgAMCAAcCAAQADBgADBgADBgAMGAAMGAAwYAAwYADAgAHAgAEAAwYAAwYAAwYADBgADBgAMGAAMGAAwIABwIABAAMGAAMGAAMGAAwYAAwYADBgADBgAMCAAcCAAQADBgADBgADBgAMGAAMGAAwYAAwYADAgAHAgAEAAwYAAwYAAwYADBgADBgAMGAAMGAAwIABwIABAAMGAAMGAAMGAAwYAAwYADBgADBgAMCAAcCAAQADBgADBgADBgAMGAAMGAAwYAAwYADAgAHAgAEAAwYAAwYAA5YAAAwYAAwYADBgADBgAMCAAcCAAQADBgADBgAMGAAMGAAMGAAwYAAwYADAgAHAgAEAAwYAAwYADBgADBgADBgAMGAAMGAAwIABwIABAAMGAAMGAAwYAAwYAAwYADBgADBgAMCAAcCAAQADBgADBgAMGAAMGAAMGAAwYAAwYADAgAHAgAEAAwYAAwYADBgADBgADBgAMGAAMGAAwIABwIABAAMGAAMGAAwYAAwYAAwYADBgADBgAMCAAcCAAQADBgADBgAMGAAMGAAMGAAwYAAwYADAgAHAgAEAAwYAAwYADBgADBgADBgAMGAAMGAAwIABwIABAAMGAAMGAAwYAAwYAAxYBQAwYAAwYADAgAHAgAEAAwYAAwYADBgADBgAMGAAMGAAMGAAwIABwIABAAMGAAMGAAwYAAwYADgL3D+spCUhJQ4AAAAASUVORK5CYII='
 
 /** 文章图片与缓存索引的根目录 */
 export function articleCacheDir(): string {
@@ -258,12 +289,103 @@ export async function downloadImages(
   return results
 }
 
+// ---------- 导出 ----------
+
+function decodeHtmlEntities(value: string): string {
+  return value
+    .replace(/&amp;/g, '&')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;|&#x27;/g, "'")
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+}
+
+async function fileToDataUri(dir: string, file: string): Promise<string | null> {
+  if (!/^[a-f0-9]+\.[a-z0-9]+$/i.test(file)) return null
+  const filePath = join(dir, file)
+  const stat = await fs.stat(filePath)
+  if (stat.size > EXPORT_IMAGE_LIMIT) return null
+  const data = await fs.readFile(filePath)
+  const mime = MIME_BY_EXT[file.slice(file.lastIndexOf('.')).toLowerCase()] ?? 'image/jpeg'
+  return `data:${mime};base64,${data.toString('base64')}`
+}
+
+/** 把导出 HTML 中的正文图片换成 base64；失败、超限或缺失一律用位图占位 */
+export async function exportHtml(payload: ExportHtmlPayload): Promise<string> {
+  if (!/^[a-f0-9]{32}$/.test(payload.articleHash)) return payload.html
+  const dir = join(articleCacheDir(), payload.articleHash)
+  let index: Record<string, string> = {}
+  try {
+    index = JSON.parse(await fs.readFile(join(dir, 'index.json'), 'utf-8')) as Record<
+      string,
+      string
+    >
+  } catch {
+    // 没有索引时正文中的外部图片全部降级为占位
+  }
+
+  const sources = new Map<string, string>()
+  let counter = 0
+  const marked = payload.html.replace(
+    /(<img\b[^>]*?\bsrc=")([^"]*)(")/gi,
+    (match, before: string, src: string, after: string) => {
+      if (!src || src.startsWith('data:')) return match
+      const token = `__FUCHA_IMAGE_${counter++}__`
+      sources.set(token, src)
+      return `${before}${token}${after}`
+    }
+  )
+
+  let result = marked
+  for (const [token, src] of sources) {
+    const file = index[decodeHtmlEntities(src)]
+    let dataUri = EXPORT_PLACEHOLDER
+    if (file) {
+      dataUri = (await fileToDataUri(dir, file).catch(() => null)) ?? EXPORT_PLACEHOLDER
+    }
+    result = result.split(token).join(dataUri)
+  }
+  return result
+}
+
+export function copyHtml(payload: CopyHtmlPayload): void {
+  clipboard.write({ html: payload.html, text: payload.text })
+}
+
 // ---------- IPC 接线 ----------
 
-/** app ready 之后注册抓取与图片下载的 IPC 处理器 */
+/** app ready 之后注册抓取、图片下载、存储与导出相关的 IPC 处理器 */
 export function registerIpcHandlers(): void {
   ipcMain.handle('fetch-article', (_event, url: string) => fetchArticle(url))
   ipcMain.handle('download-images', (_event, payload: DownloadImagesPayload) =>
     downloadImages(payload)
   )
+  ipcMain.handle('export-html', (_event, payload: ExportHtmlPayload) => exportHtml(payload))
+  ipcMain.handle('copy-html', (_event, payload: CopyHtmlPayload) => copyHtml(payload))
+
+  ipcMain.handle('themes:list', () => listThemes())
+  ipcMain.handle('themes:create', (_event, input: ThemeSnapshotInput) => createTheme(input))
+  ipcMain.handle('themes:rename', (_event, id: string, name: string) => renameTheme(id, name))
+  ipcMain.handle('themes:delete', (_event, id: string) => deleteTheme(id))
+  ipcMain.handle('themes:export', (event, input: ThemeSnapshotInput) =>
+    exportThemePackage(input, BrowserWindow.fromWebContents(event.sender) ?? undefined)
+  )
+  ipcMain.handle('themes:import', (event) =>
+    importThemePackage(BrowserWindow.fromWebContents(event.sender) ?? undefined)
+  )
+
+  ipcMain.handle('preferences:get', (_event, key: string) => getPreference(key) ?? null)
+  ipcMain.handle('preferences:set', (_event, key: string, value: JsonValue) => {
+    setPreference(key, value)
+  })
+
+  ipcMain.handle('articles:get', (_event, hash: string) => getArticle(hash) ?? null)
+  ipcMain.handle('articles:save', (_event, input: ArticleSnapshotInput) => upsertArticle(input))
+  ipcMain.handle('articles:images', (_event, hash: string, images: StoredImageInput[]) =>
+    replaceArticleImages(hash, images)
+  )
+  ipcMain.handle('articles:theme', (_event, hash: string, themeId: string) =>
+    setArticleTheme(hash, themeId)
+  )
+  ipcMain.handle('articles:touch', (_event, hash: string) => touchArticle(hash))
 }

@@ -4,14 +4,14 @@ M0 打通了"链接进、预览出"，但预览只是样式基线，产出物无
 
 ## What Changes
 
-- 新增主题 token 体系（ThemeToken 固定结构、单位约定）与首套内置预设（面向技术长文）。
-- 新增 CSS 生成函数：token 产出预览用 CSS 变量集与导出用具体值样式表，预览与导出共用同一份生成逻辑。
-- 新增导出管道：highlight.js 高亮、juice 内联、图片转 base64（单图上限 5MB）、微信白名单降级、来源行附加。
-- 新增一键复制到剪贴板（内联样式 HTML）与保存 HTML 文件。
+- 新增主题 token 体系（ThemeToken 固定结构、单位约定）与内置主题（token 默认值 + theme.css）。
+- 新增 CSS 管线：token 产出预览用 CSS 变量集，导出时解析同一份 base.css + theme.css 中的变量，预览与导出共用同一套 CSS。
+- 新增导出管道：highlight.js 高亮、juice 内联、图片转 base64（单图上限 5MB）、微信白名单降级；来源只在预览信息带展示。
+- 新增一键复制到剪贴板（内联样式 HTML）。
 - 原预览态接入主题渲染：预览即公众号所见效果。
 - 建微信兼容性检查清单，作为回归基线。
 
-不在本 change 范围：主题编辑面板、自定义主题持久化、token 自动生成（change 3）。
+不在本 change 范围：主题编辑面板与自定义主题持久化（change 3）；token 自动生成不在当前里程碑。
 
 ## Capabilities
 
@@ -19,7 +19,7 @@ M0 打通了"链接进、预览出"，但预览只是样式基线，产出物无
 
 - `theme-tokens`: 主题 token 的固定结构、单位约定与内置预设。
 - `themed-preview`: 预览按主题 token 渲染，主题切换即时生效。
-- `wechat-export`: 内联样式导出（高亮、内联、base64 图片、白名单降级、来源行）与一键复制/保存。
+- `wechat-export`: 内联样式导出（高亮、内联、base64 图片、白名单降级）与一键复制。
 
 ### Modified Capabilities
 

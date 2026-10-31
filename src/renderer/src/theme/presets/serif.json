@@ -1,0 +1,78 @@
+{
+  "id": "serif",
+  "name": "serif",
+  "builtin": true,
+  "text": {
+    "fontSize": 17,
+    "secondaryFontSize": 14,
+    "lineHeight": 1.85,
+    "letterSpacing": 0.02,
+    "marginBottom": 16,
+    "color": "#2f2a26",
+    "secondaryColor": "#8a7f74"
+  },
+  "primary": "#a05a3c",
+  "backgroundColor": "#faf7f2",
+  "borderColor": "#e3d9cc",
+  "borderRadius": 0,
+  "h1": {
+    "fontSize": 24,
+    "textAlign": "center",
+    "decoration": "underline",
+    "marginTop": 32,
+    "marginBottom": 20
+  },
+  "h2": {
+    "fontSize": 20,
+    "textAlign": "center",
+    "decoration": "underline",
+    "marginTop": 28,
+    "marginBottom": 14
+  },
+  "h3": {
+    "fontSize": 18,
+    "textAlign": "left",
+    "decoration": "none",
+    "marginTop": 24,
+    "marginBottom": 10
+  },
+  "h4": {
+    "fontSize": 16,
+    "textAlign": "left",
+    "decoration": "none",
+    "marginTop": 20,
+    "marginBottom": 8
+  },
+  "h5": {
+    "fontSize": 15,
+    "textAlign": "left",
+    "decoration": "none",
+    "marginTop": 20,
+    "marginBottom": 8
+  },
+  "h6": {
+    "fontSize": 14,
+    "textAlign": "left",
+    "decoration": "none",
+    "marginTop": 20,
+    "marginBottom": 8
+  },
+  "quote": {
+    "padding": 16
+  },
+  "code": {
+    "hljsTheme": "github",
+    "lineHeight": 1.7,
+    "padding": 18
+  },
+  "table": {
+    "padding": 10
+  },
+  "image": {
+    "marginTop": 20,
+    "marginBottom": 20
+  },
+  "divider": {
+    "borderTopStyle": "dotted"
+  }
+}

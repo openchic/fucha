@@ -2,7 +2,7 @@
 
 把一个链接，变成一篇可以直接发进公众号的文章。
 
-Electron + React + TypeScript。需求与变更走 openspec 的 spec-driven 流程（见 AGENTS.md），设计与架构见 docs/DESIGN.md。
+Electron + React + TypeScript。需求与变更走 openspec 的 spec-driven 流程（见 AGENTS.md），设计与架构见 docs/design.md。
 
 ## Recommended IDE Setup
 

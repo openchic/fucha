@@ -1,8 +1,15 @@
-// 临时验证入口（渲染进程侧）：真 DOM 下验证提取、净化、图片路径映射，并跑二十链接清单。
+// 临时验证入口（渲染进程侧）：真 DOM 下验证提取、净化、图片路径映射、主题 CSS 与导出管道。
 import type { Article } from '../src/shared/types'
 import { extractArticle } from '../src/renderer/src/pipeline/extract'
 import { sanitizeHtml } from '../src/renderer/src/pipeline/sanitize'
 import { renderPreviewHtml, updatePreviewImages } from '../src/renderer/src/pipeline/images'
+import { buildExportHtml, exportHtmlToText } from '../src/renderer/src/pipeline/export'
+import { exportRootStyle, buildExportCss, buildPreviewCss } from '../src/renderer/src/theme/apply'
+import { highlightArticleHtml, highlightThemeCss } from '../src/renderer/src/theme/highlight'
+import { BUILTIN_THEMES, DEFAULT_THEME } from '../src/renderer/src/theme/presets'
+import { validateThemeToken } from '../src/renderer/src/theme/tokens'
+import { headingColor } from '../src/shared/theme'
+import { resolveThemeVariables, scopeCss, validateThemeCss } from '../src/shared/theme-css'
 
 const results: string[] = []
 function check(name: string, pass: boolean, detail = ''): void {
@@ -192,6 +199,279 @@ function testExtract(): void {
   )
 }
 
+function testTheme(): void {
+  const validated = validateThemeToken(DEFAULT_THEME.token)
+  check('1.1 内置预设通过校验', validated.id === 'default' && validated.name === 'default')
+  check('1.1 默认主题主色跟随应用主色', validated.primary === '#5e7b6f')
+  check(
+    '1.1 标题六级直接挂在 token 顶层',
+    ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'].every((key) => key in validated)
+  )
+
+  let rejected = ''
+  try {
+    validateThemeToken({
+      ...DEFAULT_THEME.token,
+      text: { ...DEFAULT_THEME.token.text, fontSize: 10 },
+    })
+  } catch (error) {
+    rejected = String(error)
+  }
+  check('1.1 越界字号被拒', rejected.includes('theme.text.fontSize'), rejected)
+
+  let missingHeading = ''
+  try {
+    const withoutH6 = { ...DEFAULT_THEME.token } as Record<string, unknown>
+    delete withoutH6.h6
+    validateThemeToken(withoutH6)
+  } catch (error) {
+    missingHeading = String(error)
+  }
+  check('1.1 缺少 h6 被拒', missingHeading.includes('theme.h6'), missingHeading)
+
+  check(
+    '1.1 标题颜色缺省回退正文色',
+    headingColor(DEFAULT_THEME.token, 'h2') === DEFAULT_THEME.token.text.color
+  )
+
+  const fallbackExport = buildExportCss({
+    token: {
+      ...DEFAULT_THEME.token,
+      h2: { ...DEFAULT_THEME.token.h2, color: undefined },
+    },
+    css: '',
+  })
+  const h2Rule = /h2 \{([\s\S]*?)\}/.exec(fallbackExport)?.[1] ?? ''
+  check('1.1 h2 颜色回退到正文色', h2Rule.includes('color: #333333'))
+
+  const previewCss = buildPreviewCss(DEFAULT_THEME)
+  const exportCss = buildExportCss(DEFAULT_THEME)
+  check(
+    '1.1 预览常量不进入导出',
+    !exportCss.includes('max-width: 724px') && !exportCss.includes('padding: 40px 24px')
+  )
+  check('1.1 导出 CSS 不含变量', !exportCss.includes('var('))
+  check(
+    '1.1 预览 CSS 使用作用域变量',
+    previewCss.includes('.article-body') && previewCss.includes('--fucha-primary')
+  )
+
+  const serif = BUILTIN_THEMES.find((theme) => theme.token.id === 'serif')!
+  const serifPreview = buildPreviewCss(serif)
+  check(
+    '1.1 第二套内置主题带入自己的 theme.css',
+    serifPreview.includes('Songti SC') && serifPreview.includes('.article-body h1')
+  )
+  check(
+    '1.1 内置主题 token 全部通过校验',
+    BUILTIN_THEMES.every((theme) => validateThemeToken(theme.token).id === theme.token.id)
+  )
+
+  const cssRejections: { name: string; css: string; expected: string }[] = [
+    { name: '伪元素', css: 'h1::before { content: "x"; }', expected: '选择器' },
+    { name: '@ 规则', css: '@media (min-width: 1px) { h1 { color: #000; } }', expected: '@' },
+    { name: '不支持属性', css: 'h1 { position: relative; }', expected: 'position' },
+    { name: '未知变量', css: 'h1 { color: var(--fucha-nope); }', expected: 'nope' },
+    { name: '!important', css: 'h1 { color: #000 !important; }', expected: '!important' },
+    {
+      name: '外部资源',
+      css: 'h1 { color: red; } p { background-color: url(http://x); }',
+      expected: 'url',
+    },
+    { name: '脚本注入', css: 'h1 { color: red; } </style><script>', expected: '<' },
+  ]
+  for (const item of cssRejections) {
+    let message = ''
+    try {
+      validateThemeCss(item.css)
+    } catch (error) {
+      message = String(error)
+    }
+    check(`1.1 主题 CSS 拒绝${item.name}`, message.includes(item.expected), message)
+  }
+  check('1.1 合法主题 CSS 通过', validateThemeCss(serif.css) === serif.css)
+
+  let lineMessage = ''
+  try {
+    validateThemeCss('h1 {\n  color: #000;\n}\nh2 {\n  position: absolute;\n}')
+  } catch (error) {
+    lineMessage = String(error)
+  }
+  check('1.1 CSS 错误带行号', lineMessage.includes('第 4 行'), lineMessage)
+
+  let unresolved = ''
+  try {
+    resolveThemeVariables('h1 { color: var(--fucha-missing); }', {})
+  } catch (error) {
+    unresolved = String(error)
+  }
+  check('1.1 未定义变量解析失败', unresolved.includes('missing'), unresolved)
+
+  const properties = [
+    'fontFamily',
+    'fontSize',
+    'fontWeight',
+    'lineHeight',
+    'letterSpacing',
+    'color',
+    'textAlign',
+    'marginTop',
+    'marginRight',
+    'marginBottom',
+    'marginLeft',
+    'paddingTop',
+    'paddingRight',
+    'paddingBottom',
+    'paddingLeft',
+    'backgroundColor',
+    'borderTopWidth',
+    'borderTopStyle',
+    'borderTopColor',
+    'borderRightWidth',
+    'borderRightStyle',
+    'borderRightColor',
+    'borderBottomWidth',
+    'borderBottomStyle',
+    'borderBottomColor',
+    'borderLeftWidth',
+    'borderLeftStyle',
+    'borderLeftColor',
+    'borderRadius',
+    'display',
+    'maxWidth',
+    'overflowX',
+    'whiteSpace',
+    'listStyleType',
+    'borderCollapse',
+    'textDecorationLine',
+    'verticalAlign',
+  ]
+
+  const sample = `<p>正文 <strong>强调</strong> <em>斜体</em> <a href="#">链接</a></p><h1>一级</h1><h2>二级</h2><h3>三级</h3><h4>四级</h4><h5>五级</h5><h6>六级</h6><ul><li>列表</li></ul><ol><li>有序</li></ol><blockquote><p>引用</p></blockquote><pre><code>const a = 1</code></pre><table><thead><tr><th>表头</th></tr></thead><tbody><tr><td>值</td></tr></tbody></table><figure><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=" alt="图"><figcaption>图注</figcaption></figure><hr>`
+
+  const preview = document.createElement('div')
+  preview.className = 'article-body'
+  preview.style.width = '676px'
+  preview.innerHTML = sample
+  const exported = document.createElement('div')
+  exported.className = 'export-preview'
+  exported.style.cssText = `${exportRootStyle(DEFAULT_THEME.token)}; width: 676px`
+  exported.innerHTML = sample
+
+  const exportSheet = document.createElement('style')
+  exportSheet.textContent = scopeCss(buildExportCss(DEFAULT_THEME), '.export-preview')
+  document.head.append(preview, exported, exportSheet)
+  const previewSheet = document.createElement('style')
+  previewSheet.textContent = previewCss
+  document.head.append(previewSheet)
+
+  const selectors = [
+    'p',
+    'strong',
+    'em',
+    'a',
+    'h1',
+    'h2',
+    'h3',
+    'h4',
+    'h5',
+    'h6',
+    'li',
+    'blockquote',
+    'pre',
+    'pre code',
+    'code',
+    'table',
+    'th',
+    'td',
+    'img',
+    'figcaption',
+    'hr',
+  ]
+  const mismatches: string[] = []
+  for (const selector of selectors) {
+    const left = preview.querySelector(selector)
+    const right = exported.querySelector(selector)
+    if (!left || !right) {
+      mismatches.push(`${selector}: 元素缺失`)
+      continue
+    }
+    const leftStyle = getComputedStyle(left)
+    const rightStyle = getComputedStyle(right)
+    for (const property of properties) {
+      const a = leftStyle[property as keyof CSSStyleDeclaration]
+      const b = rightStyle[property as keyof CSSStyleDeclaration]
+      if (String(a) !== String(b)) {
+        mismatches.push(`${selector}.${property}: ${String(a)} != ${String(b)}`)
+      }
+    }
+  }
+
+  preview.remove()
+  exported.remove()
+  previewSheet.remove()
+  exportSheet.remove()
+  check('2.1 预览与导出计算样式一致', mismatches.length === 0, mismatches.slice(0, 3).join('; '))
+}
+
+function testHighlightAndExport(): void {
+  const highlighted = highlightArticleHtml(
+    '<pre><code class="language-js">const a = 1</code></pre>'
+  )
+  check('2.3 代码块语法高亮', /hljs-keyword/.test(highlighted))
+  check('2.3 hljs 主题不带背景', !/background(?:-color)?\s*:/.test(highlightThemeCss('github')))
+
+  const previewCss = buildPreviewCss(DEFAULT_THEME)
+  check(
+    '2.3 代码块横向滚动不折行',
+    /pre \{[\s\S]*overflow-x: auto[\s\S]*white-space: pre/.test(previewCss)
+  )
+
+  const article: Article = {
+    title: '导出样张',
+    author: '示例作者',
+    sourceUrl: 'https://example.com/post',
+    html: `<p>正文含 <strong>强调</strong> 与 <a href="https://external.example/x">外链</a>。</p><h2>章节</h2><ul><li>列表</li></ul><blockquote><p>引用</p></blockquote><pre><code class="language-js">const a = 1</code></pre><table><thead><tr><th>列</th></tr></thead><tbody><tr><td>值</td></tr></tbody></table><img src="https://example.com/a.png" alt="图"><hr>`,
+    images: [],
+  }
+  const html = buildExportHtml(article, DEFAULT_THEME)
+  check('3.1 导出无 style 标签', !/<style/i.test(html))
+  check('3.1 元素样式已内联', /<p style="/.test(html) && /<td[^>]*style="[^"]*border/.test(html))
+  check('3.1 外链降级为文本', !/href="https?:/.test(html) && html.includes('外链'))
+  check('3.1 微信不支持的属性已剔除', !/(position:|float:|display:\s*(grid|flex))/.test(html))
+  check('3.1 代码块保留横向滚动', /<pre[^>]*style="[^"]*overflow-x: auto/.test(html))
+  check('3.1 高亮样式已内联', /hljs-keyword/.test(html))
+  check(
+    '3.3 导出不附加来源行',
+    !html.includes('原文：https://example.com/post') && !html.includes('作者：示例作者')
+  )
+  check('3.3 纯文本兜底不含来源行', !exportHtmlToText(html).includes('原文：'))
+}
+
+function testDomParity(): void {
+  const article: Article = {
+    title: '结构一致',
+    sourceUrl: 'https://example.com/parity',
+    html: '<h1>结构一致</h1><p>正文</p><blockquote><p>引用一</p><p>引用二</p></blockquote>',
+    images: [],
+  }
+  const preview = renderPreviewHtml(article)
+  const exported = buildExportHtml(article, DEFAULT_THEME)
+  check(
+    '6.2 预览与导出都去除重复首标题',
+    !/<h1[^>]*>结构一致<\/h1>/.test(preview) && !/<h1[^>]*>结构一致<\/h1>/.test(exported)
+  )
+
+  const previewDoc = new DOMParser().parseFromString(preview, 'text/html')
+  const exportDoc = new DOMParser().parseFromString(exported, 'text/html')
+  const previewTail = previewDoc.querySelector('blockquote')?.lastElementChild as HTMLElement | null
+  const exportTail = exportDoc.querySelector('blockquote')?.lastElementChild as HTMLElement | null
+  check(
+    '6.2 预览与导出引用末段间距一致',
+    previewTail?.style.marginBottom === '0px' && exportTail?.style.marginBottom === '0px'
+  )
+}
+
 function testImageMapping(): void {
   const article = extractArticle(SAMPLE_ARTICLE, 'https://example.com/post')
   const hash = 'verify-renderer'
@@ -298,6 +578,9 @@ async function run(): Promise<void> {
   testSanitize()
   testInlineSvg()
   testExtract()
+  testTheme()
+  testHighlightAndExport()
+  testDomParity()
   testImageMapping()
   if (new URLSearchParams(window.location.search).get('checklist') === '1') await testChecklist()
   ;(window as unknown as { __verifyResults: string[] }).__verifyResults = results

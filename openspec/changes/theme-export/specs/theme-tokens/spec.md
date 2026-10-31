@@ -6,7 +6,7 @@
 
 ### Requirement: 主题 token 固定结构
 
-系统 SHALL 以固定结构的 ThemeToken 描述主题，按组组织：text（正文字号、小字字号、行高倍数、字距 em、段距 px、正文色、次要色）、primary、surface、border、borderRadius、heading（h1 至 h3 字号、对齐、装饰、上下间距与可选标题色）、quote（内距）、code（hljs 主题名、行高、内距）、table（单元格内距）、image（间距）、divider（样式）。强调文字继承正文色，代码、表格、图注与来源脚注共用 smallSize，标题装饰与引用边条共用 primary，脚注使用 muted，不另设重复 token。预览画布的 contentWidth 与 padding 是固定常量，不属于 token。数值字段 SHALL 携带单位与取值范围（滑杆与校验共用边界），正文 fontSize 限定 14 至 18。heading.color 未填时 SHALL 回退到 text.color。
+系统 SHALL 以固定结构的 ThemeToken 描述主题，按组组织：text（正文字号、次级字号、行高倍数、字距 em、段距 px、正文色、次要色）、primary、backgroundColor、borderColor、borderRadius、顶层 h1–h6（每级字号、可选颜色、对齐、装饰、上下间距）、quote（内距）、code（hljs 主题名、行高、内距）、table（内距）、image（上下外边距）、divider（borderTopStyle）。强调文字继承正文色，代码、表格与图注共用 secondaryFontSize，标题装饰与引用边条共用 primary，图注使用 secondaryColor，不另设重复 token。字段名 SHALL 对齐 CSS 属性名。预览画布的 contentWidth 与 padding 是固定常量，不属于 token。数值字段 SHALL 携带取值范围（滑杆与校验共用边界），正文 fontSize 限定 14 至 18。各级标题 color 未填时 SHALL 回退到 text.color。
 
 #### Scenario: 合法 token 通过校验
 
@@ -20,8 +20,8 @@
 
 #### Scenario: 可选颜色回退
 
-- **WHEN** token 未填 heading.color
-- **THEN** 渲染与导出使用 text.color 作为标题色
+- **WHEN** token 未填某一级标题的 color
+- **THEN** 渲染与导出使用 text.color 作为该级标题色
 
 #### Scenario: 预览常量不进 token
 
@@ -30,7 +30,7 @@
 
 ### Requirement: 内置预设可用
 
-系统 SHALL 内置至少一套面向技术长文的预设主题，配色为中性（与应用壳配色无关），代码块与表格的视觉处理优先打磨；应用首次使用 SHALL 无需任何配置即以预设渲染。
+系统 SHALL 内置多套主题，每套由 token 默认值与 theme.css 组成，共用同一 token 接口；`default` 面向技术长文，`serif` 使用系统衬线标题与不同的装饰与配色。内置主题只读，升级视觉时新增 id，旧 id 保留；应用首次使用 SHALL 无需任何配置即以 `default` 渲染。
 
 #### Scenario: 零配置默认主题
 

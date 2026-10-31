@@ -1,0 +1,180 @@
+import type { KeyboardEvent } from 'react'
+import { useEffect, useId, useRef, useState } from 'react'
+import { Icon } from '../Icon'
+
+export type DropdownOption = {
+  value: string
+  label: string
+}
+
+export type DropdownAction = {
+  label: string
+  onSelect: () => void
+}
+
+type DropdownProps = {
+  label: string
+  value: string
+  options: DropdownOption[]
+  actions?: DropdownAction[]
+  onChange: (value: string) => void
+}
+
+/** 轻量下拉：触发按钮只占用文字宽度，菜单支持键盘、焦点与外部点击关闭 */
+export const Dropdown = (props: DropdownProps) => {
+  const { label, value, options, actions, onChange } = props
+  const [isOpen, setIsOpen] = useState(false)
+  const rootRef = useRef<HTMLDivElement>(null)
+  const triggerRef = useRef<HTMLButtonElement>(null)
+  const optionRefs = useRef<(HTMLButtonElement | null)[]>([])
+  const menuId = useId()
+  const selectedIndex = Math.max(
+    0,
+    options.findIndex((option) => option.value === value)
+  )
+  const current = options[selectedIndex]
+
+  useEffect(() => {
+    if (!isOpen) return
+    optionRefs.current[selectedIndex]?.focus()
+  }, [isOpen, selectedIndex])
+
+  useEffect(() => {
+    if (!isOpen) return
+
+    const handlePointerDown = (event: PointerEvent): void => {
+      if (!rootRef.current?.contains(event.target as Node)) setIsOpen(false)
+    }
+    const handleFocusIn = (event: FocusEvent): void => {
+      if (!rootRef.current?.contains(event.target as Node)) setIsOpen(false)
+    }
+
+    document.addEventListener('pointerdown', handlePointerDown)
+    document.addEventListener('focusin', handleFocusIn)
+    return () => {
+      document.removeEventListener('pointerdown', handlePointerDown)
+      document.removeEventListener('focusin', handleFocusIn)
+    }
+  }, [isOpen])
+
+  const close = (): void => {
+    setIsOpen(false)
+    triggerRef.current?.focus()
+  }
+
+  const moveFocus = (delta: number): void => {
+    if (options.length === 0) return
+    const currentIndex = optionRefs.current.findIndex((option) => option === document.activeElement)
+    const base = currentIndex < 0 ? selectedIndex : currentIndex
+    const next = (base + delta + options.length) % options.length
+    optionRefs.current[next]?.focus()
+  }
+
+  const handleMenuKeyDown = (event: KeyboardEvent): void => {
+    if (event.key === 'ArrowDown') {
+      event.preventDefault()
+      moveFocus(1)
+    } else if (event.key === 'ArrowUp') {
+      event.preventDefault()
+      moveFocus(-1)
+    } else if (event.key === 'Home') {
+      event.preventDefault()
+      optionRefs.current[0]?.focus()
+    } else if (event.key === 'End') {
+      event.preventDefault()
+      optionRefs.current[options.length - 1]?.focus()
+    } else if (event.key === 'Escape') {
+      event.preventDefault()
+      close()
+    } else if (event.key === 'Tab') {
+      if (!actions?.length) setIsOpen(false)
+    }
+  }
+
+  const handleTriggerKeyDown = (event: KeyboardEvent): void => {
+    if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+      event.preventDefault()
+      setIsOpen(true)
+    } else if (event.key === 'Escape') {
+      setIsOpen(false)
+    }
+  }
+
+  const handleSelect = (next: string): void => {
+    onChange(next)
+    close()
+  }
+
+  return (
+    <div ref={rootRef} className="relative flex items-center">
+      <button
+        ref={triggerRef}
+        type="button"
+        aria-haspopup="listbox"
+        aria-expanded={isOpen}
+        aria-controls={menuId}
+        aria-label={`${label}：${current?.label ?? ''}`}
+        onClick={() => setIsOpen((open) => !open)}
+        onKeyDown={handleTriggerKeyDown}
+        className={`flex h-7 max-w-40 items-center gap-1.5 rounded-full pr-2 pl-3 text-secondary transition-colors ${
+          isOpen ? 'bg-raised text-ink' : 'text-ink-soft hover:bg-raised hover:text-ink'
+        }`}>
+        <span className="truncate">{current?.label}</span>
+        <Icon
+          name="chevron-down"
+          className={`h-3.5 w-3.5 flex-none transition-transform ${isOpen ? 'rotate-180' : ''}`}
+        />
+      </button>
+      {isOpen && (
+        <div
+          id={menuId}
+          onKeyDown={handleMenuKeyDown}
+          className="absolute top-full right-0 z-20 mt-2 min-w-40 max-w-56 rounded-xl border border-line bg-white p-1">
+          <div role="listbox" aria-label={label}>
+            {options.map((option, index) => {
+              const isSelected = option.value === value
+              return (
+                <button
+                  key={option.value}
+                  ref={(node) => {
+                    optionRefs.current[index] = node
+                  }}
+                  type="button"
+                  role="option"
+                  id={`${menuId}-option-${index}`}
+                  aria-selected={isSelected}
+                  onClick={() => handleSelect(option.value)}
+                  className={`flex w-full items-center justify-between gap-3 rounded-lg px-2.5 py-1.5 text-left text-secondary transition-colors hover:bg-raised ${
+                    isSelected ? 'text-ink' : 'text-ink-soft'
+                  }`}>
+                  <span className="truncate">{option.label}</span>
+                  {isSelected && (
+                    <Icon name="check" className="h-3.5 w-3.5 flex-none text-primary" />
+                  )}
+                </button>
+              )
+            })}
+          </div>
+          {actions && actions.length > 0 && (
+            <div className="mt-1 border-t border-line pt-1">
+              {actions.map((action) => (
+                <button
+                  key={action.label}
+                  type="button"
+                  onClick={() => {
+                    close()
+                    action.onSelect()
+                  }}
+                  className="flex w-full items-center rounded-lg px-2.5 py-1.5 text-left text-secondary text-ink-soft transition-colors hover:bg-raised hover:text-ink">
+                  {action.label}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  )
+}
+
+Dropdown.displayName = 'Dropdown'

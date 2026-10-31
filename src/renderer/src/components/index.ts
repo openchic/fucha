@@ -1,4 +1,7 @@
 export { ArticleMeta } from './ArticleMeta'
+export { Dropdown } from './Dropdown'
 export { ErrorPanel } from './ErrorPanel'
 export { Icon } from './Icon'
 export { LoadingPanel } from './LoadingPanel'
+export { ThemeManager } from './ThemeManager'
+export { ThemePanel } from './ThemePanel'

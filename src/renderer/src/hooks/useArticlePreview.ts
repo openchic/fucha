@@ -2,6 +2,7 @@ import type { Article, FetchError, ImageDownloadResult } from '@shared/types'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { ExtractError, extractArticle } from '../pipeline/extract'
 import { renderPreviewHtml } from '../pipeline/images'
+import { highlightArticleHtml } from '../theme/highlight'
 
 /** 错误态载荷，kind 决定界面上展示的失败分类 */
 export type AppError = {
@@ -20,6 +21,8 @@ export type ArticlePreviewState =
       previewHtml: string
       refreshing: boolean
       refreshError?: string
+      /** 每次重新提取更新，用于区分刷新与图片状态更新 */
+      loadedAt: number
     }
   | { view: 'error'; error: AppError }
 
@@ -94,8 +97,9 @@ export function useArticlePreview(url: string): UseArticlePreviewResult {
         view: 'preview',
         article,
         articleHash: hash,
-        previewHtml: renderPreviewHtml(article),
+        previewHtml: highlightArticleHtml(renderPreviewHtml(article)),
         refreshing: false,
+        loadedAt: Date.now(),
       })
 
       const results: ImageDownloadResult[] = await window.fucha

@@ -10,7 +10,7 @@ fucha —— 基于 Electron + React + TypeScript 的桌面应用。
 
 ## 样式约定
 
-应用壳的单元素样式写 Tailwind 工具类；`app.css` 只留 `@theme` token、元素级重置、伪元素与关键帧、滚动条、窗口拖动这类平台标记，以及被多个组件或多重状态复用的规则。文章正文与导出样式不经 Tailwind，只由 ThemeToken 决定，见 `docs/DESIGN.md` 的配色节。存量按改动收敛，不为此单开全量重写。
+应用壳的单元素样式写 Tailwind 工具类；`app.css` 只留 `@theme` token、元素级重置、伪元素与关键帧、滚动条、窗口拖动这类平台标记，以及被多个组件或多重状态复用的规则。文章正文与导出样式不经 Tailwind，只由 ThemeToken 与 theme.css 决定，见 `docs/theme-system.md`。存量按改动收敛，不为此单开全量重写。
 
 ## 开发调试
 

@@ -1,6 +1,7 @@
 import type { Article } from '@shared/types'
+import { normalizeArticleDom } from './normalize'
 
-/** 占位图是 data URI，读不到文档的 CSS 变量，颜色按 article.css 的 surface 与 soft 基线写死 */
+/** 占位图是 data URI，读不到文档的 CSS 变量，颜色按默认主题的中性基线写死 */
 function placeholder(label: string): string {
   return (
     'data:image/svg+xml;utf8,' +
@@ -13,19 +14,11 @@ function placeholder(label: string): string {
 const PENDING_PLACEHOLDER = placeholder('图片加载中')
 const FAILED_PLACEHOLDER = placeholder('图片加载失败')
 
-const normalizeText = (value: string): string => value.replace(/\s+/g, ' ').trim()
-
 /** 重写正文图片地址为本地缓存或占位图，返回可注入的 HTML */
 export function renderPreviewHtml(article: Article): string {
   const byUrl = new Map(article.images.map((asset) => [asset.originalUrl, asset]))
   const doc = new DOMParser().parseFromString(article.html, 'text/html')
-  const first = doc.body.firstElementChild
-  if (
-    (first?.tagName === 'H1' || first?.tagName === 'H2') &&
-    normalizeText(first.textContent ?? '') === normalizeText(article.title)
-  ) {
-    first.remove()
-  }
+  normalizeArticleDom(doc, article.title)
   doc.querySelectorAll('img').forEach((img) => {
     const src = img.getAttribute('src')
     if (!src) return

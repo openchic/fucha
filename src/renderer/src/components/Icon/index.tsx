@@ -1,4 +1,15 @@
-type IconName = 'link' | 'close' | 'arrow-right' | 'arrow-left' | 'refresh' | 'alert' | 'sail'
+type IconName =
+  | 'link'
+  | 'close'
+  | 'arrow-right'
+  | 'arrow-left'
+  | 'refresh'
+  | 'alert'
+  | 'sail'
+  | 'copy'
+  | 'chevron-down'
+  | 'check'
+  | 'edit'
 
 type IconProps = {
   name: IconName
@@ -14,6 +25,10 @@ const PATHS: Record<IconName, string> = {
   alert:
     'M12 8v5m0 3h.01M10.3 3.9 2.5 17.4A2 2 0 0 0 4.2 20h15.6a2 2 0 0 0 1.7-2.6L13.7 3.9a2 2 0 0 0-3.4 0Z',
   sail: 'M12 3v13H4L12 3Zm3 4 5 9h-5M3 19c2 2 4 2 6 0 2 2 4 2 6 0 2 2 4 2 6 0',
+  copy: 'M9 9h10v10H9zM5 15V5h10',
+  'chevron-down': 'm6 9 6 6 6-6',
+  check: 'm5 12 4 4L19 6',
+  edit: 'M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z',
 }
 
 /** 应用壳共用的线性图标，与文章内容样式分开。 */

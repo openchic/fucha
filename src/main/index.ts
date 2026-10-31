@@ -2,6 +2,7 @@ import { join } from 'path'
 import { app, shell, BrowserWindow } from 'electron'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
+import { initLocalStore } from './db'
 import { registerFuchaProtocol, registerIpcHandlers, serveFuchaProtocol } from './ipc'
 
 registerFuchaProtocol()
@@ -48,6 +49,10 @@ function createWindow(): void {
 
 app.whenReady().then(() => {
   electronApp.setAppUserModelId('com.fucha.app')
+  const localStore = initLocalStore()
+  if (!localStore.available) {
+    console.error(`[local-store] ${localStore.error ?? '数据库不可用'}`)
+  }
   serveFuchaProtocol()
   registerIpcHandlers()
 
