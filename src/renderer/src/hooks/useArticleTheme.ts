@@ -7,6 +7,7 @@ import {
   themeErrorMessage,
   type AvailableTheme,
 } from '../theme/library'
+import { useConfirm, type ConfirmOptions } from './useConfirm'
 
 type UseArticleThemeOptions = {
   articleHash: string | null
@@ -21,19 +22,26 @@ export type ArticleThemeController = {
   editing: boolean
   dirty: boolean
   themeReady: boolean
-  selectTheme: (id: string) => void
+  selectTheme: (id: string) => Promise<boolean>
   beginEdit: () => void
   cancelEdit: () => void
   updateToken: (token: ThemeToken) => void
   saveAs: (name: string) => Promise<string | null>
-  confirmLeave: () => boolean
+  confirmLeave: () => Promise<boolean>
+  discardDraft: () => void
 }
 
-const DISCARD_PROMPT = '有未保存的主题调整，确定放弃？'
+const DISCARD_PROMPT: ConfirmOptions = {
+  title: '放弃未保存的主题调整？',
+  description: '修改尚未保存，继续将丢失这些调整。',
+  confirmLabel: '放弃',
+  tone: 'danger',
+}
 
 /** 当前文章主题、编辑草稿与另存为；草稿只存在于内存 */
 export function useArticleTheme(options: UseArticleThemeOptions): ArticleThemeController {
   const { articleHash, themes, ready, onThemeCreated } = options
+  const confirm = useConfirm()
   const [activeId, setActiveId] = useState(DEFAULT_AVAILABLE_THEME.id)
   const [override, setOverride] = useState<AvailableTheme | null>(null)
   const [draft, setDraft] = useState<AvailableTheme | null>(null)
@@ -106,17 +114,18 @@ export function useArticleTheme(options: UseArticleThemeOptions): ArticleThemeCo
   )
 
   const selectTheme = useCallback(
-    (id: string): void => {
-      if (id === activeTheme.id) return
-      if (editing && dirty && !window.confirm(DISCARD_PROMPT)) return
-      if (!findTheme(themes, id)) return
+    async (id: string): Promise<boolean> => {
+      if (id === activeTheme.id) return true
+      if (!findTheme(themes, id)) return false
+      if (editing && dirty && !(await confirm(DISCARD_PROMPT))) return false
       setActiveId(id)
       setOverride(null)
       setDraft(null)
       setEditing(false)
       persistChoice(id)
+      return true
     },
-    [activeTheme.id, dirty, editing, persistChoice, themes]
+    [activeTheme.id, confirm, dirty, editing, persistChoice, themes]
   )
 
   const beginEdit = useCallback((): void => {
@@ -125,10 +134,12 @@ export function useArticleTheme(options: UseArticleThemeOptions): ArticleThemeCo
   }, [activeTheme])
 
   const cancelEdit = useCallback((): void => {
-    if (dirty && !window.confirm(DISCARD_PROMPT)) return
-    setDraft(null)
-    setEditing(false)
-  }, [dirty])
+    void (async () => {
+      if (dirty && !(await confirm(DISCARD_PROMPT))) return
+      setDraft(null)
+      setEditing(false)
+    })()
+  }, [confirm, dirty])
 
   const updateToken = useCallback((token: ThemeToken): void => {
     setDraft((current) => (current ? { ...current, token } : current))
@@ -168,7 +179,14 @@ export function useArticleTheme(options: UseArticleThemeOptions): ArticleThemeCo
     [activeTheme.id, draft, onThemeCreated, persistChoice]
   )
 
-  const confirmLeave = useCallback((): boolean => !dirty || window.confirm(DISCARD_PROMPT), [dirty])
+  const confirmLeave = useCallback(async (): Promise<boolean> => {
+    if (!dirty) return true
+    return confirm(DISCARD_PROMPT)
+  }, [confirm, dirty])
+  const discardDraft = useCallback((): void => {
+    setDraft(null)
+    setEditing(false)
+  }, [])
 
   return {
     activeTheme,
@@ -182,5 +200,6 @@ export function useArticleTheme(options: UseArticleThemeOptions): ArticleThemeCo
     updateToken,
     saveAs,
     confirmLeave,
+    discardDraft,
   }
 }

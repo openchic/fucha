@@ -10,6 +10,9 @@ type IconName =
   | 'chevron-down'
   | 'check'
   | 'edit'
+  | 'plus'
+  | 'external-link'
+  | 'more'
 
 type IconProps = {
   name: IconName
@@ -25,10 +28,18 @@ const PATHS: Record<IconName, string> = {
   alert:
     'M12 8v5m0 3h.01M10.3 3.9 2.5 17.4A2 2 0 0 0 4.2 20h15.6a2 2 0 0 0 1.7-2.6L13.7 3.9a2 2 0 0 0-3.4 0Z',
   sail: 'M12 3v13H4L12 3Zm3 4 5 9h-5M3 19c2 2 4 2 6 0 2 2 4 2 6 0 2 2 4 2 6 0',
-  copy: 'M9 9h10v10H9zM5 15V5h10',
+  copy: 'M8 8h12v12H8zM4 16V4h12',
   'chevron-down': 'm6 9 6 6 6-6',
   check: 'm5 12 4 4L19 6',
   edit: 'M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z',
+  plus: 'M12 5v14M5 12h14',
+  'external-link': 'M14 4h6v6M20 4l-9 9M18 13v5a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h5',
+  more: 'M5 12h.01M12 12h.01M19 12h.01',
+}
+
+/** 点状图标的笔画就是点径，需要比线图标更粗才看得清 */
+const STROKE_WIDTHS: Partial<Record<IconName, number>> = {
+  more: 3,
 }
 
 /** 应用壳共用的线性图标，与文章内容样式分开。 */
@@ -39,7 +50,7 @@ export const Icon = ({ name, className }: IconProps) => (
     viewBox="0 0 24 24"
     fill="none"
     stroke="currentColor"
-    strokeWidth="1.6"
+    strokeWidth={STROKE_WIDTHS[name] ?? 1.6}
     strokeLinecap="round"
     strokeLinejoin="round"
     className={className ?? 'h-4 w-4 flex-none'}>

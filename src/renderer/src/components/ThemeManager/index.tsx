@@ -1,4 +1,5 @@
 import { type FormEvent, useEffect, useState } from 'react'
+import { useConfirm } from '../../hooks'
 import { themeErrorMessage, type AvailableTheme } from '../../theme/library'
 
 type ThemeManagerProps = {
@@ -17,6 +18,7 @@ function sourceName(themes: AvailableTheme[], id?: string): string {
 /** 自定义主题管理：导入、导出、重命名与删除；内置主题不在这里出现 */
 export const ThemeManager = (props: ThemeManagerProps) => {
   const { themes, activeThemeId, onClose, onChanged, onApply } = props
+  const confirm = useConfirm()
   const customThemes = themes.filter((theme) => !theme.builtin)
   const [renamingId, setRenamingId] = useState<string | null>(null)
   const [renameValue, setRenameValue] = useState('')
@@ -71,8 +73,14 @@ export const ThemeManager = (props: ThemeManagerProps) => {
     })
   }
 
-  const handleDelete = (theme: AvailableTheme): void => {
-    if (!window.confirm(`删除主题「${theme.name}」？`)) return
+  const handleDelete = async (theme: AvailableTheme): Promise<void> => {
+    const confirmed = await confirm({
+      title: '删除主题？',
+      description: `「${theme.name}」将被永久删除。`,
+      confirmLabel: '删除',
+      tone: 'danger',
+    })
+    if (!confirmed) return
     void run(async () => {
       await window.fucha.deleteTheme(theme.id)
       onChanged()
@@ -205,7 +213,7 @@ export const ThemeManager = (props: ThemeManagerProps) => {
                       </button>
                       <button
                         type="button"
-                        onClick={() => handleDelete(theme)}
+                        onClick={() => void handleDelete(theme)}
                         disabled={busy}
                         className="button button-secondary h-6 px-2.5 text-xs text-danger">
                         删除

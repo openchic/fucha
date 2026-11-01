@@ -2,22 +2,27 @@
 
 ### Requirement: 本地数据库初始化与版本迁移
 
-系统 SHALL 在主进程使用 Electron 自带 `node:sqlite` 打开 `userData/fucha.db`，以 `PRAGMA user_version` 管理 schema 版本；首次创建 SHALL 建立当前 schema（v4），已有 v1/v2/v3 库 SHALL 顺序迁移补齐文章主题字段、统一默认主题 id 并为主题表增加快照字段。数据库打开、迁移失败或 `user_version` 高于代码支持版本时，系统 SHALL 将存储标记为不可用，且不阻断抓取、提取与预览主链路。
+系统 SHALL 在主进程使用 Electron 自带 `node:sqlite` 打开 `userData/fucha.db`，以 `PRAGMA user_version` 管理 schema 版本；首次创建 SHALL 建立当前 schema（v5），已有 v1–v4 库 SHALL 顺序迁移补齐文章主题字段、统一默认主题 id、增加主题快照字段并切换历史排序索引。数据库打开、迁移失败或 `user_version` 高于代码支持版本时，系统 SHALL 将存储标记为不可用，且不阻断抓取、提取与预览主链路。
 
 #### Scenario: 首次创建当前数据库
 
 - **WHEN** 用户数据目录中尚不存在 `fucha.db`
-- **THEN** 系统创建数据库与当前四张表，并把 `user_version` 设置为 4
+- **THEN** 系统创建数据库与当前四张表，并把 `user_version` 设置为 5
 
 #### Scenario: v1 库升级
 
 - **WHEN** 数据库已有文章且 `user_version = 1`
-- **THEN** 系统在事务中为 `articles` 增加 `theme_id` 与主题索引，保留原有文章数据并升级到 4
+- **THEN** 系统在事务中为 `articles` 增加 `theme_id` 与主题索引，保留原有文章数据并升级到 5
 
 #### Scenario: v2 库升级默认主题 id
 
 - **WHEN** 数据库为 v2，文章或偏好使用 `technical`
-- **THEN** 系统把默认主题 id 统一为 `default`，保留自定义主题 id 与文章数据，并继续升级到 v4
+- **THEN** 系统把默认主题 id 统一为 `default`，保留自定义主题 id 与文章数据，并继续升级到 v5
+
+#### Scenario: v4 库升级排序索引
+
+- **WHEN** 数据库为 v4，使用旧的访问活动排序索引
+- **THEN** v5 迁移删除旧索引并建立 `articles_updated_idx`，文章数据保留
 
 #### Scenario: 重复初始化不重复建表
 
@@ -36,12 +41,12 @@
 
 ### Requirement: 存储访问边界
 
-SQLite 访问 SHALL 只存在于主进程，渲染进程 SHALL 只能通过后续领域接口使用存储能力，不得提交或执行任意 SQL。
+SQLite 访问 SHALL 只存在于主进程，渲染进程 SHALL 只能通过 preload 暴露的领域方法使用存储能力，不得提交或执行任意 SQL。
 
 #### Scenario: 渲染进程无数据库能力
 
-- **WHEN** 本 change 完成且尚未接入历史或主题界面
-- **THEN** preload 不暴露通用 SQL 或数据库对象，渲染进程不能直接访问 `fucha.db`
+- **WHEN** 历史栏或主题面板已接入
+- **THEN** preload 只暴露领域方法，不暴露通用 SQL 或数据库对象，渲染进程不能直接访问 `fucha.db`
 
 ### Requirement: 偏好键值存储
 
@@ -98,7 +103,7 @@ SQLite 访问 SHALL 只存在于主进程，渲染进程 SHALL 只能通过后�
 
 ### Requirement: 文章快照与历史元数据
 
-系统 SHALL 在 `articles` 表保存成功提取的文章快照，以 `SHA-256(finalUrl)` 前 32 位作为 hash；首次 upsert SHALL 写入 `last_visited_at` 与默认或指定的 `theme_id`（缺省 `default`），同一 hash 再次写入 SHALL 更新快照与 `updated_at`、保留已有 `theme_id` 且不产生重复记录。文章主题 SHALL 只存主题引用 id，不复制 token；主题是不可变快照，编辑主题生成新 id，历史文章 SHALL 不被静默改版。列表 SHALL 按最近活动时间倒序读取，活动时间取 `MAX(COALESCE(last_visited_at, updated_at), updated_at)`；新建、重新提取与打开的文章都 SHALL 排到顶部。`touch` SHALL 更新最近访问时间并递增访问次数。
+系统 SHALL 在 `articles` 表保存成功提取的文章快照，以 `SHA-256(finalUrl)` 前 32 位作为 hash；首次 upsert SHALL 写入 `last_visited_at` 与默认或指定的 `theme_id`（缺省 `default`），同一 hash 再次写入 SHALL 更新快照与 `updated_at`、保留已有 `theme_id` 且不产生重复记录。文章主题 SHALL 只存主题引用 id，不复制 token；主题是不可变快照，编辑主题生成新 id，历史文章 SHALL 不被静默改版。列表 SHALL 按 `updated_at DESC, created_at DESC` 读取；新建与重新提取的文章 SHALL 排到顶部，打开文章 SHALL 不改变排序。`touch` SHALL 更新最近访问时间并递增访问次数，但不参与排序。
 
 #### Scenario: 首次保存文章快照
 
@@ -112,8 +117,8 @@ SQLite 访问 SHALL 只存在于主进程，渲染进程 SHALL 只能通过后�
 
 #### Scenario: 历史列表排序
 
-- **WHEN** 存在多条文章且最近访问时间或更新时间不同
-- **THEN** 列表按 `MAX(COALESCE(last_visited_at, updated_at), updated_at) DESC` 返回
+- **WHEN** 存在多条文章且最近提取时间不同
+- **THEN** 列表按 `updated_at DESC, created_at DESC` 返回
 
 #### Scenario: 文章主题关联
 
@@ -138,7 +143,7 @@ SQLite 访问 SHALL 只存在于主进程，渲染进程 SHALL 只能通过后�
 #### Scenario: 打开文章计数
 
 - **WHEN** 主进程 touch 一个已存在 hash
-- **THEN** 该文章的 `last_visited_at` 更新且 `visit_count` 加一
+- **THEN** 该文章的 `last_visited_at` 更新且 `visit_count` 加一，列表顺序不变
 
 ### Requirement: 图片元数据与级联删除
 

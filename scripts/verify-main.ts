@@ -247,7 +247,15 @@ async function main(): Promise<void> {
       .catch(() => false)
   )
   const versionRow = getDb().prepare('PRAGMA user_version').get() as { user_version: number }
-  check('1.2 迁移到最新 schema', versionRow.user_version === 4, String(versionRow.user_version))
+  check('1.2 迁移到最新 schema', versionRow.user_version === 5, String(versionRow.user_version))
+  const articleIndexes = getDb().prepare("PRAGMA index_list('articles')").all() as {
+    name: string
+  }[]
+  check(
+    '1.2 历史排序索引已切换',
+    articleIndexes.some((item) => item.name === 'articles_updated_idx') &&
+      !articleIndexes.some((item) => item.name === 'articles_activity_idx')
+  )
 
   setPreference('theme.active', 'default')
   const reopened = initLocalStore(storePath)
@@ -255,7 +263,7 @@ async function main(): Promise<void> {
 
   const higherPath = join(storeDir, 'higher.db')
   const higher = new DatabaseSync(higherPath)
-  higher.exec('PRAGMA user_version = 5')
+  higher.exec('PRAGMA user_version = 6')
   higher.close()
   check('1.1 版本高于代码时降级', initLocalStore(higherPath).available === false)
   initLocalStore(storePath)
@@ -402,7 +410,7 @@ async function main(): Promise<void> {
   })
   check('2.4 重新提取回到顶部', listArticles()[0]?.hash === hash1 && listArticles().length === 2)
   await wait(5)
-  check('2.4 touch 回到顶部并计数', touchArticle(hash2) && listArticles()[0]?.hash === hash2)
+  check('2.4 touch 不改变历史排序', touchArticle(hash2) && listArticles()[0]?.hash === hash1)
   check('2.4 访问次数递增', getArticle(hash2)?.visitCount === 1)
 
   const beforeReplace = getArticle(hash1)!

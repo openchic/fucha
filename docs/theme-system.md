@@ -82,7 +82,7 @@ type HeadingLevel = {
 ```json
 {
   "id": "default",
-  "name": "default",
+  "name": "清简",
   "builtin": true,
   "text": {
     "fontSize": 16,
@@ -293,7 +293,7 @@ my-theme.fucha-theme
 }
 ```
 
-- 内置主题与自定义主题共用同一结构；当前内置 `default` 与 `serif`，只读，升级时新增主题 id，旧 id 保留，避免历史文章换样。
+- 内置主题与自定义主题共用同一结构；当前内置「清简」（id `default`）与「书卷」（id `serif`），只读，升级时新增主题 id，旧 id 保留，避免历史文章换样。
 - 自定义主题导入后，token 快照与 CSS 存入本地 SQLite；同一 id 或内置 id 已存在时拒绝导入，更新主题要使用新 id。
 - 导出主题时把当前 token 和 CSS 重新打包成同样的 zip；内置主题导出时 token 的 `builtin` 置为 false，导入后成为普通自定义主题。不导出文章内容。
 - 自定义主题只允许 CSS 与 token，不允许注入 HTML 或脚本。

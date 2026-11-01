@@ -2,6 +2,7 @@
 
 import type {
   ArticleSnapshotInput,
+  ArticleSummary,
   JsonValue,
   StoredArticle,
   StoredImageInput,
@@ -147,9 +148,11 @@ export type FuchaApi = {
   importThemePackage: () => Promise<ThemeImportResult>
   getPreference: (key: string) => Promise<JsonValue | null>
   setPreference: (key: string, value: JsonValue) => Promise<void>
+  listArticles: (limit?: number, offset?: number) => Promise<ArticleSummary[]>
   getArticle: (hash: string) => Promise<StoredArticle | null>
   saveArticle: (input: ArticleSnapshotInput) => Promise<StoredArticle>
   replaceArticleImages: (hash: string, images: StoredImageInput[]) => Promise<void>
   setArticleTheme: (hash: string, themeId: string) => Promise<boolean>
   touchArticle: (hash: string) => Promise<boolean>
+  deleteArticle: (hash: string) => Promise<boolean>
 }

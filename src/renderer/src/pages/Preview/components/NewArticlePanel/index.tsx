@@ -1,9 +1,9 @@
 import { type FormEvent, useRef, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router'
-import { Icon } from '../../components'
+import { Icon } from '../../../../components'
 
-/** 首页：输入链接后跳到预览页，?url= 用于带回来路链接 */
-const Home = () => {
+/** 预览右侧的新建输入页：输入链接后切换到文章预览 */
+export const NewArticlePanel = () => {
   const [params] = useSearchParams()
   const navigate = useNavigate()
   const [value, setValue] = useState(params.get('url') ?? '')
@@ -34,8 +34,8 @@ const Home = () => {
   }
 
   return (
-    <main className="h-full overflow-y-auto bg-white pt-20 pb-16">
-      <div className="flex min-h-full items-center justify-center">
+    <section className="min-h-0 flex-1 overflow-y-auto">
+      <div className="flex min-h-full items-center justify-center px-6 py-12">
         <div className="content-column pb-6">
           <div className="flex items-center gap-3.5">
             <Icon name="sail" className="h-9 w-9 flex-none text-primary [stroke-width:1.35]" />
@@ -102,10 +102,10 @@ const Home = () => {
           </div>
         </div>
       </div>
-    </main>
+    </section>
   )
 }
 
-Home.displayName = 'Home'
+NewArticlePanel.displayName = 'NewArticlePanel'
 
-export default Home
+export default NewArticlePanel

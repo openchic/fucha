@@ -13,9 +13,8 @@
 
 **Non-Goals:**
 
-- 历史侧栏 UI、左右布局与快照路由。
-- 渲染进程 IPC、preload 暴露存储 API。
-- FTS5 全文搜索。
+- 历史分页、全文搜索与跨设备同步。
+- 通用 SQL 或数据库对象暴露给渲染进程。
 - 全局缓存孤儿清理。
 
 ## Decisions
@@ -24,9 +23,9 @@
 
 **文章正文存 SQLite，图片字节仍存文件系统。** 正文是打开快照的主数据，放进 `articles.html` 可让一次读取完成；图片可能很大且已有 `fucha://` 协议，数据库只存 `article_images` 元数据。备选把图片转 BLOB 会膨胀数据库并绕开现有缓存。
 
-**主进程 repository，不先做 IPC。** `src/main/store.ts` 暴露类型化函数，由 `history-sidebar` 和 `theme-panel` 按真实界面需求再选择 IPC 面。现在暴露无消费者 API 会冻结尚未验证的跨进程契约。
+**主进程 repository，IPC 只暴露领域方法。** `src/main/store.ts` 暴露类型化函数，`ipc.ts` 按历史栏与主题面板的真实需求接 `themes:*`、`articles:*`、`preferences:*` 频道；渲染进程不提交 SQL，也不拿数据库对象。
 
-**版本只存 `PRAGMA user_version`。** 不建 `schema_meta` 表；当前 schema 为 v4：v1 建表，v2 增加文章主题字段与索引，v3 把默认主题 id 从 `technical` 统一为 `default` 并更新已有文章与偏好，v4 为 `themes` 增加 `css`、`token_version` 与 `source_theme_id`。未来迁移继续按版本顺序执行。代价是没有迁移审计时间，当前应用不需要。
+**版本只存 `PRAGMA user_version`。** 不建 `schema_meta` 表；当前 schema 为 v5：v1 建表，v2 增加文章主题字段与索引，v3 把默认主题 id 从 `technical` 统一为 `default` 并更新已有文章与偏好，v4 为 `themes` 增加 `css`、`token_version` 与 `source_theme_id`，v5 把历史排序索引从访问活动改为 `updated_at`。未来迁移继续按版本顺序执行。代价是没有迁移审计时间，当前应用不需要。
 
 **主题表只存自定义主题，校验提升到 shared。** 内置主题留在代码，避免代码与数据库两份来源。ThemeToken 校验在 `src/shared/theme.ts`，主题 CSS 契约校验在 `src/shared/theme-css.ts`；主进程写入前同时校验 token 与 CSS，渲染层使用同一入口。
 
@@ -34,13 +33,17 @@
 
 **删除历史只删数据库行。** 当前预览与导出可能正在使用缓存文件，直接删目录会产生竞态和裂图；当前版本只删 `articles` 与级联的 `article_images`，缓存清理留给后续有「无活跃预览」前提的清理任务。
 
-**历史排序按最近活动时间，不按首次访问。** 列表使用 `MAX(COALESCE(last_visited_at, updated_at), updated_at) DESC`：首次 upsert 写 `last_visited_at`，重新提取刷新 `updated_at`，打开文章刷新 `last_visited_at`，因此新建、重新提取和打开都会回到顶部。活动时间用表达式索引 `articles_activity_idx` 覆盖，避免新增冗余时间列。
+**历史排序按最近提取时间，不按访问活动。** 列表使用 `updated_at DESC, created_at DESC`：新建与重新提取刷新 `updated_at`，因此回到顶部；打开文章只更新 `last_visited_at` 与 `visit_count`，不改变排序。排序由 `articles_updated_idx` 覆盖，v5 迁移会删除旧的表达式索引。
 
 **文章主题只存引用 id，不存 token 快照。** `articles.theme_id` 默认 `default`；首次 upsert 写入当前选择的主题，重新提取保留文章原主题，`setArticleTheme` 只更新引用 id。主题是不可变快照，编辑主题会生成新 id，因此历史文章不会被静默改版；删除仍被文章引用的主题会被拒绝，消费方读取到未知 id 时回退默认主题但保留原引用。
 
 **测试使用可注入的数据库路径。** `initLocalStore(dbPath?)` 默认取 `userData/fucha.db`，harness 传入临时路径，避免污染真实历史。`user_version` 高于代码支持版本时不迁移，直接判定存储不可用。
 
 **启动失败采用降级。** `initLocalStore()` 返回可用状态；失败时历史/主题仓储抛明确错误，但不让 `app.whenReady()` 失败。抓取与预览不依赖数据库。
+
+**历史打开优先读本地快照。** 历史栏点击用 `?hash=` 打开 `getArticle` 的 HTML 与图片元数据，不重新抓取；图片按缓存索引映射，缓存缺失时回退占位。打开时 `touchArticle` 更新最近访问与次数，列表重新排序。`重新提取` 才走网络并 upsert 新快照，主题引用保持不变。
+
+**左侧历史栏固定 264px。** 与右侧 724px 正文列相加仍能在 1000px 最小窗口内放下；列表独立滚动，加载态与错误态保留历史栏。点击历史项前复用主题草稿的未保存确认。
 
 ## Risks / Trade-offs
 

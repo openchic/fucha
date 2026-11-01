@@ -201,7 +201,7 @@ function testExtract(): void {
 
 function testTheme(): void {
   const validated = validateThemeToken(DEFAULT_THEME.token)
-  check('1.1 内置预设通过校验', validated.id === 'default' && validated.name === 'default')
+  check('1.1 内置预设通过校验', validated.id === 'default' && validated.name === '清简')
   check('1.1 默认主题主色跟随应用主色', validated.primary === '#5e7b6f')
   check(
     '1.1 标题六级直接挂在 token 顶层',

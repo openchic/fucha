@@ -1,4 +1,4 @@
-import type { AppError } from '../../hooks/useArticlePreview'
+import type { AppError } from '../../hooks'
 import { Icon } from '../Icon'
 
 const ERROR_LABEL: Record<AppError['kind'], string> = {
@@ -18,7 +18,7 @@ export const ErrorPanel = (props: ErrorPanelProps) => {
   const { error, onRetry } = props
   return (
     <div className="flex h-full min-h-0 flex-col">
-      <div className="flex-none border-b border-line bg-white pt-[86px] pb-5">
+      <div className="flex-none border-b border-line bg-white pt-[66px] pb-5">
         <div className="content-column">
           <h1 className="text-[26px] font-semibold leading-[1.4] tracking-[-0.025em] [overflow-wrap:anywhere]">
             {ERROR_LABEL[error.kind]}

@@ -19,9 +19,11 @@ import { looksLikeCaptcha, matchProfile } from '@shared/profiles'
 import { exportThemePackage, importThemePackage } from './theme-package'
 import {
   createTheme,
+  deleteArticle,
   deleteTheme,
   getArticle,
   getPreference,
+  listArticles,
   listThemes,
   renameTheme,
   replaceArticleImages,
@@ -379,6 +381,9 @@ export function registerIpcHandlers(): void {
     setPreference(key, value)
   })
 
+  ipcMain.handle('articles:list', (_event, limit?: number, offset?: number) =>
+    listArticles(limit, offset)
+  )
   ipcMain.handle('articles:get', (_event, hash: string) => getArticle(hash) ?? null)
   ipcMain.handle('articles:save', (_event, input: ArticleSnapshotInput) => upsertArticle(input))
   ipcMain.handle('articles:images', (_event, hash: string, images: StoredImageInput[]) =>
@@ -388,4 +393,5 @@ export function registerIpcHandlers(): void {
     setArticleTheme(hash, themeId)
   )
   ipcMain.handle('articles:touch', (_event, hash: string) => touchArticle(hash))
+  ipcMain.handle('articles:delete', (_event, hash: string) => deleteArticle(hash))
 }

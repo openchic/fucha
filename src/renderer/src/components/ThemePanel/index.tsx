@@ -162,7 +162,9 @@ export const ThemePanel = (props: ThemePanelProps) => {
   }
 
   return (
-    <section aria-label="主题调整" className="flex-none border-b border-line bg-white pt-15 pb-3">
+    <section
+      aria-label="主题调整"
+      className="relative z-30 flex-none border-b border-line bg-white pt-2 pb-3">
       <div className="content-column">
         <div className="flex items-start justify-between gap-4">
           <div className="min-w-0">

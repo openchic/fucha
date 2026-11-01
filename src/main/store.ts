@@ -282,7 +282,7 @@ export function listArticles(limit = 50, offset = 0): ArticleSummary[] {
       `SELECT hash, source_url, final_url, theme_id, title, created_at, updated_at,
               last_visited_at, visit_count
        FROM articles
-       ORDER BY MAX(COALESCE(last_visited_at, updated_at), updated_at) DESC
+       ORDER BY updated_at DESC, created_at DESC
        LIMIT ? OFFSET ?`
     )
     .all(limit, offset) as Omit<ArticleRow, 'author' | 'published_at' | 'cover' | 'html'>[]
@@ -375,6 +375,7 @@ export function replaceArticleImages(hash: string, images: StoredImageInput[]): 
   transaction(() => replaceImages(hash, images))
 }
 
+/** 记录最近打开时间与次数；历史排序按 updated_at，这两个字段只作阅读元数据保留 */
 export function touchArticle(hash: string): boolean {
   assertHash(hash)
   const result = getDb()

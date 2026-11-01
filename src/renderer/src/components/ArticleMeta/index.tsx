@@ -1,5 +1,5 @@
 import type { Article } from '@shared/types'
-import type { ExportState } from '../../hooks/useArticleExport'
+import type { ExportState } from '../../hooks'
 import type { AvailableTheme } from '../../theme/library'
 import { Dropdown } from '../Dropdown'
 import { Icon } from '../Icon'
@@ -32,106 +32,109 @@ export const ArticleMeta = (props: ArticleMetaProps) => {
     onCopy,
     exportState,
   } = props
-  const source = new URL(article.sourceUrl).hostname.replace(/^www\./, '')
   const exporting = exportState.action !== null
 
   return (
     <section
       aria-labelledby="article-title"
-      className="flex-none border-b border-line bg-white pt-15 pb-3">
-      <div className="content-column">
+      className="drag-region relative z-30 flex h-11 flex-none items-center gap-4 bg-white px-6">
+      <div className="flex min-w-0 max-w-[55%] items-center gap-1.5">
         <h1
           id="article-title"
-          className="text-[26px] font-semibold leading-[1.4] tracking-[-0.025em] [overflow-wrap:anywhere]">
+          title={article.title}
+          className="min-w-0 truncate text-body font-semibold text-ink">
           {article.title}
         </h1>
-        <div className="mt-2 flex items-start gap-4">
-          <dl className="flex min-w-0 flex-1 flex-wrap items-center gap-x-[18px] gap-y-2 text-secondary leading-[1.6] text-ink-soft [overflow-wrap:anywhere]">
-            <div className="flex min-w-0 items-center gap-[7px]">
-              <span
-                aria-hidden="true"
-                className="h-[5px] w-[5px] flex-none rounded-full bg-primary"
-              />
-              <dt className="sr-only">来源</dt>
-              <dd>
-                <a
-                  href={article.sourceUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  title={article.sourceUrl}
-                  className="text-ink no-underline!">
-                  {source}
-                </a>
-              </dd>
-            </div>
-            <div className="group relative flex min-w-0 items-center">
-              <dt className="sr-only">重新提取</dt>
-              <dd>
-                <button
-                  type="button"
-                  onClick={onRefresh}
-                  disabled={refreshing}
-                  aria-label="重新提取"
-                  aria-busy={refreshing}
-                  aria-describedby="refresh-tooltip"
-                  className="flex h-7 w-7 flex-none items-center justify-center rounded-full text-ink-soft transition-colors hover:bg-raised hover:text-ink active:scale-95">
-                  <Icon
-                    name="refresh"
-                    className={`h-4 w-4 flex-none ${refreshing ? 'animate-spin' : ''}`}
-                  />
-                </button>
-              </dd>
-              <span
-                id="refresh-tooltip"
-                role="tooltip"
-                className="pointer-events-none absolute left-1/2 top-full z-10 mt-1 -translate-x-1/2 whitespace-nowrap rounded-md bg-ink px-2 py-1 text-xs leading-5 text-white opacity-0 transition-opacity duration-100 group-hover:opacity-100 group-focus-within:opacity-100">
-                {refreshing ? '正在重新提取' : '重新提取'}
-              </span>
-            </div>
-            {(refreshing || refreshError) && (
-              <div className="min-w-0">
-                <dt className="sr-only">刷新状态</dt>
-                <dd role="status" className={refreshError ? 'text-danger' : 'sr-only'}>
-                  {refreshing ? '正在重新提取文章' : '重新提取失败，已保留当前文章'}
-                </dd>
-              </div>
-            )}
-            {article.publishedAt && (
-              <div className="min-w-0">
-                <dt className="sr-only">发布时间</dt>
-                <dd>{article.publishedAt}</dd>
-              </div>
-            )}
-            {(exportState.notice || exportState.error) && (
-              <div className="min-w-0">
-                <dt className="sr-only">导出状态</dt>
-                <dd role="status" className={exportState.error ? 'text-danger' : undefined}>
-                  {exportState.error ?? exportState.notice}
-                </dd>
-              </div>
-            )}
-          </dl>
-          <div className="flex flex-none items-center gap-2">
-            <Dropdown
-              label="主题"
-              value={themeId}
-              options={themes.map((theme) => ({ value: theme.id, label: theme.name }))}
-              actions={[
-                { label: '编辑当前主题', onSelect: onEditTheme },
-                { label: '管理自定义主题', onSelect: onManageThemes },
-              ]}
-              onChange={onThemeChange}
+        <span className="sr-only">来源</span>
+        <a
+          href={article.sourceUrl}
+          target="_blank"
+          rel="noreferrer"
+          aria-label={`打开原文：${article.sourceUrl}`}
+          title={`打开原文：${article.sourceUrl}`}
+          className="no-drag flex h-6 w-6 flex-none items-center justify-center rounded-full text-ink-soft transition-colors hover:bg-raised hover:text-ink">
+          <Icon name="external-link" className="h-3.5 w-3.5 flex-none" />
+        </a>
+      </div>
+      <div className="no-drag ml-auto flex min-w-0 max-w-[300px] items-center gap-3 text-xs text-ink-soft">
+        {article.publishedAt && (
+          <>
+            <span className="sr-only">发布时间</span>
+            <span
+              className="hidden min-w-0 max-w-[120px] truncate min-[1100px]:inline"
+              title={article.publishedAt}>
+              {article.publishedAt}
+            </span>
+          </>
+        )}
+        {(refreshing || refreshError) && (
+          <span
+            role="status"
+            className={`min-w-0 truncate ${refreshError ? 'text-danger' : 'sr-only'}`}>
+            {refreshing ? '正在重新提取文章' : '重新提取失败，已保留当前文章'}
+          </span>
+        )}
+        {(exportState.notice || exportState.error) && (
+          <span
+            role="status"
+            className={`min-w-0 truncate ${exportState.error ? 'text-danger' : undefined}`}>
+            {exportState.error ?? exportState.notice}
+          </span>
+        )}
+      </div>
+      <div className="no-drag flex flex-none items-center gap-2">
+        <div className="group relative flex items-center">
+          <button
+            type="button"
+            onClick={onRefresh}
+            disabled={refreshing}
+            aria-label="重新提取"
+            aria-busy={refreshing}
+            aria-describedby="refresh-tooltip"
+            className="flex h-7 w-7 flex-none items-center justify-center rounded-full text-ink-soft transition-colors hover:bg-raised hover:text-ink active:scale-95">
+            <Icon
+              name="refresh"
+              className={`h-4 w-4 flex-none ${refreshing ? 'animate-spin' : ''}`}
             />
-            <button
-              type="button"
-              onClick={onCopy}
-              disabled={exporting}
-              className="button button-primary h-7 px-3">
-              <Icon name="copy" className="h-3.5 w-3.5 flex-none" />
-              {exportState.action === 'copy' ? '复制中' : '复制'}
-            </button>
-          </div>
+          </button>
+          <span
+            id="refresh-tooltip"
+            role="tooltip"
+            className="pointer-events-none absolute left-1/2 top-full z-10 mt-1 -translate-x-1/2 whitespace-nowrap rounded-md bg-ink px-2 py-1 text-xs leading-5 text-white opacity-0 transition-opacity duration-100 group-hover:opacity-100 group-focus-within:opacity-100">
+            重新提取
+          </span>
         </div>
+        <div className="group relative flex items-center">
+          <button
+            type="button"
+            onClick={onCopy}
+            disabled={exporting}
+            aria-label={exporting ? '复制中' : '复制'}
+            aria-busy={exporting}
+            aria-describedby="copy-tooltip"
+            className="flex h-7 w-7 flex-none items-center justify-center rounded-full text-ink-soft transition-colors hover:bg-raised hover:text-ink active:scale-95 disabled:opacity-40">
+            <Icon
+              name={exporting ? 'refresh' : 'copy'}
+              className={`h-4 w-4 flex-none ${exporting ? 'animate-spin' : ''}`}
+            />
+          </button>
+          <span
+            id="copy-tooltip"
+            role="tooltip"
+            className="pointer-events-none absolute left-1/2 top-full z-10 mt-1 -translate-x-1/2 whitespace-nowrap rounded-md bg-ink px-2 py-1 text-xs leading-5 text-white opacity-0 transition-opacity duration-100 group-hover:opacity-100 group-focus-within:opacity-100">
+            复制
+          </span>
+        </div>
+        <Dropdown
+          label="主题"
+          value={themeId}
+          options={themes.map((theme) => ({ value: theme.id, label: theme.name }))}
+          actions={[
+            { label: '编辑当前主题', onSelect: onEditTheme },
+            { label: '管理自定义主题', onSelect: onManageThemes },
+          ]}
+          onChange={onThemeChange}
+        />
       </div>
     </section>
   )

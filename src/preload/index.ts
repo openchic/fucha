@@ -27,6 +27,8 @@ const api: FuchaApi = {
   getPreference: (key: string) => ipcRenderer.invoke('preferences:get', key),
   setPreference: (key: string, value: JsonValue) =>
     ipcRenderer.invoke('preferences:set', key, value),
+  listArticles: (limit?: number, offset?: number) =>
+    ipcRenderer.invoke('articles:list', limit, offset),
   getArticle: (hash: string) => ipcRenderer.invoke('articles:get', hash),
   saveArticle: (input: ArticleSnapshotInput) => ipcRenderer.invoke('articles:save', input),
   replaceArticleImages: (hash: string, images: StoredImageInput[]) =>
@@ -34,6 +36,7 @@ const api: FuchaApi = {
   setArticleTheme: (hash: string, themeId: string) =>
     ipcRenderer.invoke('articles:theme', hash, themeId),
   touchArticle: (hash: string) => ipcRenderer.invoke('articles:touch', hash),
+  deleteArticle: (hash: string) => ipcRenderer.invoke('articles:delete', hash),
 }
 
 contextBridge.exposeInMainWorld('fucha', api)

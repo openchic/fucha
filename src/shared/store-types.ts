@@ -17,7 +17,9 @@ export type StoredArticle = Pick<
   themeId: string
   createdAt: string
   updatedAt: string
+  /** 最近打开时间；当前只记录，不参与排序或列表展示 */
   lastVisitedAt?: string
+  /** 打开次数；当前只记录，不展示 */
   visitCount: number
   images: StoredImage[]
 }

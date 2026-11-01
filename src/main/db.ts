@@ -3,7 +3,7 @@ import { mkdirSync } from 'fs'
 import { dirname, join } from 'path'
 import { app } from 'electron'
 
-export const LOCAL_STORE_SCHEMA_VERSION = 4
+export const LOCAL_STORE_SCHEMA_VERSION = 5
 
 export type LocalStoreStatus = {
   available: boolean
@@ -79,6 +79,11 @@ ALTER TABLE themes ADD COLUMN token_version INTEGER NOT NULL DEFAULT 1;
 ALTER TABLE themes ADD COLUMN source_theme_id TEXT;
 `
 
+const V5_SCHEMA = `
+DROP INDEX IF EXISTS articles_activity_idx;
+CREATE INDEX IF NOT EXISTS articles_updated_idx ON articles(updated_at DESC);
+`
+
 type Migration = {
   version: number
   sql: string
@@ -89,6 +94,7 @@ const MIGRATIONS: Migration[] = [
   { version: 2, sql: V2_SCHEMA },
   { version: 3, sql: V3_SCHEMA },
   { version: 4, sql: V4_SCHEMA },
+  { version: 5, sql: V5_SCHEMA },
 ]
 
 let database: DatabaseSync | null = null
