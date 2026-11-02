@@ -1,6 +1,7 @@
 node_modules
 dist
 out
+.taste-skill/
 .DS_Store
 .eslintcache
 *.log*

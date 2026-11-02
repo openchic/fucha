@@ -8,6 +8,7 @@ import type {
   StoredImageInput,
   ThemeRecord,
   ThemeSnapshotInput,
+  ThemeUpdateInput,
 } from './store-types'
 
 export type ImageAsset = {
@@ -142,7 +143,7 @@ export type FuchaApi = {
   copyHtml: (payload: CopyHtmlPayload) => Promise<void>
   listThemes: () => Promise<ThemeRecord[]>
   createTheme: (input: ThemeSnapshotInput) => Promise<ThemeRecord>
-  renameTheme: (id: string, name: string) => Promise<ThemeRecord>
+  updateTheme: (input: ThemeUpdateInput) => Promise<ThemeRecord>
   deleteTheme: (id: string) => Promise<void>
   exportThemePackage: (input: ThemeSnapshotInput) => Promise<ThemeExportResult>
   importThemePackage: () => Promise<ThemeImportResult>

@@ -5,6 +5,12 @@ export const THEME_TOKEN_VERSION = 1
 /** 内置主题 id；主进程据此拒绝同 id 的自定义主题，避免解析歧义 */
 export const BUILTIN_THEME_IDS = ['default', 'serif'] as const
 
+/** 内置主题名称；主进程据此拒绝重名的自定义主题 */
+export const BUILTIN_THEME_NAMES: Record<(typeof BUILTIN_THEME_IDS)[number], string> = {
+  default: '清简',
+  serif: '书卷',
+}
+
 export type NumericRange = {
   min: number
   max: number

@@ -2,13 +2,14 @@
 import type { Article } from '../src/shared/types'
 import { extractArticle } from '../src/renderer/src/pipeline/extract'
 import { sanitizeHtml } from '../src/renderer/src/pipeline/sanitize'
+import { preserveSvgHeadings } from '../src/renderer/src/pipeline/svg'
 import { renderPreviewHtml, updatePreviewImages } from '../src/renderer/src/pipeline/images'
 import { buildExportHtml, exportHtmlToText } from '../src/renderer/src/pipeline/export'
 import { exportRootStyle, buildExportCss, buildPreviewCss } from '../src/renderer/src/theme/apply'
 import { highlightArticleHtml, highlightThemeCss } from '../src/renderer/src/theme/highlight'
 import { BUILTIN_THEMES, DEFAULT_THEME } from '../src/renderer/src/theme/presets'
 import { validateThemeToken } from '../src/renderer/src/theme/tokens'
-import { headingColor } from '../src/shared/theme'
+import { BUILTIN_THEME_NAMES, headingColor } from '../src/shared/theme'
 import { resolveThemeVariables, scopeCss, validateThemeCss } from '../src/shared/theme-css'
 
 const results: string[] = []
@@ -108,6 +109,38 @@ function testInlineSvg(): void {
   check('3.4 预览保留内联颜色', /fill:\s*url\([^)]*flowGradient[^)]*\)/i.test(preview))
 }
 
+function testSvgHeadingLine(): void {
+  const doc = new DOMParser().parseFromString(
+    `<html><body><svg class="d2"><style>
+.d2 .md { --color-border-muted: #333; }
+.d2 .md h1 { padding-bottom: 0.3em; border-bottom: 1px solid var(--color-border-muted); }
+</style><foreignObject x="10" y="0" width="200" height="40"><div xmlns="http://www.w3.org/1999/xhtml" class="md"><h1>标题</h1></div></foreignObject></svg></body></html>`,
+    'text/html'
+  )
+  preserveSvgHeadings(doc)
+  const line = doc.querySelector('svg line')
+  const text = doc.querySelector('svg text')
+  check(
+    '3.4 SVG 标题下划线沿用来源变量颜色',
+    text?.textContent === '标题' &&
+      ['#333', 'rgb(51, 51, 51)', 'rgb(51,51,51)'].includes(line?.getAttribute('stroke') ?? '') &&
+      line.getAttribute('x1') === '10' &&
+      line.getAttribute('x2') === '210',
+    line?.outerHTML ?? 'missing'
+  )
+
+  const plainDoc = new DOMParser().parseFromString(
+    `<html><body><svg><foreignObject x="0" y="0" width="100" height="40"><div xmlns="http://www.w3.org/1999/xhtml"><h1>无边框标题</h1></div></foreignObject></svg></body></html>`,
+    'text/html'
+  )
+  preserveSvgHeadings(plainDoc)
+  check(
+    '3.4 无来源标题线不补画',
+    plainDoc.querySelector('svg text')?.textContent === '无边框标题' &&
+      plainDoc.querySelector('svg line') === null
+  )
+}
+
 function testSanitize(): void {
   const clean = sanitizeHtml(SAMPLE_ARTICLE)
   check('3.2 移除 script', !/<script/i.test(clean))
@@ -203,6 +236,13 @@ function testTheme(): void {
   const validated = validateThemeToken(DEFAULT_THEME.token)
   check('1.1 内置预设通过校验', validated.id === 'default' && validated.name === '清简')
   check('1.1 默认主题主色跟随应用主色', validated.primary === '#5e7b6f')
+  check(
+    '1.1 内置主题名称与共享名称一致',
+    BUILTIN_THEMES.every(
+      (theme) =>
+        BUILTIN_THEME_NAMES[theme.token.id as keyof typeof BUILTIN_THEME_NAMES] === theme.token.name
+    )
+  )
   check(
     '1.1 标题六级直接挂在 token 顶层',
     ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'].every((key) => key in validated)
@@ -577,6 +617,7 @@ async function testChecklist(): Promise<void> {
 async function run(): Promise<void> {
   testSanitize()
   testInlineSvg()
+  testSvgHeadingLine()
   testExtract()
   testTheme()
   testHighlightAndExport()

@@ -1,27 +1,37 @@
 ## Purpose
 
-把主题、文章主题绑定与默认主题偏好落成 SQLite 记录；主题是快照，历史文章不会因主题编辑而换样。
+把主题、文章主题绑定与默认主题偏好落成 SQLite 记录；内置主题只读，自定义主题可原地编辑，编辑后引用该主题的文章同步换样。
 
 ## ADDED Requirements
 
-### Requirement: 不可变主题快照
+### Requirement: 可编辑的自定义主题
 
-自定义主题 SHALL 以 `token + css + token_version + source_theme_id` 保存；`token` 与 `css` 写入后 SHALL 不再修改。保存主题调整 SHALL 创建新 id，不覆盖旧行；同一 id 已存在时 SHALL 拒绝。只有名称、排序这类元信息允许更新，并同步 `updated_at`。
+自定义主题 SHALL 以 `token + css + token_version + source_theme_id` 保存。`updateTheme` SHALL 校验 token 与 CSS 后更新同一 id 的 `name`、`token`、`css` 与 `updated_at`，引用该主题的所有文章 SHALL 使用新内容；另存为与新建 SHALL 通过 `createTheme` 生成新 id，同一 id 已存在时拒绝。内置 id SHALL 拒绝写入。主题名称 SHALL 全局唯一（含内置主题，不区分英文大小写）；`createTheme` 与改名保存遇到重名 SHALL 拒绝，未改名的已有主题仍可保存。配置页改名 SHALL 随保存提交，只改名时除 `name` 与 `updated_at` 外内容不变。
+
+#### Scenario: 原地保存同步文章
+
+- **WHEN** 用户编辑自定义主题并保存
+- **THEN** 主题 id 不变，token 与 css 更新，所有引用它的文章同步使用新内容
 
 #### Scenario: 另存并复现
 
-- **WHEN** 用户保存主题调整后重启应用
+- **WHEN** 用户另存为并重启应用
 - **THEN** 新主题出现在列表，渲染效果与保存时一致，源主题未被修改
 
-#### Scenario: 拒绝覆盖
+#### Scenario: 拒绝覆盖创建
 
-- **WHEN** 使用已存在的主题 id 创建快照
-- **THEN** 写入被拒绝，旧快照保持不变
+- **WHEN** 使用已存在的主题 id 创建主题
+- **THEN** 写入被拒绝，旧主题保持不变
 
 #### Scenario: 改名不改内容
 
-- **WHEN** 用户重命名自定义主题
-- **THEN** 只有 `name` 与 `updated_at` 更新，token 与 css 不变
+- **WHEN** 用户在配置页修改主题名称并保存
+- **THEN** `name` 与 `updated_at` 更新，token 与 css 内容不变
+
+#### Scenario: 拒绝重名
+
+- **WHEN** 新建、导入或改名后的主题名称已被其他主题或内置主题占用
+- **THEN** 写入被拒绝，原记录保持不变
 
 ### Requirement: 主题引用与删除保护
 
@@ -62,7 +72,7 @@
 
 #### Scenario: 内置 id 保护
 
-- **WHEN** 保存或导入 id 为 `default` 或 `serif` 的自定义主题
+- **WHEN** 保存、更新或导入 id 为 `default` 或 `serif` 的自定义主题
 - **THEN** 操作被拒绝
 
 #### Scenario: 存储降级

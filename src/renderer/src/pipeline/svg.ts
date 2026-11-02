@@ -175,34 +175,70 @@ export function hasOnlyLocalReferences(value: string): boolean {
   return !/url\s*\(/i.test(remainder) && references.every((reference) => reference.startsWith('#'))
 }
 
+function collectCssVariables(style: CSSStyleDeclaration, variables: Map<string, string>): void {
+  for (let index = 0; index < style.length; index += 1) {
+    const property = style.item(index)
+    if (!property.startsWith('--')) continue
+    const value = style.getPropertyValue(property).trim()
+    if (value) variables.set(property, value)
+  }
+}
+
+function resolveCssVariables(value: string, variables: Map<string, string>, depth = 0): string {
+  if (depth > 8 || !value.includes('var(')) return value
+  return value.replace(/var\(\s*(--[\w-]+)\s*(?:,\s*([^)]*))?\)/g, (match, name, fallback) => {
+    const replacement = variables.get(name) ?? fallback?.trim()
+    return replacement === undefined
+      ? match
+      : resolveCssVariables(replacement, variables, depth + 1)
+  })
+}
+
 function safeDeclarations(
   style: CSSStyleDeclaration,
   allowedProperties: Set<string> = SVG_STYLE_PROPERTIES,
-  document?: Document
+  document?: Document,
+  variables?: Map<string, string>
 ): [string, string][] {
   const declarations: [string, string][] = []
+
+  const expand = (property: string, value: string): void => {
+    if (!document) return
+    const expandedStyle = document.createElement('span').style
+    expandedStyle.setProperty(property, value)
+    const expandedProperties =
+      property === 'border-bottom'
+        ? SVG_HEADING_LINE_PROPERTIES
+        : new Set(['font-family', 'font-size', 'font-style', 'font-weight'])
+    for (const expandedProperty of expandedProperties) {
+      const expandedValue = expandedStyle.getPropertyValue(expandedProperty).trim()
+      if (expandedValue && hasOnlyLocalReferences(expandedValue)) {
+        declarations.push([expandedProperty, expandedValue])
+      }
+    }
+  }
+
   for (let index = 0; index < style.length; index += 1) {
     const property = style.item(index).toLowerCase()
-    const value = style.getPropertyValue(property).trim()
+    const rawValue = style.getPropertyValue(property).trim()
+    const value = variables ? resolveCssVariables(rawValue, variables) : rawValue
     if (!allowedProperties.has(property) || !value || !hasOnlyLocalReferences(value)) continue
     if (property === 'border-bottom' || property === 'font') {
-      if (!document) continue
-      const expandedStyle = document.createElement('span').style
-      expandedStyle.setProperty(property, value)
-      const expandedProperties =
-        property === 'border-bottom'
-          ? SVG_HEADING_LINE_PROPERTIES
-          : new Set(['font-family', 'font-size', 'font-style', 'font-weight'])
-      for (const expandedProperty of expandedProperties) {
-        const expandedValue = expandedStyle.getPropertyValue(expandedProperty).trim()
-        if (expandedValue && hasOnlyLocalReferences(expandedValue)) {
-          declarations.push([expandedProperty, expandedValue])
-        }
-      }
+      expand(property, value)
       continue
     }
     declarations.push([property, value])
   }
+
+  // Shorthands containing var() are not exposed as longhands by CSSStyleDeclaration.
+  for (const property of ['border-bottom', 'font']) {
+    if (!allowedProperties.has(property) || !document) continue
+    const rawValue = style.getPropertyValue(property).trim()
+    const value = variables ? resolveCssVariables(rawValue, variables) : rawValue
+    if (!value || !hasOnlyLocalReferences(value)) continue
+    expand(property, value)
+  }
+
   return declarations
 }
 
@@ -333,8 +369,31 @@ function headingPresentationStyles(
     current = current.parentElement
   }
 
+  const ordered = ancestors.reverse()
+  const variables = new Map<string, string>()
+  const inlineStyles = new Map<Element, CSSStyleDeclaration>()
+
+  for (const element of ordered) {
+    for (const rule of rules) {
+      let matches = false
+      try {
+        matches = element.matches(rule.selector)
+      } catch {
+        continue
+      }
+      if (matches) collectCssVariables(rule.style, variables)
+    }
+
+    const inlineStyle = element.getAttribute('style')
+    if (!inlineStyle) continue
+    const style = element.ownerDocument.createElement('span').style
+    style.cssText = inlineStyle
+    collectCssVariables(style, variables)
+    inlineStyles.set(element, style)
+  }
+
   const styles = new Map<string, string>()
-  for (const element of ancestors.reverse()) {
+  for (const element of ordered) {
     for (const rule of rules) {
       let matches = false
       try {
@@ -347,7 +406,8 @@ function headingPresentationStyles(
       for (const [property, value] of safeDeclarations(
         rule.style,
         SVG_HEADING_STYLE_PROPERTIES,
-        element.ownerDocument
+        element.ownerDocument,
+        variables
       )) {
         if (
           SVG_HEADING_INHERITED_PROPERTIES.has(property) ||
@@ -358,14 +418,13 @@ function headingPresentationStyles(
       }
     }
 
-    const inlineStyle = element.getAttribute('style')
-    if (!inlineStyle) continue
-    const style = element.ownerDocument.createElement('span').style
-    style.cssText = inlineStyle
+    const style = inlineStyles.get(element)
+    if (!style) continue
     for (const [property, value] of safeDeclarations(
       style,
       SVG_HEADING_STYLE_PROPERTIES,
-      element.ownerDocument
+      element.ownerDocument,
+      variables
     )) {
       if (
         SVG_HEADING_INHERITED_PROPERTIES.has(property) ||
@@ -498,7 +557,7 @@ export function preserveSvgHeadings(root: ParentNode): void {
 
     if (heading.localName === 'h1') {
       const lineStyle = styles.get('border-bottom-style')
-      if (lineStyle === 'none' || styles.get('border-bottom-width') === '0px') {
+      if (!lineStyle || lineStyle === 'none' || styles.get('border-bottom-width') === '0px') {
         foreignObject.replaceWith(text)
         continue
       }

@@ -1,4 +1,5 @@
 import type { AppError } from '../../hooks'
+import { Button } from '../Button'
 import { Icon } from '../Icon'
 
 const ERROR_LABEL: Record<AppError['kind'], string> = {
@@ -33,13 +34,10 @@ export const ErrorPanel = (props: ErrorPanelProps) => {
             <Icon name="alert" className="mt-1 h-4 w-4 flex-none text-danger" />
             <p>{error.message}</p>
           </div>
-          <button
-            type="button"
-            onClick={onRetry}
-            className="button button-primary mt-6 h-9 px-[18px]">
+          <Button variant="primary" onClick={onRetry} className="mt-6 h-9 px-[18px]">
             重新尝试
             <Icon name="arrow-right" />
-          </button>
+          </Button>
         </div>
       </div>
     </div>

@@ -1,59 +1,26 @@
-import type { ThemeToken } from '@shared/types'
 import { useCallback, useEffect, useRef, useState } from 'react'
-import {
-  DEFAULT_AVAILABLE_THEME,
-  findTheme,
-  recordToTheme,
-  themeErrorMessage,
-  type AvailableTheme,
-} from '../theme/library'
-import { useConfirm, type ConfirmOptions } from './useConfirm'
+import { DEFAULT_AVAILABLE_THEME, findTheme, type AvailableTheme } from '../theme/library'
 
 type UseArticleThemeOptions = {
   articleHash: string | null
   themes: AvailableTheme[]
   ready: boolean
-  onThemeCreated?: () => void
 }
 
 export type ArticleThemeController = {
   activeTheme: AvailableTheme
-  visibleTheme: AvailableTheme
-  editing: boolean
-  dirty: boolean
   themeReady: boolean
-  selectTheme: (id: string) => Promise<boolean>
-  beginEdit: () => void
-  cancelEdit: () => void
-  updateToken: (token: ThemeToken) => void
-  saveAs: (name: string) => Promise<string | null>
-  confirmLeave: () => Promise<boolean>
-  discardDraft: () => void
+  selectTheme: (id: string) => void
 }
 
-const DISCARD_PROMPT: ConfirmOptions = {
-  title: '放弃未保存的主题调整？',
-  description: '修改尚未保存，继续将丢失这些调整。',
-  confirmLabel: '放弃',
-  tone: 'danger',
-}
-
-/** 当前文章主题、编辑草稿与另存为；草稿只存在于内存 */
+/** 当前文章主题选择；主题编辑与草稿在 Settings 页 */
 export function useArticleTheme(options: UseArticleThemeOptions): ArticleThemeController {
-  const { articleHash, themes, ready, onThemeCreated } = options
-  const confirm = useConfirm()
+  const { articleHash, themes, ready } = options
   const [activeId, setActiveId] = useState(DEFAULT_AVAILABLE_THEME.id)
-  const [override, setOverride] = useState<AvailableTheme | null>(null)
-  const [draft, setDraft] = useState<AvailableTheme | null>(null)
-  const [editing, setEditing] = useState(false)
   const [themeReady, setThemeReady] = useState(false)
   const resolvedHash = useRef('')
 
-  const activeTheme =
-    findTheme(themes, activeId) ?? (override?.id === activeId ? override : DEFAULT_AVAILABLE_THEME)
-  const visibleTheme = draft ?? activeTheme
-  const dirty =
-    editing && draft !== null && JSON.stringify(draft.token) !== JSON.stringify(activeTheme.token)
+  const activeTheme = findTheme(themes, activeId) ?? DEFAULT_AVAILABLE_THEME
 
   useEffect(() => {
     if (!articleHash) {
@@ -82,11 +49,7 @@ export function useArticleTheme(options: UseArticleThemeOptions): ArticleThemeCo
         }
       }
       if (cancelled) return
-      const next = findTheme(themes, id) ?? DEFAULT_AVAILABLE_THEME
-      setActiveId(next.id)
-      setOverride(null)
-      setDraft(null)
-      setEditing(false)
+      setActiveId((findTheme(themes, id) ?? DEFAULT_AVAILABLE_THEME).id)
       setThemeReady(true)
     })()
 
@@ -95,111 +58,15 @@ export function useArticleTheme(options: UseArticleThemeOptions): ArticleThemeCo
     }
   }, [articleHash, ready, themes])
 
-  useEffect(() => {
-    if (!dirty) return
-    const handleBeforeUnload = (event: BeforeUnloadEvent): void => {
-      event.preventDefault()
-      event.returnValue = ''
-    }
-    window.addEventListener('beforeunload', handleBeforeUnload)
-    return () => window.removeEventListener('beforeunload', handleBeforeUnload)
-  }, [dirty])
-
-  const persistChoice = useCallback(
-    (id: string) => {
+  const selectTheme = useCallback(
+    (id: string): void => {
+      if (!findTheme(themes, id)) return
+      setActiveId(id)
       if (articleHash) void window.fucha.setArticleTheme(articleHash, id).catch(() => {})
       void window.fucha.setPreference('theme.active', id).catch(() => {})
     },
-    [articleHash]
+    [articleHash, themes]
   )
 
-  const selectTheme = useCallback(
-    async (id: string): Promise<boolean> => {
-      if (id === activeTheme.id) return true
-      if (!findTheme(themes, id)) return false
-      if (editing && dirty && !(await confirm(DISCARD_PROMPT))) return false
-      setActiveId(id)
-      setOverride(null)
-      setDraft(null)
-      setEditing(false)
-      persistChoice(id)
-      return true
-    },
-    [activeTheme.id, confirm, dirty, editing, persistChoice, themes]
-  )
-
-  const beginEdit = useCallback((): void => {
-    setDraft({ ...activeTheme, token: structuredClone(activeTheme.token) })
-    setEditing(true)
-  }, [activeTheme])
-
-  const cancelEdit = useCallback((): void => {
-    void (async () => {
-      if (dirty && !(await confirm(DISCARD_PROMPT))) return
-      setDraft(null)
-      setEditing(false)
-    })()
-  }, [confirm, dirty])
-
-  const updateToken = useCallback((token: ThemeToken): void => {
-    setDraft((current) => (current ? { ...current, token } : current))
-  }, [])
-
-  const saveAs = useCallback(
-    async (rawName: string): Promise<string | null> => {
-      const name = rawName.trim()
-      if (!name) return '请输入主题名称'
-      if (!draft) return '没有可保存的主题调整'
-
-      const token: ThemeToken = {
-        ...structuredClone(draft.token),
-        id: `custom-${crypto.randomUUID()}`,
-        name,
-        builtin: false,
-      }
-
-      try {
-        const record = await window.fucha.createTheme({
-          token,
-          css: draft.css,
-          sourceThemeId: activeTheme.id,
-        })
-        const created = recordToTheme(record)
-        setOverride(created)
-        setActiveId(created.id)
-        setDraft(null)
-        setEditing(false)
-        onThemeCreated?.()
-        persistChoice(created.id)
-        return null
-      } catch (error) {
-        return themeErrorMessage(error, '保存主题失败')
-      }
-    },
-    [activeTheme.id, draft, onThemeCreated, persistChoice]
-  )
-
-  const confirmLeave = useCallback(async (): Promise<boolean> => {
-    if (!dirty) return true
-    return confirm(DISCARD_PROMPT)
-  }, [confirm, dirty])
-  const discardDraft = useCallback((): void => {
-    setDraft(null)
-    setEditing(false)
-  }, [])
-
-  return {
-    activeTheme,
-    visibleTheme,
-    editing,
-    dirty,
-    themeReady,
-    selectTheme,
-    beginEdit,
-    cancelEdit,
-    updateToken,
-    saveAs,
-    confirmLeave,
-    discardDraft,
-  }
+  return { activeTheme, themeReady, selectTheme }
 }

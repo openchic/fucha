@@ -1,6 +1,7 @@
 import type { KeyboardEvent as ReactKeyboardEvent, ReactNode } from 'react'
 import { useCallback, useEffect, useId, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
+import { Button } from '../Button'
 import { ConfirmContext, type ConfirmOptions } from '../../hooks/useConfirm'
 
 type PendingConfirm = {
@@ -114,20 +115,20 @@ const ConfirmDialog = ({ options, onSettle }: ConfirmDialogProps) => {
           </p>
         )}
         <div className="mt-5 flex justify-end gap-2">
-          <button
+          <Button
             ref={cancelRef}
-            type="button"
+            variant="secondary"
             onClick={() => finish(false)}
-            className="button button-secondary h-8 px-4">
+            className="h-8 px-4">
             {cancelLabel}
-          </button>
-          <button
+          </Button>
+          <Button
             ref={confirmRef}
-            type="button"
+            variant={tone === 'danger' ? 'danger' : 'primary'}
             onClick={() => finish(true)}
-            className={`button h-8 px-4 ${tone === 'danger' ? 'button-danger' : 'button-primary'}`}>
+            className="h-8 px-4">
             {confirmLabel}
-          </button>
+          </Button>
         </div>
       </div>
     </div>,

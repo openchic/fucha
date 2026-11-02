@@ -12,6 +12,7 @@ type SidebarProps = {
   onNew: () => void
   onOpen: (item: ArticleSummary) => void
   onDelete: (item: ArticleSummary) => Promise<void>
+  onSettings: () => void
 }
 
 function readableError(error: unknown): string {
@@ -24,7 +25,7 @@ function readableError(error: unknown): string {
 
 /** 预览页左侧历史列表：点击打开快照，悬停提供更多操作 */
 export const Sidebar = (props: SidebarProps) => {
-  const { items, ready, error, activeHash, onNew, onOpen, onDelete } = props
+  const { items, ready, error, activeHash, onNew, onOpen, onDelete, onSettings } = props
   const confirm = useConfirm()
   const [menuTarget, setMenuTarget] = useState<ArticleSummary | null>(null)
   const [menuOpen, setMenuOpen] = useState(false)
@@ -139,6 +140,17 @@ export const Sidebar = (props: SidebarProps) => {
           </ul>
         )}
       </nav>
+
+      <div className="flex justify-end px-3 pt-2 pb-3">
+        <button
+          type="button"
+          onClick={onSettings}
+          aria-label="设置"
+          title="设置"
+          className="flex h-7 w-7 items-center justify-center rounded-full text-ink-soft transition-colors hover:bg-raised hover:text-ink">
+          <Icon name="settings" className="h-4 w-4 flex-none" />
+        </button>
+      </div>
 
       {menuTarget && (
         <Popover

@@ -26,11 +26,11 @@ import {
   getTheme,
   listArticles,
   listThemes,
-  renameTheme,
   replaceArticleImages,
   setArticleTheme,
   setPreference,
   touchArticle,
+  updateTheme,
   upsertArticle,
 } from '../src/main/store'
 import { buildThemePackage, parseThemePackage } from '../src/main/theme-package'
@@ -300,11 +300,33 @@ async function main(): Promise<void> {
     '2.3 同一 id 不能覆盖快照',
     throws(() => createTheme({ token: customTheme, css: '' }))
   )
-  renameTheme('custom-test', '重命名后的主题')
+  const updatedTheme = updateTheme({
+    id: 'custom-test',
+    token: { ...customTheme, name: '更新后的主题', text: { ...customTheme.text, fontSize: 17 } },
+    css: 'h2 {\n  letter-spacing: 0.1em;\n}',
+  })
   check(
-    '2.3 只允许改名称',
-    getTheme('custom-test')?.name === '重命名后的主题' &&
-      getTheme('custom-test')?.token.name === '自定义主题'
+    '2.3 原地更新主题内容',
+    updatedTheme.id === 'custom-test' &&
+      updatedTheme.name === '更新后的主题' &&
+      updatedTheme.token.text.fontSize === 17 &&
+      updatedTheme.css.includes('0.1em')
+  )
+  check(
+    '2.3 更新内置主题被拒',
+    throws(() =>
+      updateTheme({
+        id: 'default',
+        token: { ...customTheme, id: 'default', builtin: true },
+        css: '',
+      })
+    )
+  )
+  check(
+    '2.3 更新不存在的主题被拒',
+    throws(() =>
+      updateTheme({ id: 'missing-theme', token: { ...customTheme, id: 'missing-theme' }, css: '' })
+    )
   )
   check(
     '2.3 非法主题被拒',
@@ -335,6 +357,24 @@ async function main(): Promise<void> {
     css: '',
   })
   check('2.3 可删除未被引用的主题', tempTheme.id === 'temp-theme')
+  check(
+    '2.3 主题名称不能重复',
+    throws(() =>
+      createTheme({ token: { ...customTheme, id: 'duplicate-name', name: '临时主题' }, css: '' })
+    )
+  )
+  check(
+    '2.3 自定义主题不能与内置主题重名',
+    throws(() =>
+      createTheme({ token: { ...customTheme, id: 'builtin-name', name: '清简' }, css: '' })
+    )
+  )
+  check(
+    '2.3 改名不能与其他主题重名',
+    throws(() =>
+      updateTheme({ id: 'custom-test', token: { ...customTheme, name: '临时主题' }, css: '' })
+    )
+  )
   deleteTheme('temp-theme')
   check('2.3 删除自定义主题', !listThemes().some((theme) => theme.id === 'temp-theme'))
 

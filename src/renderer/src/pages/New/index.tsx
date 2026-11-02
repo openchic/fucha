@@ -1,9 +1,9 @@
 import { type FormEvent, useRef, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router'
-import { Icon } from '../../../../components'
+import { Button, Icon } from '../../components'
 
-/** 预览右侧的新建输入页：输入链接后切换到文章预览 */
-export const NewArticlePanel = () => {
+/** Home 布局的 index 子路由：默认 New 输入页 */
+const New = () => {
   const [params] = useSearchParams()
   const navigate = useNavigate()
   const [value, setValue] = useState(params.get('url') ?? '')
@@ -68,7 +68,7 @@ export const NewArticlePanel = () => {
                   aria-label="文章链接"
                   placeholder="请输入一个链接"
                   aria-invalid={!!error}
-                  aria-describedby="home-feedback"
+                  aria-describedby="new-feedback"
                   className="h-full w-0 min-w-0 flex-1 border-0 bg-transparent p-0 text-[15px] text-ellipsis text-ink placeholder:text-ink-soft focus-visible:outline-none"
                   autoFocus
                 />
@@ -86,15 +86,13 @@ export const NewArticlePanel = () => {
                     <Icon name="close" />
                   </button>
                 )}
-                <button
-                  type="submit"
-                  className="button button-primary h-[42px] gap-2.5 px-5 text-body">
+                <Button type="submit" variant="primary" className="h-[42px] gap-2.5 px-5 text-body">
                   <span>生成预览</span>
                   <Icon name="arrow-right" />
-                </button>
+                </Button>
               </div>
               <div
-                id="home-feedback"
+                id="new-feedback"
                 className="mt-3 min-h-[22px] pl-[19px] text-secondary leading-[1.7] text-danger">
                 {error && <p role="alert">{error}</p>}
               </div>
@@ -106,6 +104,6 @@ export const NewArticlePanel = () => {
   )
 }
 
-NewArticlePanel.displayName = 'NewArticlePanel'
+New.displayName = 'New'
 
-export default NewArticlePanel
+export default New

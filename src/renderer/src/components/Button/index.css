@@ -1,0 +1,67 @@
+/* 组件样式单独打包时也要先确定 Tailwind 层顺序，否则 base 会覆盖 button */
+@layer theme, base, components, utilities;
+
+/* 应用壳胶囊按钮；变体由 Button 组件的 variant 选择 */
+@layer components {
+  .button {
+    display: inline-flex;
+    height: 34px;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    padding-inline: 14px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 1;
+    white-space: nowrap;
+    transition:
+      background-color 150ms ease-out,
+      color 150ms ease-out,
+      transform 150ms ease-out;
+  }
+
+  .button:active {
+    transform: scale(0.97);
+  }
+
+  .button-primary {
+    background: var(--color-primary);
+    color: white;
+  }
+
+  .button-primary:enabled:hover {
+    background: color-mix(in srgb, var(--color-primary) 88%, var(--color-ink));
+  }
+
+  .button-secondary {
+    background: var(--color-raised);
+    color: var(--color-ink);
+  }
+
+  .button-secondary:hover {
+    background: var(--color-line);
+  }
+
+  .button-danger {
+    background: var(--color-danger);
+    color: white;
+  }
+
+  .button-danger:enabled:hover {
+    background: color-mix(in srgb, var(--color-danger) 88%, var(--color-ink));
+  }
+
+  .button-back {
+    gap: 6px;
+    margin-left: -10px;
+    padding-inline: 10px;
+    color: var(--color-ink-soft);
+  }
+
+  .button-back:hover {
+    background: var(--color-raised);
+    color: var(--color-ink);
+  }
+}

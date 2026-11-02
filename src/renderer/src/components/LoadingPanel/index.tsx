@@ -1,4 +1,5 @@
 import type { Stage } from '../../hooks'
+import { Button } from '../Button'
 import { Icon } from '../Icon'
 
 type LoadingPanelProps = {
@@ -20,10 +21,10 @@ export const LoadingPanel = (props: LoadingPanelProps) => {
           <div className="h-3 w-40 rounded-[4px] bg-line" />
           <div className="h-3 w-16 rounded-[4px] bg-line" />
         </div>
-        <button type="button" onClick={onCancel} className="button button-secondary no-drag">
+        <Button variant="secondary" onClick={onCancel} className="no-drag">
           <Icon name="close" />
           取消
-        </button>
+        </Button>
       </div>
       <div className="reading-viewport min-h-0 flex-1 overflow-y-auto">
         <div className="content-column py-10" aria-hidden="true">

@@ -9,6 +9,8 @@ export type AvailableTheme = {
   css: string
   builtin: boolean
   sourceThemeId?: string
+  /** 自定义主题最近更新时间；用于判断本地覆盖是否已被主题库刷新接住 */
+  updatedAt?: string
 }
 
 export const BUILTIN_AVAILABLE: AvailableTheme[] = BUILTIN_THEMES.map(({ token, css }) => ({
@@ -29,6 +31,7 @@ export function recordToTheme(record: ThemeRecord): AvailableTheme {
     css: record.css,
     builtin: false,
     sourceThemeId: record.sourceThemeId,
+    updatedAt: record.updatedAt,
   }
 }
 

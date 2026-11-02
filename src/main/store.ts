@@ -8,8 +8,14 @@ import type {
   StoredImageInput,
   ThemeRecord,
   ThemeSnapshotInput,
+  ThemeUpdateInput,
 } from '@shared/store-types'
-import { BUILTIN_THEME_IDS, THEME_TOKEN_VERSION, validateThemeToken } from '@shared/theme'
+import {
+  BUILTIN_THEME_IDS,
+  BUILTIN_THEME_NAMES,
+  THEME_TOKEN_VERSION,
+  validateThemeToken,
+} from '@shared/theme'
 import { validateThemeCss } from '@shared/theme-css'
 import { getDb } from './db'
 
@@ -179,13 +185,27 @@ export function getTheme(id: string): ThemeRecord | undefined {
   return row ? rowToTheme(row) : undefined
 }
 
-/** 保存调整生成新快照；同一 id 已存在时拒绝覆盖 */
+function assertThemeNameAvailable(name: string, excludeId?: string): void {
+  const normalized = name.toLowerCase()
+  if (Object.values(BUILTIN_THEME_NAMES).some((builtin) => builtin.toLowerCase() === normalized)) {
+    throw new Error(`主题名称与内置主题冲突：${name}`)
+  }
+  const row = excludeId
+    ? getDb()
+        .prepare('SELECT 1 FROM themes WHERE name = ? COLLATE NOCASE AND id <> ?')
+        .get(name, excludeId)
+    : getDb().prepare('SELECT 1 FROM themes WHERE name = ? COLLATE NOCASE').get(name)
+  if (row) throw new Error(`主题名称已存在：${name}`)
+}
+
+/** 新建主题记录；同一 id 或同名主题已存在时拒绝 */
 export function createTheme(input: ThemeSnapshotInput): ThemeRecord {
   const token = validateThemeToken(input.token)
   if (token.builtin) throw new Error('内置主题不能写入自定义主题表')
   if ((BUILTIN_THEME_IDS as readonly string[]).includes(token.id)) {
     throw new Error(`主题 id 与内置主题冲突：${token.id}`)
   }
+  assertThemeNameAvailable(token.name)
   const tokenVersion = input.tokenVersion ?? THEME_TOKEN_VERSION
   if (tokenVersion !== THEME_TOKEN_VERSION) {
     throw new Error(`不支持的主题 token 版本：${tokenVersion}`)
@@ -224,15 +244,26 @@ export function createTheme(input: ThemeSnapshotInput): ThemeRecord {
   return getTheme(token.id)!
 }
 
-/** 只允许修改名称这类元信息；token 与 css 保持快照不可变 */
-export function renameTheme(id: string, name: string): ThemeRecord {
-  const nextName = name.trim()
-  if (!nextName) throw new Error('主题名称不能为空')
-  const result = getDb()
-    .prepare('UPDATE themes SET name = ?, updated_at = ? WHERE id = ?')
-    .run(nextName, now(), id)
-  if (Number(result.changes) === 0) throw new Error('主题不存在')
-  return getTheme(id)!
+/** 原地更新自定义主题；所有引用它的文章同步生效 */
+export function updateTheme(input: ThemeUpdateInput): ThemeRecord {
+  const token = validateThemeToken(input.token)
+  if (token.builtin) throw new Error('内置主题不能写入自定义主题表')
+  if (token.id !== input.id) throw new Error('主题 id 不匹配')
+  if ((BUILTIN_THEME_IDS as readonly string[]).includes(input.id)) {
+    throw new Error(`主题 id 与内置主题冲突：${input.id}`)
+  }
+  const existing = getTheme(input.id)
+  if (!existing) throw new Error('主题不存在')
+  if (existing.name !== token.name) assertThemeNameAvailable(token.name, input.id)
+  const css = validateThemeCss(input.css)
+  getDb()
+    .prepare(
+      `UPDATE themes
+       SET name = ?, token = ?, css = ?, token_version = ?, updated_at = ?
+       WHERE id = ?`
+    )
+    .run(token.name, JSON.stringify(token), css, THEME_TOKEN_VERSION, now(), input.id)
+  return getTheme(input.id)!
 }
 
 export function deleteTheme(id: string): void {

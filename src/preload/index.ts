@@ -3,6 +3,7 @@ import type {
   JsonValue,
   StoredImageInput,
   ThemeSnapshotInput,
+  ThemeUpdateInput,
 } from '@shared/store-types'
 import type {
   CopyHtmlPayload,
@@ -20,7 +21,7 @@ const api: FuchaApi = {
   copyHtml: (payload: CopyHtmlPayload) => ipcRenderer.invoke('copy-html', payload),
   listThemes: () => ipcRenderer.invoke('themes:list'),
   createTheme: (input: ThemeSnapshotInput) => ipcRenderer.invoke('themes:create', input),
-  renameTheme: (id: string, name: string) => ipcRenderer.invoke('themes:rename', id, name),
+  updateTheme: (input: ThemeUpdateInput) => ipcRenderer.invoke('themes:update', input),
   deleteTheme: (id: string) => ipcRenderer.invoke('themes:delete', id),
   exportThemePackage: (input: ThemeSnapshotInput) => ipcRenderer.invoke('themes:export', input),
   importThemePackage: () => ipcRenderer.invoke('themes:import'),

@@ -10,6 +10,7 @@ import type {
   JsonValue,
   StoredImageInput,
   ThemeSnapshotInput,
+  ThemeUpdateInput,
 } from '@shared/store-types'
 import { createHash } from 'crypto'
 import { promises as fs } from 'fs'
@@ -25,11 +26,11 @@ import {
   getPreference,
   listArticles,
   listThemes,
-  renameTheme,
   replaceArticleImages,
   setArticleTheme,
   setPreference,
   touchArticle,
+  updateTheme,
   upsertArticle,
 } from './store'
 
@@ -367,7 +368,7 @@ export function registerIpcHandlers(): void {
 
   ipcMain.handle('themes:list', () => listThemes())
   ipcMain.handle('themes:create', (_event, input: ThemeSnapshotInput) => createTheme(input))
-  ipcMain.handle('themes:rename', (_event, id: string, name: string) => renameTheme(id, name))
+  ipcMain.handle('themes:update', (_event, input: ThemeUpdateInput) => updateTheme(input))
   ipcMain.handle('themes:delete', (_event, id: string) => deleteTheme(id))
   ipcMain.handle('themes:export', (event, input: ThemeSnapshotInput) =>
     exportThemePackage(input, BrowserWindow.fromWebContents(event.sender) ?? undefined)

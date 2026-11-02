@@ -63,10 +63,17 @@ export type ThemeRecord = {
   updatedAt: string
 }
 
-/** 写入主题快照的入参；token 与 css 写入后不再修改 */
+/** 创建主题记录；另存为与完全自定义新建使用 */
 export type ThemeSnapshotInput = {
   token: ThemeToken
   css: string
   tokenVersion?: number
   sourceThemeId?: string
+}
+
+/** 原地更新自定义主题；所有引用该主题的文章同步生效 */
+export type ThemeUpdateInput = {
+  id: string
+  token: ThemeToken
+  css: string
 }

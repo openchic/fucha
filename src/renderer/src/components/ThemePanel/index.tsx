@@ -1,13 +1,17 @@
 import type { HeadingDecoration, HeadingToken, ThemeDefinition, ThemeToken } from '@shared/types'
 import { HEADING_KEYS, THEME_RANGES, type HeadingKey, type NumericRange } from '@shared/theme'
 import { type FormEvent, useState } from 'react'
+import { Button } from '../Button'
 
 type ThemePanelProps = {
   theme: ThemeDefinition
   sourceName: string
   dirty: boolean
+  creating: boolean
+  canSave: boolean
   onTokenChange: (token: ThemeToken) => void
   onCancel: () => void
+  onSave: () => Promise<string | null>
   onSaveAs: (name: string) => Promise<string | null>
 }
 
@@ -124,15 +128,18 @@ const TABS = [
 
 type PanelTab = (typeof TABS)[number]['value']
 
-/** 编辑当前主题草稿：只改 token，实时反映到预览；保存会生成新主题 */
+/** 编辑或新建主题草稿：只改 token，实时反映到预览 */
 export const ThemePanel = (props: ThemePanelProps) => {
-  const { theme, sourceName, dirty, onTokenChange, onCancel, onSaveAs } = props
+  const { theme, sourceName, dirty, creating, canSave, onTokenChange, onCancel, onSave, onSaveAs } =
+    props
   const [tab, setTab] = useState<PanelTab>('text')
   const [level, setLevel] = useState<HeadingKey>('h1')
-  const [saveOpen, setSaveOpen] = useState(false)
-  const [name, setName] = useState(`${sourceName} 副本`)
+  const [saveOpen, setSaveOpen] = useState(creating)
+  const [name, setName] = useState(sourceName === '完全自定义' ? '新主题' : `${sourceName} 副本`)
   const [saving, setSaving] = useState(false)
+  const [savingCurrent, setSavingCurrent] = useState(false)
   const [error, setError] = useState('')
+  const [currentError, setCurrentError] = useState('')
 
   const token = theme.token
   const heading = token[level]
@@ -161,31 +168,80 @@ export const ThemePanel = (props: ThemePanelProps) => {
     if (message) setError(message)
   }
 
+  const handleSaveCurrent = async (): Promise<void> => {
+    setSavingCurrent(true)
+    setCurrentError('')
+    const message = await onSave()
+    setSavingCurrent(false)
+    if (message) setCurrentError(message)
+  }
+
   return (
     <section
-      aria-label="主题调整"
+      aria-label={
+        creating ? (sourceName === '完全自定义' ? '新建主题' : '另存为新主题') : '编辑主题'
+      }
       className="relative z-30 flex-none border-b border-line bg-white pt-2 pb-3">
       <div className="content-column">
         <div className="flex items-start justify-between gap-4">
           <div className="min-w-0">
-            <h1 className="text-title font-semibold text-ink">调整主题</h1>
-            <p className="mt-0.5 text-secondary text-ink-soft">
-              基于 {sourceName}
-              {dirty ? ' · 未保存' : ''}
-            </p>
+            <div className="flex min-w-0 items-center gap-3">
+              <h1 className="flex-none text-title font-semibold text-ink">
+                {creating
+                  ? sourceName === '完全自定义'
+                    ? '新建主题'
+                    : '另存为新主题'
+                  : '编辑主题'}
+              </h1>
+              {!creating && (
+                <input
+                  type="text"
+                  value={token.name}
+                  onChange={(event) => patch({ name: event.target.value })}
+                  aria-label="主题名称"
+                  title="主题名称"
+                  className="h-7 w-48 flex-none rounded-full border border-line px-3 text-secondary text-ink focus-visible:border-primary focus-visible:outline-none"
+                />
+              )}
+            </div>
+            {(creating || dirty) && (
+              <p className="mt-0.5 text-secondary text-ink-soft">
+                {creating
+                  ? sourceName === '完全自定义'
+                    ? '完全自定义'
+                    : `基于 ${sourceName}`
+                  : '未保存'}
+              </p>
+            )}
           </div>
           <div className="flex flex-none items-center gap-2">
-            <button type="button" onClick={onCancel} className="button button-secondary h-7 px-3">
+            <Button variant="secondary" onClick={onCancel} className="h-7 px-3">
               取消
-            </button>
-            <button
-              type="button"
-              onClick={() => setSaveOpen((open) => !open)}
-              className="button button-primary h-7 px-3">
-              另存为
-            </button>
+            </Button>
+            {canSave && (
+              <Button
+                variant="primary"
+                onClick={() => void handleSaveCurrent()}
+                disabled={savingCurrent}
+                className="h-7 px-3">
+                {savingCurrent ? '保存中' : '保存'}
+              </Button>
+            )}
+            {!creating && (
+              <Button
+                variant={canSave ? 'secondary' : 'primary'}
+                onClick={() => setSaveOpen((open) => !open)}
+                className="h-7 px-3">
+                另存为
+              </Button>
+            )}
           </div>
         </div>
+        {currentError && (
+          <p role="alert" className="mt-1 text-secondary text-danger">
+            {currentError}
+          </p>
+        )}
 
         {saveOpen && (
           <form onSubmit={handleSave} className="mt-2 flex flex-wrap items-center gap-2">
@@ -196,13 +252,13 @@ export const ThemePanel = (props: ThemePanelProps) => {
                 setName(event.target.value)
                 setError('')
               }}
-              aria-label="新主题名称"
+              aria-label={creating ? '主题名称' : '新主题名称'}
               autoFocus
               className="h-7 w-56 rounded-full border border-line px-3 text-secondary text-ink focus-visible:border-primary focus-visible:outline-none"
             />
-            <button type="submit" disabled={saving} className="button button-primary h-7 px-3">
-              {saving ? '保存中' : '保存'}
-            </button>
+            <Button type="submit" variant="primary" disabled={saving} className="h-7 px-3">
+              {saving ? '保存中' : creating ? '创建' : '另存为'}
+            </Button>
             <span role="status" className="text-secondary text-danger">
               {error}
             </span>

@@ -12,7 +12,6 @@ type ArticleMetaProps = {
   themes: AvailableTheme[]
   themeId: string
   onThemeChange: (id: string) => void
-  onEditTheme: () => void
   onManageThemes: () => void
   onCopy: () => void
   exportState: ExportState
@@ -27,7 +26,6 @@ export const ArticleMeta = (props: ArticleMetaProps) => {
     themes,
     themeId,
     onThemeChange,
-    onEditTheme,
     onManageThemes,
     onCopy,
     exportState,
@@ -129,10 +127,7 @@ export const ArticleMeta = (props: ArticleMetaProps) => {
           label="主题"
           value={themeId}
           options={themes.map((theme) => ({ value: theme.id, label: theme.name }))}
-          actions={[
-            { label: '编辑当前主题', onSelect: onEditTheme },
-            { label: '管理自定义主题', onSelect: onManageThemes },
-          ]}
+          actions={[{ label: '主题管理', onSelect: onManageThemes }]}
           onChange={onThemeChange}
         />
       </div>

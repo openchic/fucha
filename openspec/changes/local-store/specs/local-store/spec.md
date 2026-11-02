@@ -2,7 +2,7 @@
 
 ### Requirement: 本地数据库初始化与版本迁移
 
-系统 SHALL 在主进程使用 Electron 自带 `node:sqlite` 打开 `userData/fucha.db`，以 `PRAGMA user_version` 管理 schema 版本；首次创建 SHALL 建立当前 schema（v5），已有 v1–v4 库 SHALL 顺序迁移补齐文章主题字段、统一默认主题 id、增加主题快照字段并切换历史排序索引。数据库打开、迁移失败或 `user_version` 高于代码支持版本时，系统 SHALL 将存储标记为不可用，且不阻断抓取、提取与预览主链路。
+系统 SHALL 在主进程使用 Electron 自带 `node:sqlite` 打开 `userData/fucha.db`，以 `PRAGMA user_version` 管理 schema 版本；首次创建 SHALL 建立当前 schema（v5），已有 v1–v4 库 SHALL 顺序迁移补齐文章主题字段、统一默认主题 id、增加主题字段并切换历史排序索引。数据库打开、迁移失败或 `user_version` 高于代码支持版本时，系统 SHALL 将存储标记为不可用，且不阻断抓取、提取与预览主链路。
 
 #### Scenario: 首次创建当前数据库
 
@@ -69,7 +69,7 @@ SQLite 访问 SHALL 只存在于主进程，渲染进程 SHALL 只能通过 prel
 
 ### Requirement: 自定义主题存储
 
-系统 SHALL 在 `themes` 表只保存用户自定义主题，内置主题继续由代码提供；主题 token 与 CSS SHALL 在写入前分别通过 `src/shared/theme.ts` 与 `src/shared/theme-css.ts` 的共享校验，读取结果 SHALL 仍是合法 ThemeToken。主题是不可变快照：`token` 与 `css` 写入后不再修改，保存调整 SHALL 创建新 id，同 id 已存在时 SHALL 拒绝；名称、排序等元信息允许更新并同步 `updated_at`。删除仍被文章引用的主题 SHALL 被拒绝；删除来源主题时 SHALL 把其他主题的 `source_theme_id` 置空。
+系统 SHALL 在 `themes` 表只保存用户自定义主题，内置主题继续由代码提供；主题 token 与 CSS SHALL 在写入前分别通过 `src/shared/theme.ts` 与 `src/shared/theme-css.ts` 的共享校验，读取结果 SHALL 仍是合法 ThemeToken。自定义主题 SHALL 支持原地更新：`updateTheme` 校验后更新 `token`、`css` 与 `updated_at`，引用该主题的文章同步使用新内容；`createTheme` 创建新 id，同 id 已存在时 SHALL 拒绝；名称、排序更新并同步 `updated_at`；内置 id SHALL 拒绝写入。删除仍被文章引用的主题 SHALL 被拒绝；删除来源主题时 SHALL 把其他主题的 `source_theme_id` 置空。
 
 #### Scenario: 保存并列出自定义主题
 
@@ -81,14 +81,19 @@ SQLite 访问 SHALL 只存在于主进程，渲染进程 SHALL 只能通过 prel
 - **WHEN** 主进程尝试保存一份越界或字段缺失的主题 token
 - **THEN** 共享校验拒绝写入，表中不新增记录
 
-#### Scenario: 拒绝覆盖快照
+#### Scenario: 拒绝重复创建
 
-- **WHEN** 以已存在的主题 id 再次创建快照
-- **THEN** 写入被拒绝，旧快照保持不变
+- **WHEN** 以已存在的主题 id 再次创建主题
+- **THEN** 写入被拒绝，旧主题保持不变；更新内容必须走 `updateTheme`
+
+#### Scenario: 原地更新
+
+- **WHEN** 主进程收到合法 token 与 CSS 更新自定义主题
+- **THEN** 同一 id 的 token、css 与 `updated_at` 更新，引用该主题的文章同步使用新内容
 
 #### Scenario: 改名不改内容
 
-- **WHEN** 重命名自定义主题
+- **WHEN** 用户在配置页修改自定义主题名称并保存
 - **THEN** 只有名称与更新时间变化，token 与 css 不变
 
 #### Scenario: 删除自定义主题
@@ -103,7 +108,7 @@ SQLite 访问 SHALL 只存在于主进程，渲染进程 SHALL 只能通过 prel
 
 ### Requirement: 文章快照与历史元数据
 
-系统 SHALL 在 `articles` 表保存成功提取的文章快照，以 `SHA-256(finalUrl)` 前 32 位作为 hash；首次 upsert SHALL 写入 `last_visited_at` 与默认或指定的 `theme_id`（缺省 `default`），同一 hash 再次写入 SHALL 更新快照与 `updated_at`、保留已有 `theme_id` 且不产生重复记录。文章主题 SHALL 只存主题引用 id，不复制 token；主题是不可变快照，编辑主题生成新 id，历史文章 SHALL 不被静默改版。列表 SHALL 按 `updated_at DESC, created_at DESC` 读取；新建与重新提取的文章 SHALL 排到顶部，打开文章 SHALL 不改变排序。`touch` SHALL 更新最近访问时间并递增访问次数，但不参与排序。
+系统 SHALL 在 `articles` 表保存成功提取的文章快照，以 `SHA-256(finalUrl)` 前 32 位作为 hash；首次 upsert SHALL 写入 `last_visited_at` 与默认或指定的 `theme_id`（缺省 `default`），同一 hash 再次写入 SHALL 更新快照与 `updated_at`、保留已有 `theme_id` 且不产生重复记录。文章主题 SHALL 只存主题引用 id，不复制 token；自定义主题可原地编辑，引用它的文章 SHALL 同步使用新内容。列表 SHALL 按 `updated_at DESC, created_at DESC` 读取；新建与重新提取的文章 SHALL 排到顶部，打开文章 SHALL 不改变排序。`touch` SHALL 更新最近访问时间并递增访问次数，但不参与排序。
 
 #### Scenario: 首次保存文章快照
 
@@ -125,10 +130,15 @@ SQLite 访问 SHALL 只存在于主进程，渲染进程 SHALL 只能通过 prel
 - **WHEN** 一篇文章首次保存或修改主题
 - **THEN** `articles.theme_id` 保存主题引用，重新提取保留已有主题，`setArticleTheme` 可更新引用 id
 
-#### Scenario: 主题快照不变
+#### Scenario: 编辑主题同步文章
 
-- **WHEN** 用户基于主题 A 调整并保存为主题 B
-- **THEN** 引用 A 的文章仍按 A 渲染，只有当前文章可切到 B
+- **WHEN** 用户原地编辑主题 A
+- **THEN** 引用 A 的文章同步使用新内容，主题 id 不变
+
+#### Scenario: 另存为不修改源主题
+
+- **WHEN** 用户基于主题 A 另存为主题 B
+- **THEN** A 不变，B 为独立主题
 
 #### Scenario: 新建文章排到顶部
 
