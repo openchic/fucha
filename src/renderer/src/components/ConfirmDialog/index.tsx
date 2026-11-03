@@ -108,9 +108,7 @@ const ConfirmDialog = ({ options, onSettle }: ConfirmDialogProps) => {
           {title}
         </h2>
         {description && (
-          <p
-            id={descriptionId}
-            className="mt-2 text-secondary leading-[1.7] break-words text-ink-soft">
+          <p id={descriptionId} className="mt-2 text-body leading-[1.7] break-words text-ink-soft">
             {description}
           </p>
         )}

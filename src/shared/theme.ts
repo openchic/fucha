@@ -5,6 +5,9 @@ export const THEME_TOKEN_VERSION = 1
 /** 内置主题 id；主进程据此拒绝同 id 的自定义主题，避免解析歧义 */
 export const BUILTIN_THEME_IDS = ['default', 'serif'] as const
 
+/** 代码语法主题白名单；值必须与 renderer theme/highlight.ts 的 THEME_CSS 对齐 */
+export const HLJS_THEME_VALUES = ['github', 'atom-one-light', 'xcode'] as const
+
 /** 内置主题名称；主进程据此拒绝重名的自定义主题 */
 export const BUILTIN_THEME_NAMES: Record<(typeof BUILTIN_THEME_IDS)[number], string> = {
   default: '清简',
@@ -131,6 +134,49 @@ export function headingColor(token: ThemeToken, key: HeadingKey): string {
   return token[key].color ?? token.text.color
 }
 
+/** 旧主题兼容：未知 hljsTheme 归一到 github；表头与分割线颜色缺省回退到各自旧字段 */
+export function normalizeThemeToken(input: unknown): unknown {
+  if (!isRecord(input)) return input
+  let token = input
+  const code = token.code
+  if (isRecord(code)) {
+    const hljsTheme = code.hljsTheme
+    if (
+      typeof hljsTheme === 'string' &&
+      !HLJS_THEME_VALUES.includes(hljsTheme as (typeof HLJS_THEME_VALUES)[number])
+    ) {
+      token = { ...token, code: { ...code, hljsTheme: 'github' } }
+    }
+  }
+  const table = token.table
+  if (
+    isRecord(table) &&
+    (table.headerBackgroundColor === undefined ||
+      table.headerBackgroundColor === null ||
+      table.headerBackgroundColor === '') &&
+    typeof token.backgroundColor === 'string'
+  ) {
+    token = {
+      ...token,
+      table: { ...table, headerBackgroundColor: token.backgroundColor },
+    }
+  }
+  const divider = token.divider
+  if (
+    isRecord(divider) &&
+    (divider.borderTopColor === undefined ||
+      divider.borderTopColor === null ||
+      divider.borderTopColor === '') &&
+    typeof token.borderColor === 'string'
+  ) {
+    token = {
+      ...token,
+      divider: { ...divider, borderTopColor: token.borderColor },
+    }
+  }
+  return token
+}
+
 /** 校验并归一化主题 token；不合法时抛出带字段路径的可读错误 */
 export function validateThemeToken(input: unknown): ThemeToken {
   const root = readGroup(input, 'theme')
@@ -184,7 +230,8 @@ export function validateThemeToken(input: unknown): ThemeToken {
       padding: requiredNumber(quote.padding, 'theme.quote.padding', THEME_RANGES.quotePadding),
     },
     code: {
-      hljsTheme: requiredString(code.hljsTheme, 'theme.code.hljsTheme'),
+      hljsTheme: requiredEnum(code.hljsTheme, 'theme.code.hljsTheme', HLJS_THEME_VALUES),
+      backgroundColor: optionalColor(code.backgroundColor, 'theme.code.backgroundColor'),
       lineHeight: requiredNumber(
         code.lineHeight,
         'theme.code.lineHeight',
@@ -193,6 +240,10 @@ export function validateThemeToken(input: unknown): ThemeToken {
       padding: requiredNumber(code.padding, 'theme.code.padding', THEME_RANGES.codePadding),
     },
     table: {
+      headerBackgroundColor: requiredColor(
+        table.headerBackgroundColor,
+        'theme.table.headerBackgroundColor'
+      ),
       padding: requiredNumber(table.padding, 'theme.table.padding', THEME_RANGES.tablePadding),
     },
     image: {
@@ -213,6 +264,7 @@ export function validateThemeToken(input: unknown): ThemeToken {
         'theme.divider.borderTopStyle',
         DIVIDER_BORDER_TOP_STYLE
       ),
+      borderTopColor: requiredColor(divider.borderTopColor, 'theme.divider.borderTopColor'),
     },
   }
 }

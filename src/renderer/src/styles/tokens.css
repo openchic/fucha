@@ -7,7 +7,8 @@
   --color-line: #e8e8ed;
   --color-danger: #cf3538;
   --text-body: 0.875rem;
-  --text-secondary: 0.8125rem;
+  --text-description: 0.75rem;
+  --text-description--line-height: 1rem;
   --text-title: 1rem;
   --animate-fade-in: fade-in 200ms ease-out;
   --animate-fade-out: fade-out 100ms ease-in forwards;

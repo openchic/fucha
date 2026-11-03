@@ -1,4 +1,6 @@
-// 取自 highlight.js 11.12 的 github 主题，只保留语法色；结构规则与背景由文章样式统一提供。
+// 取自 highlight.js 11.12 的 github 主题，只保留语法色；结构规则由文章样式统一提供，代码块背景见 GITHUB_HIGHLIGHT_BACKGROUND。
+
+export const GITHUB_HIGHLIGHT_BACKGROUND = '#ffffff'
 
 export const GITHUB_HIGHLIGHT_CSS = `
 .hljs {

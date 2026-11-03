@@ -6,6 +6,7 @@ import { Popover } from '../Popover'
 export type DropdownOption = {
   value: string
   label: string
+  hint?: string
 }
 
 export type DropdownAction = {
@@ -90,7 +91,7 @@ export const Dropdown = (props: DropdownProps) => {
         aria-label={`${label}：${current?.label ?? ''}`}
         onClick={() => setIsOpen((open) => !open)}
         onKeyDown={handleTriggerKeyDown}
-        className={`flex h-7 max-w-40 items-center gap-1.5 rounded-full pr-2 pl-3 text-secondary transition-colors ${
+        className={`flex h-7 max-w-40 items-center gap-1.5 rounded-full pr-2 pl-3 text-body transition-colors ${
           isOpen ? 'bg-raised text-ink' : 'text-ink-soft hover:bg-raised hover:text-ink'
         }`}>
         <span className="truncate">{current?.label}</span>
@@ -124,11 +125,20 @@ export const Dropdown = (props: DropdownProps) => {
                 id={`${menuId}-option-${index}`}
                 aria-selected={isSelected}
                 onClick={() => handleSelect(option.value)}
-                className={`flex w-full items-center justify-between gap-3 rounded-lg px-2.5 py-1.5 text-left text-secondary transition-colors hover:bg-raised ${
+                className={`flex w-full items-center gap-3 rounded-lg px-2.5 py-1.5 text-left text-body transition-colors hover:bg-raised ${
                   isSelected ? 'bg-raised text-ink' : 'text-ink-soft'
                 }`}>
-                <span className="truncate">{option.label}</span>
-                {isSelected && <Icon name="check" className="h-3.5 w-3.5 flex-none text-primary" />}
+                <span className="min-w-0 truncate">{option.label}</span>
+                <span className="ml-auto flex flex-none items-center gap-2">
+                  {option.hint && (
+                    <span className="tabular-nums text-description text-ink-soft">
+                      {option.hint}
+                    </span>
+                  )}
+                  <span className="flex h-3.5 w-3.5 flex-none items-center justify-center">
+                    {isSelected && <Icon name="check" className="h-3.5 w-3.5 text-primary" />}
+                  </span>
+                </span>
               </button>
             )
           })}
@@ -143,7 +153,7 @@ export const Dropdown = (props: DropdownProps) => {
                   close()
                   action.onSelect()
                 }}
-                className="flex w-full items-center rounded-lg px-2.5 py-1.5 text-left text-secondary text-ink-soft transition-colors hover:bg-raised hover:text-ink">
+                className="flex w-full items-center rounded-lg px-2.5 py-1.5 text-left text-body text-ink-soft transition-colors hover:bg-raised hover:text-ink">
                 {action.label}
               </button>
             ))}

@@ -69,6 +69,8 @@ export const SAFE_DISPLAY_VALUES = new Set([
 export const THEME_CSS_VARIABLES = new Set([
   'primary',
   'background-color',
+  'table-header-background-color',
+  'divider-border-top-color',
   'border-color',
   'border-radius',
   'text-font-size',
@@ -111,6 +113,7 @@ export const THEME_CSS_VARIABLES = new Set([
   'quote-padding',
   'code-line-height',
   'code-padding',
+  'code-background-color',
   'table-padding',
   'image-margin-top',
   'image-margin-bottom',

@@ -10,7 +10,12 @@ import sql from 'highlight.js/lib/languages/sql'
 import typescript from 'highlight.js/lib/languages/typescript'
 import xml from 'highlight.js/lib/languages/xml'
 import yaml from 'highlight.js/lib/languages/yaml'
-import { GITHUB_HIGHLIGHT_CSS } from './hljs-github'
+import {
+  ATOM_ONE_LIGHT_HIGHLIGHT_BACKGROUND,
+  ATOM_ONE_LIGHT_HIGHLIGHT_CSS,
+} from './hljs-atom-one-light'
+import { GITHUB_HIGHLIGHT_BACKGROUND, GITHUB_HIGHLIGHT_CSS } from './hljs-github'
+import { XCODE_HIGHLIGHT_BACKGROUND, XCODE_HIGHLIGHT_CSS } from './hljs-xcode'
 
 const LANGUAGES = [
   ['javascript', javascript],
@@ -44,9 +49,22 @@ function stripBackground(cssText: string): string {
 
 const THEME_CSS: Record<string, string> = {
   github: stripBackground(GITHUB_HIGHLIGHT_CSS),
+  'atom-one-light': stripBackground(ATOM_ONE_LIGHT_HIGHLIGHT_CSS),
+  xcode: stripBackground(XCODE_HIGHLIGHT_CSS),
 }
 
-/** 当前 token 只提供 github；未知主题回落 github，避免导出无声缺色 */
+const THEME_BACKGROUNDS: Record<string, string> = {
+  github: GITHUB_HIGHLIGHT_BACKGROUND,
+  'atom-one-light': ATOM_ONE_LIGHT_HIGHLIGHT_BACKGROUND,
+  xcode: XCODE_HIGHLIGHT_BACKGROUND,
+}
+
+/** 代码块背景由语法主题决定；未知主题回落 github */
+export function highlightThemeBackground(name: string): string {
+  return THEME_BACKGROUNDS[name] ?? THEME_BACKGROUNDS.github!
+}
+
+/** 语法主题只提供 github / atom-one-light / xcode；未知主题回落 github，避免导出无声缺色 */
 export function highlightThemeCss(name: string): string {
   return THEME_CSS[name] ?? THEME_CSS.github!
 }

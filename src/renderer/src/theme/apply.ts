@@ -2,7 +2,7 @@ import type { ThemeDefinition, ThemeToken } from '@shared/types'
 import { HEADING_KEYS, headingColor } from '@shared/theme'
 import { resolveThemeVariables, scopeCss } from '@shared/theme-css'
 import { BASE_CSS } from './base-css'
-import { highlightThemeCss } from './highlight'
+import { highlightThemeBackground, highlightThemeCss } from './highlight'
 
 /** 预览画布常量，不进入 token，也不参与导出 */
 export const PREVIEW_CONTENT_WIDTH = 676
@@ -17,6 +17,7 @@ export function tokenVariables(token: ThemeToken): Record<string, string> {
   const values: Record<string, string> = {
     primary: token.primary,
     'background-color': token.backgroundColor,
+    'table-header-background-color': token.table.headerBackgroundColor,
     'border-color': token.borderColor,
     'border-radius': `${token.borderRadius}px`,
     'text-font-size': `${token.text.fontSize}px`,
@@ -30,10 +31,13 @@ export function tokenVariables(token: ThemeToken): Record<string, string> {
     'quote-padding': `${token.quote.padding}px`,
     'code-line-height': String(token.code.lineHeight),
     'code-padding': `${token.code.padding}px`,
+    'code-background-color':
+      token.code.backgroundColor ?? highlightThemeBackground(token.code.hljsTheme),
     'table-padding': `${token.table.padding}px`,
     'image-margin-top': `${token.image.marginTop}px`,
     'image-margin-bottom': `${token.image.marginBottom}px`,
     'divider-border-top-style': token.divider.borderTopStyle,
+    'divider-border-top-color': token.divider.borderTopColor,
   }
 
   for (const key of HEADING_KEYS) {

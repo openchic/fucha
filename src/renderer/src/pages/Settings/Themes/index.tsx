@@ -49,21 +49,21 @@ const RowMenu = (props: RowMenuProps) => {
           type="button"
           role="menuitem"
           onClick={() => run(onSaveAs)}
-          className="w-full rounded-lg px-2.5 py-1.5 text-left text-secondary text-ink-soft transition-colors hover:bg-raised hover:text-ink">
+          className="w-full rounded-lg px-2.5 py-1.5 text-left text-body text-ink-soft transition-colors hover:bg-raised hover:text-ink">
           另存为
         </button>
         <button
           type="button"
           role="menuitem"
           onClick={() => run(onExport)}
-          className="w-full rounded-lg px-2.5 py-1.5 text-left text-secondary text-ink-soft transition-colors hover:bg-raised hover:text-ink">
+          className="w-full rounded-lg px-2.5 py-1.5 text-left text-body text-ink-soft transition-colors hover:bg-raised hover:text-ink">
           导出
         </button>
         <button
           type="button"
           role="menuitem"
           onClick={() => run(onDelete)}
-          className="w-full rounded-lg px-2.5 py-1.5 text-left text-secondary text-danger transition-colors hover:bg-raised">
+          className="w-full rounded-lg px-2.5 py-1.5 text-left text-body text-danger transition-colors hover:bg-raised">
           删除
         </button>
       </Popover>
@@ -217,7 +217,7 @@ const ThemeList = () => {
             variant="secondary"
             onClick={() => openCopy(theme)}
             disabled={busy}
-            className="h-7 px-3 text-xs">
+            className="h-7 px-3">
             另存为
           </Button>
         </div>
@@ -229,7 +229,7 @@ const ThemeList = () => {
           variant="secondary"
           onClick={() => openEdit(theme)}
           disabled={busy}
-          className="h-7 px-3 text-xs">
+          className="h-7 px-3">
           编辑
         </Button>
         <RowMenu
@@ -245,8 +245,10 @@ const ThemeList = () => {
     <li key={theme.id} className="flex items-center gap-3.5 py-3">
       <ThemeSpecimen theme={theme} />
       <div className="min-w-0 flex-1">
-        <p className="truncate text-secondary font-medium text-ink">{theme.name}</p>
-        {theme.builtin && <p className="mt-0.5 truncate text-xs text-ink-soft">内置 · 只读</p>}
+        <p className="truncate text-body font-medium text-ink">{theme.name}</p>
+        {theme.builtin && (
+          <p className="mt-0.5 truncate text-description text-ink-soft">内置 · 只读</p>
+        )}
       </div>
       {renderActions(theme)}
     </li>
@@ -258,7 +260,7 @@ const ThemeList = () => {
         <div className="content-column flex max-w-[47.5rem] items-start justify-between gap-6 pt-10 pb-3">
           <div className="min-w-0">
             <h1 className="text-xl font-semibold text-ink">主题管理</h1>
-            <p className="mt-1 text-secondary leading-[1.6] text-ink-soft">
+            <p className="mt-1 text-description leading-[1.6] text-ink-soft">
               内置主题只读；自定义主题保存后，改动会同步到所有使用该主题的文章。
             </p>
           </div>
@@ -276,7 +278,7 @@ const ThemeList = () => {
       <div className="min-h-0 flex-1 overflow-y-auto">
         <div className="content-column max-w-[47.5rem] pt-4 pb-6">
           {!ready ? (
-            <p className="mt-4 text-secondary text-ink-soft">正在读取主题…</p>
+            <p className="mt-4 text-body text-ink-soft">正在读取主题…</p>
           ) : (
             <>
               <section>
@@ -288,11 +290,11 @@ const ThemeList = () => {
                 <h2 className="text-sm font-semibold text-ink">自定义主题</h2>
                 {customs.length === 0 ? (
                   <div className="mt-1 flex h-11 items-center justify-between gap-4 rounded-lg border border-dashed border-line px-3">
-                    <p className="truncate text-secondary text-ink-soft">还没有自定义主题</p>
+                    <p className="truncate text-body text-ink-soft">还没有自定义主题</p>
                     <button
                       type="button"
                       onClick={openNew}
-                      className="flex-none text-secondary font-medium text-primary transition-colors hover:underline">
+                      className="flex-none text-body font-medium text-primary transition-colors hover:underline">
                       新建主题
                     </button>
                   </div>
@@ -303,7 +305,7 @@ const ThemeList = () => {
             </>
           )}
 
-          <div className="mt-4 min-h-[20px] text-secondary" role="status">
+          <div className="mt-4 min-h-[20px] text-body" role="status">
             {error ? <span className="text-danger">{error}</span> : <span>{notice}</span>}
           </div>
         </div>

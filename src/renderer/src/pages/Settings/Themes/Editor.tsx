@@ -134,21 +134,20 @@ const ThemeEditor = (props: ThemeEditorProps) => {
       </div>
       <div className="flex min-h-0 flex-1">
         <SamplePreview css={previewCss} />
-        <div className="min-w-0 flex-1 overflow-y-auto">
-          <ThemePanel
-            theme={draft}
-            sourceName={sourceName}
-            dirty={dirty}
-            creating={creating}
-            canSave={canSave}
-            onTokenChange={(token) =>
-              setDraft((current) => ({ ...current, name: token.name, token }))
-            }
-            onCancel={leaveToList}
-            onSave={save}
-            onSaveAs={create}
-          />
-        </div>
+        <ThemePanel
+          theme={draft}
+          baseline={baseline}
+          sourceName={sourceName}
+          dirty={dirty}
+          creating={creating}
+          canSave={canSave}
+          onTokenChange={(token) =>
+            setDraft((current) => ({ ...current, name: token.name, token }))
+          }
+          onCancel={leaveToList}
+          onSave={save}
+          onSaveAs={create}
+        />
       </div>
     </div>
   )
@@ -164,7 +163,7 @@ const ThemeEditorPage = () => {
   const from = params.get('from')
 
   if (!ready) {
-    return <p className="px-6 py-8 text-secondary text-ink-soft">正在读取主题…</p>
+    return <p className="px-6 py-8 text-body text-ink-soft">正在读取主题…</p>
   }
 
   if (id) {

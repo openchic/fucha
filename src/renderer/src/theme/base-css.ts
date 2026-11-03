@@ -126,9 +126,9 @@ pre {
   margin: 0 0 var(--fucha-text-margin-bottom);
   padding: var(--fucha-code-padding);
   color: var(--fucha-text-color);
-  font-size: var(--fucha-text-secondary-font-size);
+  font-size: 0.875em;
   line-height: var(--fucha-code-line-height);
-  background-color: var(--fucha-background-color);
+  background-color: var(--fucha-code-background-color);
   border-radius: var(--fucha-border-radius);
   overflow-x: auto;
   white-space: pre;
@@ -151,7 +151,7 @@ code {
   padding: 2px 4px;
   color: var(--fucha-text-color);
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: var(--fucha-text-secondary-font-size);
+  font-size: 0.875em;
   background-color: var(--fucha-background-color);
   border-radius: var(--fucha-border-radius);
 }
@@ -160,7 +160,7 @@ table {
   width: 100%;
   margin: 0 0 var(--fucha-text-margin-bottom);
   color: var(--fucha-text-color);
-  font-size: var(--fucha-text-secondary-font-size);
+  font-size: 0.875em;
   line-height: 1.6;
   border-collapse: collapse;
 }
@@ -168,19 +168,17 @@ table {
 th {
   padding: var(--fucha-table-padding);
   color: var(--fucha-text-color);
-  font-size: var(--fucha-text-secondary-font-size);
   font-weight: 600;
   line-height: 1.6;
   text-align: left;
   vertical-align: top;
-  background-color: var(--fucha-background-color);
+  background-color: var(--fucha-table-header-background-color);
   border: 1px solid var(--fucha-border-color);
 }
 
 td {
   padding: var(--fucha-table-padding);
   color: var(--fucha-text-color);
-  font-size: var(--fucha-text-secondary-font-size);
   line-height: 1.6;
   text-align: left;
   vertical-align: top;
@@ -211,7 +209,7 @@ hr {
   height: 0;
   margin: 20px 0;
   border: none;
-  border-top: 1px var(--fucha-divider-border-top-style) var(--fucha-border-color);
+  border-top: 1px var(--fucha-divider-border-top-style) var(--fucha-divider-border-top-color);
 }
 
 sup {

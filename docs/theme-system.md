@@ -149,6 +149,7 @@ type HeadingLevel = {
     "padding": 16
   },
   "table": {
+    "headerBackgroundColor": "#f6f8fa",
     "padding": 8
   },
   "image": {
@@ -156,42 +157,45 @@ type HeadingLevel = {
     "marginBottom": 16
   },
   "divider": {
-    "borderTopStyle": "solid"
+    "borderTopStyle": "solid",
+    "borderTopColor": "#d0d7de"
   }
 }
 ```
 
 ### 字段与范围
 
-| 字段                     | 默认                                 | 范围 / 值                        | 说明                                            |
-| ------------------------ | ------------------------------------ | -------------------------------- | ----------------------------------------------- |
-| `text.fontSize`          | 16px                                 | 14–18                            | 正文、列表、引用、h4–h6 的回落字号              |
-| `text.secondaryFontSize` | 14px                                 | 12–16                            | 代码、表格、图注、上下标                        |
-| `text.lineHeight`        | 1.75                                 | 1.5–2.2                          | 正文、列表、引用行高                            |
-| `text.letterSpacing`     | 0.03em                               | 0–0.1                            | 正文基础字距                                    |
-| `text.marginBottom`      | 12px                                 | 4–20                             | 段落、列表、引用、代码块、表格、figure 的段后距 |
-| `text.color`             | #333333                              | 颜色                             | 正文主色，标题颜色缺省回退此值                  |
-| `text.secondaryColor`    | #6b7280                              | 颜色                             | 弱化文字色，当前用于图注                        |
-| `primary`                | #5e7b6f                              | 颜色                             | 标题装饰与引用左边条                            |
-| `backgroundColor`        | #f6f8fa                              | 颜色                             | 引用、代码、行内代码、表头背景                  |
-| `borderColor`            | #d0d7de                              | 颜色                             | 表格边框、分割线                                |
-| `borderRadius`           | 4px                                  | 0–12                             | 引用、代码、图片圆角                            |
-| `h1–h3.fontSize`         | 22 / 20 / 18                         | 18–26 / 16–22 / 16–20            | 标题字号                                        |
-| `h4–h6.fontSize`         | 16 / 14 / 14                         | 12–20                            | 标题字号                                        |
-| 各级 `textAlign`         | left                                 | left / center                    | 标题对齐                                        |
-| 各级 `decoration`        | bar / bar / bar / none / none / none | none / bar / underline / bracket | 标题装饰                                        |
-| 各级 `marginTop`         | 24 / 24 / 24 / 20 / 20 / 20          | 12–36                            | 标题上外边距                                    |
-| 各级 `marginBottom`      | 12 / 12 / 12 / 8 / 8 / 8             | 8–24                             | 标题下外边距                                    |
-| `quote.padding`          | 12px                                 | 8–20                             | 引用块内边距                                    |
-| `code.hljsTheme`         | github                               | 主题名                           | highlight.js 语法色主题                         |
-| `code.lineHeight`        | 1.6                                  | 1.4–2.0                          | 代码块行高                                      |
-| `code.padding`           | 16px                                 | 8–20                             | 代码块内边距                                    |
-| `table.padding`          | 8px                                  | 4–12                             | th / td 单元格内边距                            |
-| `image.marginTop`        | 16px                                 | 8–24                             | 图片上外边距                                    |
-| `image.marginBottom`     | 16px                                 | 8–24                             | 图片下外边距                                    |
-| `divider.borderTopStyle` | solid                                | solid / dotted / none            | 分割线样式                                      |
+| 字段                          | 默认                                 | 范围 / 值                        | 说明                                              |
+| ----------------------------- | ------------------------------------ | -------------------------------- | ------------------------------------------------- |
+| `text.fontSize`               | 16px                                 | 14–18                            | 正文、列表、引用、h4–h6 的回落字号                |
+| `text.secondaryFontSize`      | 14px                                 | 12–16                            | 图注、上下标                                      |
+| `text.lineHeight`             | 1.75                                 | 1.5–2.2                          | 正文、列表、引用行高                              |
+| `text.letterSpacing`          | 0.03em                               | 0–0.1                            | 正文基础字距                                      |
+| `text.marginBottom`           | 12px                                 | 4–20                             | 段落、列表、引用、代码块、表格、figure 的段后距   |
+| `text.color`                  | #333333                              | 颜色                             | 正文主色，标题颜色缺省回退此值                    |
+| `text.secondaryColor`         | #6b7280                              | 颜色                             | 弱化文字色，当前用于图注                          |
+| `primary`                     | #5e7b6f                              | 颜色                             | 标题装饰与引用左边条                              |
+| `backgroundColor`             | #f6f8fa                              | 颜色                             | 引用、行内代码底色；代码块见 code.backgroundColor |
+| `borderColor`                 | #d0d7de                              | 颜色                             | 表格边框                                          |
+| `borderRadius`                | 4px                                  | 0–12                             | 引用、代码、图片圆角                              |
+| `h1–h3.fontSize`              | 22 / 20 / 18                         | 18–26 / 16–22 / 16–20            | 标题字号                                          |
+| `h4–h6.fontSize`              | 16 / 14 / 14                         | 12–20                            | 标题字号                                          |
+| 各级 `textAlign`              | left                                 | left / center                    | 标题对齐                                          |
+| 各级 `decoration`             | bar / bar / bar / none / none / none | none / bar / underline / bracket | 标题装饰                                          |
+| 各级 `marginTop`              | 24 / 24 / 24 / 20 / 20 / 20          | 12–36                            | 标题上外边距                                      |
+| 各级 `marginBottom`           | 12 / 12 / 12 / 8 / 8 / 8             | 8–24                             | 标题下外边距                                      |
+| `quote.padding`               | 12px                                 | 8–20                             | 引用块内边距                                      |
+| `code.hljsTheme`              | github                               | github / atom-one-light / xcode  | highlight.js 语法色主题，未知值拒绝               |
+| `code.lineHeight`             | 1.6                                  | 1.4–2.0                          | 代码块行高                                        |
+| `code.padding`                | 16px                                 | 8–20                             | 代码块内边距                                      |
+| `table.headerBackgroundColor` | #f6f8fa                              | 颜色                             | 表头底色；旧主题缺省回退 backgroundColor          |
+| `table.padding`               | 8px                                  | 4–12                             | th / td 单元格内边距                              |
+| `image.marginTop`             | 16px                                 | 8–24                             | 图片上外边距                                      |
+| `image.marginBottom`          | 16px                                 | 8–24                             | 图片下外边距                                      |
+| `divider.borderTopStyle`      | solid                                | solid / dotted / none            | 分割线样式                                        |
+| `divider.borderTopColor`      | #d0d7de                              | 颜色                             | 分割线颜色；旧主题缺省回退 borderColor            |
 
-标题颜色可选：`h1.color` 到 `h6.color` 未填时使用 `text.color`；填了只覆盖该层级。
+标题颜色可选：`h1.color` 到 `h6.color` 未填时使用 `text.color`；填了只覆盖该层级。代码块、行内代码与表格不读 `secondaryFontSize`，字号按正文的 0.875 倍缩放，随 `text.fontSize` 变化。表头底色由 `table.headerBackgroundColor` 单独控制；旧主题缺少该字段时读取回退到 `backgroundColor`，视觉保持不变。
 
 ### 标题装饰
 
@@ -211,6 +215,7 @@ type HeadingLevel = {
 ```text
 --fucha-primary
 --fucha-background-color
+--fucha-table-header-background-color
 --fucha-border-color
 --fucha-border-radius
 --fucha-text-font-size
@@ -227,17 +232,19 @@ type HeadingLevel = {
 --fucha-quote-padding
 --fucha-code-line-height
 --fucha-code-padding
+--fucha-code-background-color
 --fucha-table-padding
 --fucha-image-margin-top
 --fucha-image-margin-bottom
 --fucha-divider-border-top-style
+--fucha-divider-border-top-color
 ```
 
-`hljsTheme` 不是 CSS 变量，由导出/预览直接选择语法主题。
+`hljsTheme` 不是 CSS 变量，由导出/预览直接选择语法主题，可选 `github`、`atom-one-light`、`xcode`。历史主题里的未知值读取时归一到 `github`，新建、编辑与导入时拒绝未知值。语法主题决定语法色与缺省代码块背景；`code.backgroundColor` 可选，设置后覆盖代码块背景。`backgroundColor` 用于引用与行内代码，表头底色由 `table.headerBackgroundColor` 提供；自定义 `theme.css` 可以继续覆盖 `pre` 与 `th` 背景及 `.hljs` 颜色。
 
 ## 样式归属与元素盒模型
 
-应用维护一份 `base.css`，覆盖正文默认排版、引用、代码、表格、图片、分割线与微信安全属性，全部引用 token 变量。
+应用维护一份 `base.css`，覆盖正文默认排版、引用、代码、表格、图片、分割线与微信安全属性；除代码与表格按正文 0.875 倍取字号外，样式只引用 token 变量。
 
 主题的 `theme.css` 只写差异。加载顺序固定为 `base.css` → 装饰规则 → hljs 语法色 → `theme.css`，同选择器后写覆盖，主题永远有最终决定权。
 
@@ -344,7 +351,11 @@ export:
 - 主题管理在独立的 `/settings` 布局：左侧设置导航（当前只有主题管理），右侧是主题列表与配置页；文章页的主题下拉只负责选择与打开主题管理。
 - 列表页分内置与自定义：内置只读，只能另存为；自定义可编辑（含改名）、另存为、导出与删除；顶部提供新建与导入。
 - 主题名称全局唯一（含内置主题，不区分英文大小写）；新建、另存为、导入或改名遇到重名时拒绝，并保留表单内容。
-- 配置页左侧是固定示例文章预览，右侧是 token 控件；示例文章覆盖标题、正文、列表、引用、代码、表格、图片与分割线，改动实时反映。
+- 配置页左侧是固定示例文章预览，右侧是 token 控件；示例文章覆盖标题、正文、列表、引用、行内代码、代码块、表格、图片、图注、上下标与分割线，改动实时反映。
+- 控件偏离打开编辑器时的保存值时提供恢复入口：有右对齐值的字段在值左侧显示重置图标，分段与复选框放在标签行右侧；代码块背景保留「重置」清空为跟随语法主题，保存值本身带背景色时额外显示恢复图标。恢复只影响该字段。
+- 颜色行不常驻显示色值；点击色块打开取色弹层，使用 `@uiw/react-color` 的 Sketch，含饱和度/色相、3/6 位 Hex 与 RGB 输入；关闭 alpha，只产生不透明 hex。
+- 正文色与白底、块底色、表头底色，以及弱化文字与白底的对比度低于 4.5:1 时，在该行说明位显示最低的一对与具体比值，不增加行高、不阻止保存；装饰色与代码语法色不参与校验。
+- 颜色与数值控件的说明通过 `aria-describedby` 关联到输入，读屏会同时读出用途说明和对比度提示。
 - 配置页不读取当前文章，也不做跨页同步；保存后返回文章时 Preview 重新挂载并加载已落库主题。
 - 自定义主题编辑保存原地更新，所有引用文章同步换样；另存为/新建生成新主题但不自动切换当前文章，应用仍走文章页主题下拉。
 - 内置主题不提供编辑入口；从内置另存为时配置页只提供「另存为新主题」。

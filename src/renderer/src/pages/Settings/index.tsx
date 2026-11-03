@@ -53,7 +53,7 @@ const Settings = () => {
           <button
             type="button"
             onClick={goBack}
-            className="flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-left text-secondary font-medium text-ink-soft transition-colors hover:bg-raised hover:text-ink">
+            className="flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-left text-body font-medium text-ink-soft transition-colors hover:bg-raised hover:text-ink">
             <Icon name="arrow-left" className="h-3.5 w-3.5 flex-none" />
             返回
           </button>
@@ -63,7 +63,7 @@ const Settings = () => {
             type="button"
             onClick={goThemes}
             aria-current={themesActive ? 'page' : undefined}
-            className={`flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-secondary transition-colors ${
+            className={`flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-body transition-colors ${
               themesActive ? 'bg-raised text-ink' : 'text-ink-soft hover:bg-raised hover:text-ink'
             }`}>
             <Icon name="settings" className="h-3.5 w-3.5 flex-none" />

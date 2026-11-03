@@ -14,6 +14,7 @@ import {
   BUILTIN_THEME_IDS,
   BUILTIN_THEME_NAMES,
   THEME_TOKEN_VERSION,
+  normalizeThemeToken,
   validateThemeToken,
 } from '@shared/theme'
 import { validateThemeCss } from '@shared/theme-css'
@@ -109,7 +110,7 @@ function rowToTheme(row: ThemeRow): ThemeRecord {
   return {
     id: row.id,
     name: row.name,
-    token: validateThemeToken(JSON.parse(row.token)),
+    token: validateThemeToken(normalizeThemeToken(JSON.parse(row.token))),
     css: row.css,
     tokenVersion: row.token_version,
     sourceThemeId: row.source_theme_id ?? undefined,

@@ -6,7 +6,7 @@
 
 ### Requirement: 主题 token 固定结构
 
-系统 SHALL 以固定结构的 ThemeToken 描述主题，按组组织：text（正文字号、次级字号、行高倍数、字距 em、段距 px、正文色、次要色）、primary、backgroundColor、borderColor、borderRadius、顶层 h1–h6（每级字号、可选颜色、对齐、装饰、上下间距）、quote（内距）、code（hljs 主题名、行高、内距）、table（内距）、image（上下外边距）、divider（borderTopStyle）。强调文字继承正文色，代码、表格与图注共用 secondaryFontSize，标题装饰与引用边条共用 primary，图注使用 secondaryColor，不另设重复 token。字段名 SHALL 对齐 CSS 属性名。预览画布的 contentWidth 与 padding 是固定常量，不属于 token。数值字段 SHALL 携带取值范围（滑杆与校验共用边界），正文 fontSize 限定 14 至 18。各级标题 color 未填时 SHALL 回退到 text.color。
+系统 SHALL 以固定结构的 ThemeToken 描述主题，按组组织：text（正文字号、次级字号、行高倍数、字距 em、段距 px、正文色、次要色）、primary、backgroundColor、borderColor、borderRadius、顶层 h1–h6（每级字号、可选颜色、对齐、装饰、上下间距）、quote（内距）、code（hljs 主题名、行高、内距）、table（表头底色、内距）、image（上下外边距）、divider（borderTopStyle、borderTopColor）。强调文字继承正文色，代码与表格按正文 0.875 倍缩放，图注与上下标共用 secondaryFontSize，引用与行内代码共用 backgroundColor，表头使用 table.headerBackgroundColor，表格边框使用 borderColor，分割线使用 divider.borderTopColor，标题装饰与引用边条共用 primary，图注使用 secondaryColor，不另设重复 token。字段名 SHALL 对齐 CSS 属性名。预览画布的 contentWidth 与 padding 是固定常量，不属于 token。数值字段 SHALL 携带取值范围（滑杆与校验共用边界），正文 fontSize 限定 14 至 18。各级标题 color 未填时 SHALL 回退到 text.color。
 
 #### Scenario: 合法 token 通过校验
 

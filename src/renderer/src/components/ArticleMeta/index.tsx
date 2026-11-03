@@ -54,7 +54,7 @@ export const ArticleMeta = (props: ArticleMetaProps) => {
           <Icon name="external-link" className="h-3.5 w-3.5 flex-none" />
         </a>
       </div>
-      <div className="no-drag ml-auto flex min-w-0 max-w-[300px] items-center gap-3 text-xs text-ink-soft">
+      <div className="no-drag ml-auto flex min-w-0 max-w-[300px] items-center gap-3 text-description text-ink-soft">
         {article.publishedAt && (
           <>
             <span className="sr-only">发布时间</span>
@@ -98,7 +98,7 @@ export const ArticleMeta = (props: ArticleMetaProps) => {
           <span
             id="refresh-tooltip"
             role="tooltip"
-            className="pointer-events-none absolute left-1/2 top-full z-10 mt-1 -translate-x-1/2 whitespace-nowrap rounded-md bg-ink px-2 py-1 text-xs leading-5 text-white opacity-0 transition-opacity duration-100 group-hover:opacity-100 group-focus-within:opacity-100">
+            className="pointer-events-none absolute left-1/2 top-full z-10 mt-1 -translate-x-1/2 whitespace-nowrap rounded-md bg-ink px-2 py-1 text-description leading-5 text-white opacity-0 transition-opacity duration-100 group-hover:opacity-100 group-focus-within:opacity-100">
             重新提取
           </span>
         </div>
@@ -119,7 +119,7 @@ export const ArticleMeta = (props: ArticleMetaProps) => {
           <span
             id="copy-tooltip"
             role="tooltip"
-            className="pointer-events-none absolute left-1/2 top-full z-10 mt-1 -translate-x-1/2 whitespace-nowrap rounded-md bg-ink px-2 py-1 text-xs leading-5 text-white opacity-0 transition-opacity duration-100 group-hover:opacity-100 group-focus-within:opacity-100">
+            className="pointer-events-none absolute left-1/2 top-full z-10 mt-1 -translate-x-1/2 whitespace-nowrap rounded-md bg-ink px-2 py-1 text-description leading-5 text-white opacity-0 transition-opacity duration-100 group-hover:opacity-100 group-focus-within:opacity-100">
             复制
           </span>
         </div>

@@ -12,7 +12,7 @@ type PopoverProps = {
   returnFocusRef?: RefObject<HTMLElement | null>
   align?: 'start' | 'end'
   id?: string
-  role?: 'menu' | 'listbox'
+  role?: 'menu' | 'listbox' | 'dialog'
   ariaLabel?: string
   className?: string
   initialFocusRef?: RefObject<HTMLElement | null>

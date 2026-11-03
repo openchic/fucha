@@ -69,7 +69,7 @@ const New = () => {
                   placeholder="请输入一个链接"
                   aria-invalid={!!error}
                   aria-describedby="new-feedback"
-                  className="h-full w-0 min-w-0 flex-1 border-0 bg-transparent p-0 text-[15px] text-ellipsis text-ink placeholder:text-ink-soft focus-visible:outline-none"
+                  className="h-full w-0 min-w-0 flex-1 border-0 bg-transparent p-0 text-body text-ellipsis text-ink placeholder:text-ink-soft focus-visible:outline-none"
                   autoFocus
                 />
                 {value.length > 0 && (
@@ -93,7 +93,7 @@ const New = () => {
               </div>
               <div
                 id="new-feedback"
-                className="mt-3 min-h-[22px] pl-[19px] text-secondary leading-[1.7] text-danger">
+                className="mt-3 min-h-[22px] pl-[19px] text-body leading-[1.7] text-danger">
                 {error && <p role="alert">{error}</p>}
               </div>
             </form>

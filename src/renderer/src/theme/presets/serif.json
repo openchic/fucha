@@ -66,6 +66,7 @@
     "padding": 18
   },
   "table": {
+    "headerBackgroundColor": "#faf7f2",
     "padding": 10
   },
   "image": {
@@ -73,6 +74,7 @@
     "marginBottom": 20
   },
   "divider": {
-    "borderTopStyle": "dotted"
+    "borderTopStyle": "dotted",
+    "borderTopColor": "#e3d9cc"
   }
 }

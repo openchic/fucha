@@ -9,7 +9,7 @@ import {
   type OpenDialogOptions,
   type SaveDialogOptions,
 } from 'electron'
-import { THEME_TOKEN_VERSION, validateThemeToken } from '@shared/theme'
+import { THEME_TOKEN_VERSION, normalizeThemeToken, validateThemeToken } from '@shared/theme'
 import { validateThemeCss } from '@shared/theme-css'
 import { createTheme } from './store'
 import { createZip, readZip } from './zip'
@@ -54,7 +54,7 @@ function parseThemeJson(raw: Buffer): {
   if (data.tokenVersion !== THEME_TOKEN_VERSION) {
     throw new Error(`不支持的主题 token 版本：${String(data.tokenVersion)}`)
   }
-  const token = validateThemeToken(data.token)
+  const token = validateThemeToken(normalizeThemeToken(data.token))
   if (token.id !== id) throw new Error('theme.json 的 id 与 token.id 不一致')
   if (token.name !== name) throw new Error('theme.json 的 name 与 token.name 不一致')
   if (token.builtin) throw new Error('主题包不能声明为内置主题')

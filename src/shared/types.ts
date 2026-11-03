@@ -76,7 +76,7 @@ export type ThemeToken = {
   builtin: boolean
   text: {
     fontSize: number // px
-    secondaryFontSize: number // px，代码、表格、图注、上下标
+    secondaryFontSize: number // px，图注、上下标；代码与表格按正文 0.875 倍
     lineHeight: number // 倍数
     letterSpacing: number // em
     marginBottom: number // px，块级元素段后距
@@ -84,8 +84,8 @@ export type ThemeToken = {
     secondaryColor: string // 弱化文字色（图注等）
   }
   primary: string // 标题装饰与引用边条
-  backgroundColor: string // 引用、代码、表头底色
-  borderColor: string // 表格边框与分割线
+  backgroundColor: string // 引用与行内代码底色
+  borderColor: string // 表格边框
   borderRadius: number // px，引用、代码、图片共用
   h1: HeadingToken
   h2: HeadingToken
@@ -98,10 +98,12 @@ export type ThemeToken = {
   }
   code: {
     hljsTheme: string
+    backgroundColor?: string // 代码块背景色；缺省跟随语法主题
     lineHeight: number // 倍数
     padding: number // px
   }
   table: {
+    headerBackgroundColor: string // 表头底色
     padding: number // px，th / td 内边距
   }
   image: {
@@ -110,6 +112,7 @@ export type ThemeToken = {
   }
   divider: {
     borderTopStyle: 'solid' | 'dotted' | 'none'
+    borderTopColor: string // 分割线颜色
   }
 }
 
