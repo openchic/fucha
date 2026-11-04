@@ -40,7 +40,7 @@ export const ArticleMeta = (props: ArticleMetaProps) => {
         <h1
           id="article-title"
           title={article.title}
-          className="min-w-0 truncate text-body font-semibold text-ink">
+          className="min-w-0 truncate text-body text-ink">
           {article.title}
         </h1>
         <span className="sr-only">来源</span>

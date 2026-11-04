@@ -91,8 +91,8 @@ export const Dropdown = (props: DropdownProps) => {
         aria-label={`${label}：${current?.label ?? ''}`}
         onClick={() => setIsOpen((open) => !open)}
         onKeyDown={handleTriggerKeyDown}
-        className={`flex h-7 max-w-40 items-center gap-1.5 rounded-full pr-2 pl-3 text-body transition-colors ${
-          isOpen ? 'bg-raised text-ink' : 'text-ink-soft hover:bg-raised hover:text-ink'
+        className={`field-value flex h-7 max-w-40 items-center gap-1.5 rounded-full pr-2 pl-3 text-body transition-colors ${
+          isOpen ? 'bg-raised text-ink' : 'text-ink hover:bg-raised'
         }`}>
         <span className="truncate">{current?.label}</span>
         <Icon

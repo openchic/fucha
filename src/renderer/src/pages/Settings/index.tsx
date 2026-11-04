@@ -1,23 +1,7 @@
-import type { AvailableTheme } from '../../theme/library'
-import { createContext, useCallback, useContext, useRef } from 'react'
+import { useCallback, useRef } from 'react'
 import { Outlet, useLocation, useNavigate } from 'react-router'
 import { Icon } from '../../components'
 import { useThemeLibrary } from '../../hooks'
-
-type SettingsContextValue = {
-  themes: AvailableTheme[]
-  ready: boolean
-  refresh: () => void
-  registerLeaveGuard: (guard: (() => Promise<boolean>) | null) => void
-}
-
-const SettingsContext = createContext<SettingsContextValue | null>(null)
-
-export function useSettingsContext(): SettingsContextValue {
-  const context = useContext(SettingsContext)
-  if (!context) throw new Error('useSettingsContext 必须在 Settings 布局内使用')
-  return context
-}
 
 /** Settings 布局：左侧设置导航，右侧承载主题列表与配置页 */
 const Settings = () => {
@@ -53,7 +37,7 @@ const Settings = () => {
           <button
             type="button"
             onClick={goBack}
-            className="flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-left text-body font-medium text-ink-soft transition-colors hover:bg-raised hover:text-ink">
+            className="flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-left text-body text-ink-soft transition-colors hover:bg-raised hover:text-ink">
             <Icon name="arrow-left" className="h-3.5 w-3.5 flex-none" />
             返回
           </button>
@@ -72,15 +56,14 @@ const Settings = () => {
         </nav>
       </aside>
       <div className="flex min-w-0 flex-1 flex-col overflow-hidden bg-white">
-        <SettingsContext.Provider
-          value={{
+        <Outlet
+          context={{
             themes: library.themes,
             ready: library.ready,
             refresh: library.refresh,
             registerLeaveGuard,
-          }}>
-          <Outlet />
-        </SettingsContext.Provider>
+          }}
+        />
       </div>
     </div>
   )

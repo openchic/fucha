@@ -83,13 +83,13 @@ export const Sidebar = (props: SidebarProps) => {
           <button
             type="button"
             onClick={onNew}
-            className="flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-left text-body font-medium text-ink-soft transition-colors hover:bg-raised hover:text-ink">
+            className="flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-left text-body text-ink-soft transition-colors hover:bg-raised hover:text-ink">
             <Icon name="plus" className="h-3.5 w-3.5 flex-none" />
             新建
           </button>
         </div>
         <div className="mt-4 flex items-baseline justify-between gap-2 px-4">
-          <h2 className="text-title font-semibold text-ink">最近</h2>
+          <h2 className="text-title text-ink">最近</h2>
           {items.length > 0 && (
             <span className="text-description text-ink-soft">
               {items.length >= 50 ? '50+' : items.length} 篇
@@ -122,7 +122,7 @@ export const Sidebar = (props: SidebarProps) => {
                         ? 'bg-raised text-ink'
                         : 'text-ink-soft group-hover:bg-raised group-hover:text-ink'
                     }`}>
-                    <span className="block truncate text-body font-medium">{item.title}</span>
+                    <span className="block truncate text-body">{item.title}</span>
                   </button>
                   <button
                     type="button"

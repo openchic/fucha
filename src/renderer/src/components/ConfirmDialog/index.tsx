@@ -104,7 +104,7 @@ const ConfirmDialog = ({ options, onSettle }: ConfirmDialogProps) => {
         className={`max-h-[80vh] w-full max-w-[420px] overflow-y-auto rounded-2xl border border-line bg-white p-5 ${
           closing ? 'animate-popover-out' : 'animate-popover-in'
         }`}>
-        <h2 id={titleId} className="text-title font-semibold text-ink">
+        <h2 id={titleId} className="text-title text-ink">
           {title}
         </h2>
         {description && (

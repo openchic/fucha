@@ -6,7 +6,7 @@ M1 的主题是只读内置预设，用户只能整体切换，不能基于现�
 
 ## What Changes
 
-- ThemeToken v1：h1–h6 移到顶层，每级有 `fontSize / color? / textAlign / decoration / marginTop / marginBottom`；字段名对齐 CSS 属性（`backgroundColor`、`borderColor`、`table.headerBackgroundColor`、`table.padding`、`image.marginTop/marginBottom`、`divider.borderTopStyle`、`divider.borderTopColor`）。
+- ThemeToken v1：h1–h6 移到顶层，每级有 `fontSize / fontWeight / lineHeight / textAlign / decoration / marginTop / marginBottom`；字段名对齐 CSS 属性（`backgroundColor`、`borderColor`、`headingColor`、`table.headerBackgroundColor`、`table.padding`、`image.marginTop/marginBottom`、`code.inlineBackgroundColor`、`divider.borderTopStyle`、`divider.borderTopColor`、`divider.marginTop/marginBottom`）。
 - 内置主题改为「token 默认值 + theme.css」，提供 `default` 与 `serif` 两套；内置主题只读，升级视觉时新增 id，旧 id 保留。
 - 新增应用级 `base.css`（正文排版、引用、代码、表格、图片、分割线；代码与表格字号按正文 0.875 倍，其余只引用 token 变量）与每主题 `theme.css`；预览与导出共用同一份 CSS，导出时解析 `var()` 后再 juice 内联。
 - 新增主题 CSS 契约与 fail-closed 校验：只允许元素/类/后代选择器与微信安全属性，禁止伪类、`@` 规则、`!important`、外部资源与契约外变量，错误带行号。
@@ -15,10 +15,11 @@ M1 的主题是只读内置预设，用户只能整体切换，不能基于现�
 - 内置主题只读，只能另存为；文章页主题下拉只负责选择与打开管理，历史栏右下角设置图标同入口。
 - 新增应用级 `base.css`（正文排版、引用、代码、表格、图片、分割线；代码与表格字号按正文 0.875 倍，其余只引用 token 变量）与每主题 `theme.css`；预览与导出共用同一份 CSS，导出时解析 `var()` 后再 juice 内联。
 - 新增主题 CSS 契约与 fail-closed 校验：只允许元素/类/后代选择器与微信安全属性，禁止伪类、`@` 规则、`!important`、外部资源与契约外变量，错误带行号。
-- 新增主题配置控件：按颜色、正文、标题、组件、代码分组，颜色用取色器、数值用滑杆，示例预览实时反映；`次级字号` 只控制图注与上下标，代码与表格按正文 0.875 倍缩放。
+- 新增主题配置控件：按颜色、排版、代码分组，排版包含正文、标题、引用、表格、图片、分割线；颜色用取色器、数值用输入与步进，示例预览实时反映；`次级字号` 只控制图注与上下标，代码与表格按正文 0.875 倍缩放。
 - 单字段重置：控件偏离打开时的保存值时显示重置图标，只恢复该字段；预览样张补行内代码与上下标，分别验证块底色与次级字号。
-- 颜色精确输入与对比度提示：点击色块打开取色弹层（`@uiw/react-color` 的 Sketch，关闭 alpha），Hex/RGB 字段可输入或粘贴；正文色/弱化文字与相关底色的对比度低于 4.5:1 时行内提示但不阻止保存；说明通过 `aria-describedby` 关联输入。
-- 块底色与表头底色拆开：新增 `table.headerBackgroundColor`，颜色 tab 单独配置；旧主题缺少该字段时读取回退到 `backgroundColor`，视觉保持不变。
+- 颜色精确输入与对比度提示：点击色块打开取色弹层（`@uiw/react-color` 的 Sketch，关闭 alpha），Hex/RGB 字段可输入或粘贴；正文色/次级文字色与相关底色的对比度低于 4.5:1 时行内提示但不阻止保存；说明通过 `aria-describedby` 关联输入。
+- 块底色与表头背景色拆开：新增 `table.headerBackgroundColor`，颜色 tab 单独配置；旧主题缺少该字段时读取回退到 `backgroundColor`，视觉保持不变。
+- 引用与行内代码背景色拆开：颜色 tab 的「块底色」拆为「引用背景色」与「行内代码背景色」；行内代码背景独立存储为 `code.inlineBackgroundColor`，旧主题读取时回退 `backgroundColor`。
 - 边框色与分割线色拆开：新增 `divider.borderTopColor`，颜色 tab 单独配置；旧主题缺少该字段时读取回退到 `borderColor`，视觉保持不变。
 - 新增自定义主题管理：设置页列表支持导入、导出、删除，改名在配置页随保存提交；主题名称全局唯一，重名的新建、导入与改名被拒绝；被文章引用的主题拒绝删除。
 - 新增 `.fucha-theme` 主题包（`theme.json` + `theme.css`）导入导出；导入校验 token、CSS、zip 结构与文件完整性，id 冲突或内置 id 拒绝。

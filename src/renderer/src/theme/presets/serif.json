@@ -14,9 +14,11 @@
   "primary": "#a05a3c",
   "backgroundColor": "#faf7f2",
   "borderColor": "#e3d9cc",
-  "borderRadius": 0,
+  "headingColor": "#2f2a26",
   "h1": {
     "fontSize": 24,
+    "fontWeight": 600,
+    "lineHeight": 1.4,
     "textAlign": "center",
     "decoration": "underline",
     "marginTop": 32,
@@ -24,6 +26,8 @@
   },
   "h2": {
     "fontSize": 20,
+    "fontWeight": 600,
+    "lineHeight": 1.4,
     "textAlign": "center",
     "decoration": "underline",
     "marginTop": 28,
@@ -31,6 +35,8 @@
   },
   "h3": {
     "fontSize": 18,
+    "fontWeight": 700,
+    "lineHeight": 1.4,
     "textAlign": "left",
     "decoration": "none",
     "marginTop": 24,
@@ -38,6 +44,8 @@
   },
   "h4": {
     "fontSize": 16,
+    "fontWeight": 700,
+    "lineHeight": 1.5,
     "textAlign": "left",
     "decoration": "none",
     "marginTop": 20,
@@ -45,6 +53,8 @@
   },
   "h5": {
     "fontSize": 15,
+    "fontWeight": 700,
+    "lineHeight": 1.5,
     "textAlign": "left",
     "decoration": "none",
     "marginTop": 20,
@@ -52,29 +62,41 @@
   },
   "h6": {
     "fontSize": 14,
+    "fontWeight": 700,
+    "lineHeight": 1.5,
     "textAlign": "left",
     "decoration": "none",
     "marginTop": 20,
     "marginBottom": 8
   },
   "quote": {
-    "padding": 16
+    "paddingBlock": 16,
+    "paddingInline": 16,
+    "borderRadius": 0
   },
   "code": {
     "hljsTheme": "github",
+    "inlineBackgroundColor": "#faf7f2",
     "lineHeight": 1.7,
-    "padding": 18
+    "paddingBlock": 18,
+    "paddingInline": 18,
+    "borderRadius": 0,
+    "inlineBorderRadius": 0
   },
   "table": {
     "headerBackgroundColor": "#faf7f2",
-    "padding": 10
+    "paddingBlock": 10,
+    "paddingInline": 10
   },
   "image": {
     "marginTop": 20,
-    "marginBottom": 20
+    "marginBottom": 20,
+    "borderRadius": 0
   },
   "divider": {
     "borderTopStyle": "dotted",
-    "borderTopColor": "#e3d9cc"
+    "borderTopColor": "#e3d9cc",
+    "marginTop": 20,
+    "marginBottom": 20
   }
 }

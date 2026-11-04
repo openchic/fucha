@@ -12,6 +12,7 @@ type IconName =
   | 'check'
   | 'edit'
   | 'plus'
+  | 'minus'
   | 'external-link'
   | 'more'
   | 'settings'
@@ -36,6 +37,7 @@ const PATHS: Record<IconName, string> = {
   check: 'm5 12 4 4L19 6',
   edit: 'M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z',
   plus: 'M12 5v14M5 12h14',
+  minus: 'M5 12h14',
   'external-link': 'M14 4h6v6M20 4l-9 9M18 13v5a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h5',
   more: 'M5 12h.01M12 12h.01M19 12h.01',
   settings:

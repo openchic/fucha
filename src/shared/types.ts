@@ -59,10 +59,11 @@ export type DownloadImagesPayload = {
 
 export type HeadingDecoration = 'none' | 'bar' | 'underline' | 'bracket'
 
-/** 单级标题的排版；color 缺省回退 text.color */
+/** 单级标题的排版 */
 export type HeadingToken = {
   fontSize: number // px
-  color?: string
+  fontWeight: number
+  lineHeight: number // 倍数
   textAlign: 'left' | 'center'
   decoration: HeadingDecoration
   marginTop: number // px
@@ -81,12 +82,12 @@ export type ThemeToken = {
     letterSpacing: number // em
     marginBottom: number // px，块级元素段后距
     color: string
-    secondaryColor: string // 弱化文字色（图注等）
+    secondaryColor: string // 次级文字色（图注等）
   }
   primary: string // 标题装饰与引用边条
   backgroundColor: string // 引用与行内代码底色
   borderColor: string // 表格边框
-  borderRadius: number // px，引用、代码、图片共用
+  headingColor: string // 标题文字色；各级标题未填 color 时回退此值
   h1: HeadingToken
   h2: HeadingToken
   h3: HeadingToken
@@ -94,25 +95,35 @@ export type ThemeToken = {
   h5: HeadingToken
   h6: HeadingToken
   quote: {
-    padding: number // px
+    paddingBlock: number // px
+    paddingInline: number // px
+    borderRadius: number // px
   }
   code: {
     hljsTheme: string
     backgroundColor?: string // 代码块背景色；缺省跟随语法主题
+    inlineBackgroundColor: string // 行内代码背景色；旧主题读取时回退 backgroundColor
     lineHeight: number // 倍数
-    padding: number // px
+    paddingBlock: number // px，代码块上下内边距
+    paddingInline: number // px，代码块左右内边距
+    borderRadius: number // px，代码块圆角
+    inlineBorderRadius: number // px，行内代码圆角
   }
   table: {
-    headerBackgroundColor: string // 表头底色
-    padding: number // px，th / td 内边距
+    headerBackgroundColor: string // 表头背景色
+    paddingBlock: number // px，th / td 上下内边距
+    paddingInline: number // px，th / td 左右内边距
   }
   image: {
     marginTop: number // px
     marginBottom: number // px
+    borderRadius: number // px
   }
   divider: {
     borderTopStyle: 'solid' | 'dotted' | 'none'
     borderTopColor: string // 分割线颜色
+    marginTop: number // px
+    marginBottom: number // px
   }
 }
 

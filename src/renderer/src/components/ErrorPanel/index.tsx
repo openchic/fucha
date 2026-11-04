@@ -21,7 +21,7 @@ export const ErrorPanel = (props: ErrorPanelProps) => {
     <div className="flex h-full min-h-0 flex-col">
       <div className="flex-none border-b border-line bg-white pt-[66px] pb-5">
         <div className="content-column">
-          <h1 className="text-[26px] font-semibold leading-[1.4] tracking-[-0.025em] [overflow-wrap:anywhere]">
+          <h1 className="text-[26px] leading-[1.4] tracking-[-0.025em] [overflow-wrap:anywhere]">
             {ERROR_LABEL[error.kind]}
           </h1>
         </div>

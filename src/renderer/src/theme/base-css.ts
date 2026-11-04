@@ -14,8 +14,8 @@ h1 {
   margin-bottom: var(--fucha-h1-margin-bottom);
   color: var(--fucha-h1-color);
   font-size: var(--fucha-h1-font-size);
-  font-weight: 700;
-  line-height: 1.4;
+  font-weight: var(--fucha-h1-font-weight);
+  line-height: var(--fucha-h1-line-height);
   text-align: var(--fucha-h1-text-align);
 }
 
@@ -24,8 +24,8 @@ h2 {
   margin-bottom: var(--fucha-h2-margin-bottom);
   color: var(--fucha-h2-color);
   font-size: var(--fucha-h2-font-size);
-  font-weight: 700;
-  line-height: 1.4;
+  font-weight: var(--fucha-h2-font-weight);
+  line-height: var(--fucha-h2-line-height);
   text-align: var(--fucha-h2-text-align);
 }
 
@@ -34,8 +34,8 @@ h3 {
   margin-bottom: var(--fucha-h3-margin-bottom);
   color: var(--fucha-h3-color);
   font-size: var(--fucha-h3-font-size);
-  font-weight: 700;
-  line-height: 1.4;
+  font-weight: var(--fucha-h3-font-weight);
+  line-height: var(--fucha-h3-line-height);
   text-align: var(--fucha-h3-text-align);
 }
 
@@ -44,8 +44,8 @@ h4 {
   margin-bottom: var(--fucha-h4-margin-bottom);
   color: var(--fucha-h4-color);
   font-size: var(--fucha-h4-font-size);
-  font-weight: 700;
-  line-height: 1.5;
+  font-weight: var(--fucha-h4-font-weight);
+  line-height: var(--fucha-h4-line-height);
   text-align: var(--fucha-h4-text-align);
 }
 
@@ -54,8 +54,8 @@ h5 {
   margin-bottom: var(--fucha-h5-margin-bottom);
   color: var(--fucha-h5-color);
   font-size: var(--fucha-h5-font-size);
-  font-weight: 700;
-  line-height: 1.5;
+  font-weight: var(--fucha-h5-font-weight);
+  line-height: var(--fucha-h5-line-height);
   text-align: var(--fucha-h5-text-align);
 }
 
@@ -64,8 +64,8 @@ h6 {
   margin-bottom: var(--fucha-h6-margin-bottom);
   color: var(--fucha-h6-color);
   font-size: var(--fucha-h6-font-size);
-  font-weight: 700;
-  line-height: 1.5;
+  font-weight: var(--fucha-h6-font-weight);
+  line-height: var(--fucha-h6-line-height);
   text-align: var(--fucha-h6-text-align);
 }
 
@@ -113,23 +113,23 @@ li {
 
 blockquote {
   margin: 0 0 var(--fucha-text-margin-bottom);
-  padding: var(--fucha-quote-padding);
+  padding: var(--fucha-quote-padding-block) var(--fucha-quote-padding-inline);
   color: var(--fucha-text-color);
   font-size: var(--fucha-text-font-size);
   line-height: var(--fucha-text-line-height);
   background-color: var(--fucha-background-color);
   border-left: 3px solid var(--fucha-primary);
-  border-radius: var(--fucha-border-radius);
+  border-radius: var(--fucha-quote-border-radius);
 }
 
 pre {
   margin: 0 0 var(--fucha-text-margin-bottom);
-  padding: var(--fucha-code-padding);
+  padding: var(--fucha-code-padding-block) var(--fucha-code-padding-inline);
   color: var(--fucha-text-color);
   font-size: 0.875em;
   line-height: var(--fucha-code-line-height);
   background-color: var(--fucha-code-background-color);
-  border-radius: var(--fucha-border-radius);
+  border-radius: var(--fucha-code-border-radius);
   overflow-x: auto;
   white-space: pre;
   word-break: normal;
@@ -152,8 +152,8 @@ code {
   color: var(--fucha-text-color);
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 0.875em;
-  background-color: var(--fucha-background-color);
-  border-radius: var(--fucha-border-radius);
+  background-color: var(--fucha-code-inline-background-color);
+  border-radius: var(--fucha-code-inline-border-radius);
 }
 
 table {
@@ -166,7 +166,7 @@ table {
 }
 
 th {
-  padding: var(--fucha-table-padding);
+  padding: var(--fucha-table-padding-block) var(--fucha-table-padding-inline);
   color: var(--fucha-text-color);
   font-weight: 600;
   line-height: 1.6;
@@ -177,7 +177,7 @@ th {
 }
 
 td {
-  padding: var(--fucha-table-padding);
+  padding: var(--fucha-table-padding-block) var(--fucha-table-padding-inline);
   color: var(--fucha-text-color);
   line-height: 1.6;
   text-align: left;
@@ -190,7 +190,7 @@ img {
   max-width: 100%;
   height: auto;
   margin: var(--fucha-image-margin-top) auto var(--fucha-image-margin-bottom);
-  border-radius: var(--fucha-border-radius);
+  border-radius: var(--fucha-image-border-radius);
 }
 
 figure {
@@ -207,7 +207,7 @@ figcaption {
 
 hr {
   height: 0;
-  margin: 20px 0;
+  margin: var(--fucha-divider-margin-top) 0 var(--fucha-divider-margin-bottom);
   border: none;
   border-top: 1px var(--fucha-divider-border-top-style) var(--fucha-divider-border-top-color);
 }

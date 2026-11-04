@@ -39,7 +39,7 @@ const New = () => {
         <div className="content-column pb-6">
           <div className="flex items-center gap-3.5">
             <Icon name="sail" className="h-9 w-9 flex-none text-primary [stroke-width:1.35]" />
-            <h1 className="text-[32px] font-semibold leading-[1.3] tracking-[-0.04em]">浮槎</h1>
+            <h1 className="text-[32px] leading-[1.3] tracking-[-0.04em]">浮槎</h1>
           </div>
           <p className="mt-4 text-title leading-[1.8] text-ink-soft">
             把一个能公开访问的链接，变成一篇可以直接发进公众号的文章

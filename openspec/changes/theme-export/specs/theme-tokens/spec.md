@@ -6,7 +6,7 @@
 
 ### Requirement: 主题 token 固定结构
 
-系统 SHALL 以固定结构的 ThemeToken 描述主题，按组组织：text（正文字号、次级字号、行高倍数、字距 em、段距 px、正文色、次要色）、primary、backgroundColor、borderColor、borderRadius、顶层 h1–h6（每级字号、可选颜色、对齐、装饰、上下间距）、quote（内距）、code（hljs 主题名、行高、内距）、table（表头底色、内距）、image（上下外边距）、divider（borderTopStyle、borderTopColor）。强调文字继承正文色，代码与表格按正文 0.875 倍缩放，图注与上下标共用 secondaryFontSize，引用与行内代码共用 backgroundColor，表头使用 table.headerBackgroundColor，表格边框使用 borderColor，分割线使用 divider.borderTopColor，标题装饰与引用边条共用 primary，图注使用 secondaryColor，不另设重复 token。字段名 SHALL 对齐 CSS 属性名。预览画布的 contentWidth 与 padding 是固定常量，不属于 token。数值字段 SHALL 携带取值范围（滑杆与校验共用边界），正文 fontSize 限定 14 至 18。各级标题 color 未填时 SHALL 回退到 text.color。
+系统 SHALL 以固定结构的 ThemeToken 描述主题，按组组织：text（正文字号、次级字号、行高倍数、字距 em、段距 px、正文色、次要色）、primary、backgroundColor、borderColor、headingColor、顶层 h1–h6（每级字号、字重、行高、对齐、装饰、上下间距）、quote（上下内距、左右内距、圆角）、code（hljs 主题名、行高、上下内距、左右内距、代码块圆角、行内代码圆角、行内代码背景色）、table（表头背景色、上下内距、左右内距）、image（上下外边距、圆角）、divider（borderTopStyle、borderTopColor、上下外边距）。强调文字继承正文色，代码与表格按正文 0.875 倍缩放，图注与上下标共用 secondaryFontSize，引用使用 backgroundColor，行内代码使用 code.inlineBackgroundColor 并在旧主题缺省时回退 backgroundColor，表头使用 table.headerBackgroundColor，表格边框使用 borderColor，分割线使用 divider.borderTopColor，标题装饰与引用边条共用 primary，图注使用 secondaryColor，不另设重复 token。字段名 SHALL 对齐 CSS 属性名。预览画布的 contentWidth 与 padding 是固定常量，不属于 token。数值字段 SHALL 携带取值范围（控件与校验共用边界），具体范围由 THEME_RANGES 统一维护。标题颜色统一使用 headingColor；旧主题缺少 headingColor 时 SHALL 回退到 text.color。
 
 #### Scenario: 合法 token 通过校验
 
@@ -17,11 +17,6 @@
 
 - **WHEN** fontSize 为 10
 - **THEN** 校验不通过并给出可读原因
-
-#### Scenario: 可选颜色回退
-
-- **WHEN** token 未填某一级标题的 color
-- **THEN** 渲染与导出使用 text.color 作为该级标题色
 
 #### Scenario: 预览常量不进 token
 

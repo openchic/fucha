@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { type CSSProperties, useMemo, useState } from 'react'
 import { Dropdown } from '../../../components'
 import { highlightArticleHtml } from '../../../theme/highlight'
 
@@ -62,11 +62,12 @@ const PREVIEW_DEVICES: PreviewDevice[] = [
 ]
 
 type SamplePreviewProps = {
-  css: string
+  styleCss: string
+  variables: Record<string, string>
 }
 
 /** 主题配置页左侧：固定示例文章，使用当前草稿实时渲染 */
-export const SamplePreview = ({ css }: SamplePreviewProps) => {
+export const SamplePreview = ({ styleCss, variables }: SamplePreviewProps) => {
   const [deviceValue, setDeviceValue] = useState(PREVIEW_DEVICES[0].value)
   const device = PREVIEW_DEVICES.find((item) => item.value === deviceValue) ?? PREVIEW_DEVICES[0]
   const sampleHtml = useMemo(() => highlightArticleHtml(SAMPLE_ARTICLE), [])
@@ -74,9 +75,9 @@ export const SamplePreview = ({ css }: SamplePreviewProps) => {
   return (
     <section
       aria-label="主题预览"
-      className="relative flex h-full min-h-0 min-w-0 flex-1 flex-col border-r border-line">
-      <div className="absolute inset-x-0 top-0 z-10 flex h-11 items-center justify-between gap-3 px-6">
-        <h2 className="text-body font-medium text-ink">示例文章</h2>
+      className="relative flex h-full min-h-0 min-w-0 flex-1 flex-col border-r border-line bg-raised">
+      <div className="absolute inset-x-0 top-0 z-10 flex h-11 items-center justify-between gap-3 px-6 pt-3">
+        <h2 className="text-body text-ink">示例文章</h2>
         <Dropdown
           label="预览设备"
           value={deviceValue}
@@ -84,14 +85,17 @@ export const SamplePreview = ({ css }: SamplePreviewProps) => {
           onChange={setDeviceValue}
         />
       </div>
-      <div className="flex min-h-0 flex-1 items-start justify-center px-6 pb-6 pt-14">
+      <div className="flex min-h-0 flex-1 items-start justify-center px-6 pb-6 pt-16">
         <div
-          style={{
-            width: `min(${device.width}px, 100%)`,
-            height: `min(${device.height}px, 100%)`,
-          }}
+          style={
+            {
+              width: `min(${device.width}px, 100%)`,
+              height: `min(${device.height}px, 100%)`,
+              ...variables,
+            } as CSSProperties
+          }
           className="flex flex-col overflow-hidden rounded-[28px] border border-line bg-white transition-[width,height] duration-200 ease-out">
-          <style dangerouslySetInnerHTML={{ __html: css }} />
+          <style dangerouslySetInnerHTML={{ __html: styleCss }} />
           <div
             className="article-body min-h-0 flex-1 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
             dangerouslySetInnerHTML={{ __html: sampleHtml }}

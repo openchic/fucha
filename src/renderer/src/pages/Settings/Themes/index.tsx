@@ -1,12 +1,11 @@
 import type { AvailableTheme } from '../../../theme/library'
 import type { CSSProperties } from 'react'
-import { headingColor } from '@shared/theme'
 import { useRef, useState } from 'react'
 import { useNavigate } from 'react-router'
 import { Button, Icon, Popover } from '../../../components'
 import { useConfirm } from '../../../hooks'
 import { themeErrorMessage } from '../../../theme/library'
-import { useSettingsContext } from '..'
+import { useSettingsContext } from '../context'
 
 type RowMenuProps = {
   onSaveAs: () => void
@@ -75,7 +74,7 @@ const RowMenu = (props: RowMenuProps) => {
 const ThemeSpecimen = ({ theme }: { theme: AvailableTheme }) => {
   const { token } = theme
   const titleStyle: CSSProperties = {
-    backgroundColor: headingColor(token, 'h1'),
+    backgroundColor: token.headingColor,
     ...(token.h1.decoration === 'bar'
       ? { borderLeft: `2px solid ${token.primary}`, paddingLeft: 3 }
       : token.h1.decoration === 'underline'
@@ -92,7 +91,7 @@ const ThemeSpecimen = ({ theme }: { theme: AvailableTheme }) => {
       style={{
         backgroundColor: token.backgroundColor,
         border: `1px solid ${token.borderColor}`,
-        borderRadius: Math.min(token.borderRadius, 8),
+        borderRadius: Math.min(token.quote.borderRadius, 8),
       }}>
       <span
         className={`block h-[3px] w-8 ${token.h1.textAlign === 'center' ? 'self-center' : ''}`}
@@ -245,7 +244,7 @@ const ThemeList = () => {
     <li key={theme.id} className="flex items-center gap-3.5 py-3">
       <ThemeSpecimen theme={theme} />
       <div className="min-w-0 flex-1">
-        <p className="truncate text-body font-medium text-ink">{theme.name}</p>
+        <p className="truncate text-body text-ink">{theme.name}</p>
         {theme.builtin && (
           <p className="mt-0.5 truncate text-description text-ink-soft">内置 · 只读</p>
         )}
@@ -259,7 +258,7 @@ const ThemeList = () => {
       <header className="flex flex-none">
         <div className="content-column flex max-w-[47.5rem] items-start justify-between gap-6 pt-10 pb-3">
           <div className="min-w-0">
-            <h1 className="text-xl font-semibold text-ink">主题管理</h1>
+            <h1 className="text-xl text-ink">主题管理</h1>
             <p className="mt-1 text-description leading-[1.6] text-ink-soft">
               内置主题只读；自定义主题保存后，改动会同步到所有使用该主题的文章。
             </p>
@@ -282,19 +281,19 @@ const ThemeList = () => {
           ) : (
             <>
               <section>
-                <h2 className="text-sm font-semibold text-ink">内置主题</h2>
+                <h2 className="text-title text-ink">内置主题</h2>
                 <ul className="mt-1 divide-y divide-line">{builtins.map(renderRow)}</ul>
               </section>
 
               <section className="mt-8">
-                <h2 className="text-sm font-semibold text-ink">自定义主题</h2>
+                <h2 className="text-title text-ink">自定义主题</h2>
                 {customs.length === 0 ? (
                   <div className="mt-1 flex h-11 items-center justify-between gap-4 rounded-lg border border-dashed border-line px-3">
                     <p className="truncate text-body text-ink-soft">还没有自定义主题</p>
                     <button
                       type="button"
                       onClick={openNew}
-                      className="flex-none text-body font-medium text-primary transition-colors hover:underline">
+                      className="flex-none text-body text-primary transition-colors hover:underline">
                       新建主题
                     </button>
                   </div>

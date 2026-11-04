@@ -3,7 +3,6 @@ export const SERIF_THEME_CSS = `
 h1,
 h2 {
   font-family: 'Songti SC', 'Noto Serif CJK SC', 'Source Han Serif SC', serif;
-  font-weight: 600;
 }
 
 blockquote {

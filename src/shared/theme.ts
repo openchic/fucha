@@ -23,26 +23,29 @@ export type NumericRange = {
 
 /** 滑杆与校验共用的数值边界 */
 export const THEME_RANGES = {
-  fontSize: { min: 14, max: 18, step: 1, integer: true },
-  secondaryFontSize: { min: 12, max: 16, step: 1, integer: true },
-  lineHeight: { min: 1.5, max: 2.2, step: 0.05 },
-  letterSpacing: { min: 0, max: 0.1, step: 0.01 },
-  marginBottom: { min: 4, max: 20, step: 1, integer: true },
-  h1FontSize: { min: 18, max: 26, step: 1, integer: true },
-  h2FontSize: { min: 16, max: 22, step: 1, integer: true },
-  h3FontSize: { min: 16, max: 20, step: 1, integer: true },
-  h4FontSize: { min: 12, max: 20, step: 1, integer: true },
-  h5FontSize: { min: 12, max: 20, step: 1, integer: true },
-  h6FontSize: { min: 12, max: 20, step: 1, integer: true },
-  headingMarginTop: { min: 12, max: 36, step: 1, integer: true },
-  headingMarginBottom: { min: 8, max: 24, step: 1, integer: true },
-  quotePadding: { min: 8, max: 20, step: 1, integer: true },
-  codeLineHeight: { min: 1.4, max: 2, step: 0.05 },
-  codePadding: { min: 8, max: 20, step: 1, integer: true },
-  tablePadding: { min: 4, max: 12, step: 1, integer: true },
-  imageMarginTop: { min: 8, max: 24, step: 1, integer: true },
-  imageMarginBottom: { min: 8, max: 24, step: 1, integer: true },
-  borderRadius: { min: 0, max: 12, step: 1, integer: true },
+  fontSize: { min: 12, max: 20, step: 1, integer: true },
+  secondaryFontSize: { min: 12, max: 20, step: 1, integer: true },
+  lineHeight: { min: 1, max: 3, step: 0.05 },
+  headingFontWeight: { min: 100, max: 700, step: 100, integer: true },
+  letterSpacing: { min: 0, max: 0.3, step: 0.01 },
+  marginBottom: { min: 0, max: 40, step: 1, integer: true },
+  h1FontSize: { min: 12, max: 40, step: 1, integer: true },
+  h2FontSize: { min: 12, max: 40, step: 1, integer: true },
+  h3FontSize: { min: 12, max: 40, step: 1, integer: true },
+  h4FontSize: { min: 12, max: 40, step: 1, integer: true },
+  h5FontSize: { min: 12, max: 40, step: 1, integer: true },
+  h6FontSize: { min: 12, max: 40, step: 1, integer: true },
+  headingMarginTop: { min: 0, max: 40, step: 1, integer: true },
+  headingMarginBottom: { min: 0, max: 40, step: 1, integer: true },
+  dividerMarginTop: { min: 0, max: 40, step: 1, integer: true },
+  dividerMarginBottom: { min: 0, max: 40, step: 1, integer: true },
+  quotePadding: { min: 0, max: 40, step: 1, integer: true },
+  codeLineHeight: { min: 1, max: 3, step: 0.05 },
+  codePadding: { min: 0, max: 40, step: 1, integer: true },
+  tablePadding: { min: 0, max: 40, step: 1, integer: true },
+  imageMarginTop: { min: 0, max: 40, step: 1, integer: true },
+  imageMarginBottom: { min: 0, max: 40, step: 1, integer: true },
+  borderRadius: { min: 0, max: 20, step: 1, integer: true },
 } satisfies Record<string, NumericRange>
 
 export const HEADING_KEYS = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'] as const
@@ -109,7 +112,12 @@ function readHeading(value: unknown, path: string, fontSizeRange: NumericRange):
   const heading = readGroup(value, path)
   return {
     fontSize: requiredNumber(heading.fontSize, `${path}.fontSize`, fontSizeRange),
-    color: optionalColor(heading.color, `${path}.color`),
+    fontWeight: requiredNumber(
+      heading.fontWeight,
+      `${path}.fontWeight`,
+      THEME_RANGES.headingFontWeight
+    ),
+    lineHeight: requiredNumber(heading.lineHeight, `${path}.lineHeight`, THEME_RANGES.lineHeight),
     textAlign: requiredEnum(heading.textAlign, `${path}.textAlign`, HEADING_ALIGN),
     decoration: requiredEnum<HeadingDecoration>(
       heading.decoration,
@@ -127,11 +135,6 @@ function readHeading(value: unknown, path: string, fontSizeRange: NumericRange):
       THEME_RANGES.headingMarginBottom
     ),
   }
-}
-
-/** 标题实际颜色：缺省回退正文色 */
-export function headingColor(token: ThemeToken, key: HeadingKey): string {
-  return token[key].color ?? token.text.color
 }
 
 /** 旧主题兼容：未知 hljsTheme 归一到 github；表头与分割线颜色缺省回退到各自旧字段 */
@@ -174,6 +177,125 @@ export function normalizeThemeToken(input: unknown): unknown {
       divider: { ...divider, borderTopColor: token.borderColor },
     }
   }
+  const dividerToken = token.divider
+  if (isRecord(dividerToken)) {
+    const nextDivider = { ...dividerToken }
+    if (nextDivider.marginTop === undefined) nextDivider.marginTop = 20
+    if (nextDivider.marginBottom === undefined) nextDivider.marginBottom = 20
+    if (
+      nextDivider.marginTop !== dividerToken.marginTop ||
+      nextDivider.marginBottom !== dividerToken.marginBottom
+    ) {
+      token = { ...token, divider: nextDivider }
+    }
+  }
+  const quote = token.quote
+  if (isRecord(quote) && typeof quote.padding === 'number' && Number.isFinite(quote.padding)) {
+    const paddingBlock = typeof quote.paddingBlock === 'number' ? quote.paddingBlock : quote.padding
+    const paddingInline =
+      typeof quote.paddingInline === 'number' ? quote.paddingInline : quote.padding
+    token = { ...token, quote: { ...quote, paddingBlock, paddingInline } }
+  }
+  const tablePadding = token.table
+  if (
+    isRecord(tablePadding) &&
+    typeof tablePadding.padding === 'number' &&
+    Number.isFinite(tablePadding.padding)
+  ) {
+    const paddingBlock =
+      typeof tablePadding.paddingBlock === 'number'
+        ? tablePadding.paddingBlock
+        : tablePadding.padding
+    const paddingInline =
+      typeof tablePadding.paddingInline === 'number'
+        ? tablePadding.paddingInline
+        : tablePadding.padding
+    token = { ...token, table: { ...tablePadding, paddingBlock, paddingInline } }
+  }
+  const codePadding = token.code
+  if (
+    isRecord(codePadding) &&
+    typeof codePadding.padding === 'number' &&
+    Number.isFinite(codePadding.padding)
+  ) {
+    const paddingBlock =
+      typeof codePadding.paddingBlock === 'number' ? codePadding.paddingBlock : codePadding.padding
+    const paddingInline =
+      typeof codePadding.paddingInline === 'number'
+        ? codePadding.paddingInline
+        : codePadding.padding
+    token = { ...token, code: { ...codePadding, paddingBlock, paddingInline } }
+  }
+  const textColorGroup = token.text
+  if (isRecord(textColorGroup) && typeof textColorGroup.color === 'string') {
+    if (
+      token.headingColor === undefined ||
+      token.headingColor === null ||
+      token.headingColor === ''
+    ) {
+      token = { ...token, headingColor: textColorGroup.color }
+    }
+  }
+  const codeInlineBackground = token.code
+  if (isRecord(codeInlineBackground) && typeof token.backgroundColor === 'string') {
+    const inlineBackgroundColor = codeInlineBackground.inlineBackgroundColor
+    if (
+      inlineBackgroundColor === undefined ||
+      inlineBackgroundColor === null ||
+      inlineBackgroundColor === ''
+    ) {
+      token = {
+        ...token,
+        code: { ...codeInlineBackground, inlineBackgroundColor: token.backgroundColor },
+      }
+    }
+  }
+  const legacyRadius =
+    typeof token.borderRadius === 'number' && Number.isFinite(token.borderRadius)
+      ? token.borderRadius
+      : undefined
+  if (legacyRadius !== undefined) {
+    const quoteToken = token.quote
+    if (isRecord(quoteToken) && quoteToken.borderRadius === undefined) {
+      token = { ...token, quote: { ...quoteToken, borderRadius: legacyRadius } }
+    }
+    const imageToken = token.image
+    if (isRecord(imageToken) && imageToken.borderRadius === undefined) {
+      token = { ...token, image: { ...imageToken, borderRadius: legacyRadius } }
+    }
+    const codeToken = token.code
+    if (isRecord(codeToken)) {
+      const nextCode = { ...codeToken }
+      if (nextCode.borderRadius === undefined) nextCode.borderRadius = legacyRadius
+      if (nextCode.inlineBorderRadius === undefined) {
+        nextCode.inlineBorderRadius = legacyRadius
+      }
+      token = { ...token, code: nextCode }
+    }
+  }
+  for (const key of HEADING_KEYS) {
+    const heading = token[key]
+    if (!isRecord(heading)) continue
+    const size = heading.fontSize
+    if (typeof size !== 'number' || !Number.isFinite(size)) continue
+    const range = THEME_RANGES[`${key}FontSize`]
+    const clamped = Math.min(range.max, Math.max(range.min, Math.round(size)))
+    const nextHeading = { ...heading }
+    let changed = false
+    if (clamped !== size) {
+      nextHeading.fontSize = clamped
+      changed = true
+    }
+    if (nextHeading.lineHeight === undefined) {
+      nextHeading.lineHeight = key === 'h1' || key === 'h2' || key === 'h3' ? 1.4 : 1.5
+      changed = true
+    }
+    if (nextHeading.fontWeight === undefined) {
+      nextHeading.fontWeight = 700
+      changed = true
+    }
+    if (changed) token = { ...token, [key]: nextHeading }
+  }
   return token
 }
 
@@ -215,11 +337,7 @@ export function validateThemeToken(input: unknown): ThemeToken {
     primary: requiredColor(root.primary, 'theme.primary'),
     backgroundColor: requiredColor(root.backgroundColor, 'theme.backgroundColor'),
     borderColor: requiredColor(root.borderColor, 'theme.borderColor'),
-    borderRadius: requiredNumber(
-      root.borderRadius,
-      'theme.borderRadius',
-      THEME_RANGES.borderRadius
-    ),
+    headingColor: requiredColor(root.headingColor, 'theme.headingColor'),
     h1: readHeading(root.h1, 'theme.h1', THEME_RANGES.h1FontSize),
     h2: readHeading(root.h2, 'theme.h2', THEME_RANGES.h2FontSize),
     h3: readHeading(root.h3, 'theme.h3', THEME_RANGES.h3FontSize),
@@ -227,24 +345,70 @@ export function validateThemeToken(input: unknown): ThemeToken {
     h5: readHeading(root.h5, 'theme.h5', THEME_RANGES.h5FontSize),
     h6: readHeading(root.h6, 'theme.h6', THEME_RANGES.h6FontSize),
     quote: {
-      padding: requiredNumber(quote.padding, 'theme.quote.padding', THEME_RANGES.quotePadding),
+      paddingBlock: requiredNumber(
+        quote.paddingBlock,
+        'theme.quote.paddingBlock',
+        THEME_RANGES.quotePadding
+      ),
+      paddingInline: requiredNumber(
+        quote.paddingInline,
+        'theme.quote.paddingInline',
+        THEME_RANGES.quotePadding
+      ),
+      borderRadius: requiredNumber(
+        quote.borderRadius,
+        'theme.quote.borderRadius',
+        THEME_RANGES.borderRadius
+      ),
     },
     code: {
       hljsTheme: requiredEnum(code.hljsTheme, 'theme.code.hljsTheme', HLJS_THEME_VALUES),
       backgroundColor: optionalColor(code.backgroundColor, 'theme.code.backgroundColor'),
+      inlineBackgroundColor: requiredColor(
+        code.inlineBackgroundColor,
+        'theme.code.inlineBackgroundColor'
+      ),
       lineHeight: requiredNumber(
         code.lineHeight,
         'theme.code.lineHeight',
         THEME_RANGES.codeLineHeight
       ),
-      padding: requiredNumber(code.padding, 'theme.code.padding', THEME_RANGES.codePadding),
+      paddingBlock: requiredNumber(
+        code.paddingBlock,
+        'theme.code.paddingBlock',
+        THEME_RANGES.codePadding
+      ),
+      paddingInline: requiredNumber(
+        code.paddingInline,
+        'theme.code.paddingInline',
+        THEME_RANGES.codePadding
+      ),
+      borderRadius: requiredNumber(
+        code.borderRadius,
+        'theme.code.borderRadius',
+        THEME_RANGES.borderRadius
+      ),
+      inlineBorderRadius: requiredNumber(
+        code.inlineBorderRadius,
+        'theme.code.inlineBorderRadius',
+        THEME_RANGES.borderRadius
+      ),
     },
     table: {
       headerBackgroundColor: requiredColor(
         table.headerBackgroundColor,
         'theme.table.headerBackgroundColor'
       ),
-      padding: requiredNumber(table.padding, 'theme.table.padding', THEME_RANGES.tablePadding),
+      paddingBlock: requiredNumber(
+        table.paddingBlock,
+        'theme.table.paddingBlock',
+        THEME_RANGES.tablePadding
+      ),
+      paddingInline: requiredNumber(
+        table.paddingInline,
+        'theme.table.paddingInline',
+        THEME_RANGES.tablePadding
+      ),
     },
     image: {
       marginTop: requiredNumber(
@@ -257,6 +421,11 @@ export function validateThemeToken(input: unknown): ThemeToken {
         'theme.image.marginBottom',
         THEME_RANGES.imageMarginBottom
       ),
+      borderRadius: requiredNumber(
+        image.borderRadius,
+        'theme.image.borderRadius',
+        THEME_RANGES.borderRadius
+      ),
     },
     divider: {
       borderTopStyle: requiredEnum(
@@ -265,6 +434,16 @@ export function validateThemeToken(input: unknown): ThemeToken {
         DIVIDER_BORDER_TOP_STYLE
       ),
       borderTopColor: requiredColor(divider.borderTopColor, 'theme.divider.borderTopColor'),
+      marginTop: requiredNumber(
+        divider.marginTop,
+        'theme.divider.marginTop',
+        THEME_RANGES.dividerMarginTop
+      ),
+      marginBottom: requiredNumber(
+        divider.marginBottom,
+        'theme.divider.marginBottom',
+        THEME_RANGES.dividerMarginBottom
+      ),
     },
   }
 }

@@ -1,24 +1,21 @@
 import type { HeadingDecoration, HeadingToken, ThemeDefinition, ThemeToken } from '@shared/types'
 import { HEADING_KEYS, THEME_RANGES, type HeadingKey, type NumericRange } from '@shared/theme'
-import { type FormEvent, useId, useRef, useState } from 'react'
+import { type ReactNode, useId, useRef, useState } from 'react'
 import { Sketch } from '@uiw/react-color'
-import { Button } from '../Button'
-import { Dropdown } from '../Dropdown'
+import { Dropdown, type DropdownOption } from '../Dropdown'
 import { Icon } from '../Icon'
 import { Popover } from '../Popover'
+import { Segmented } from '../Segmented'
+import { NumberInput } from '../NumberInput'
 import { highlightThemeBackground } from '../../theme/highlight'
 
 type ThemePanelProps = {
   theme: ThemeDefinition
   baseline: ThemeToken
-  sourceName: string
-  dirty: boolean
-  creating: boolean
-  canSave: boolean
+  title: string
+  header: ReactNode
+  footer: ReactNode
   onTokenChange: (token: ThemeToken) => void
-  onCancel: () => void
-  onSave: () => Promise<string | null>
-  onSaveAs: (name: string) => Promise<string | null>
 }
 
 type ResetSlotProps = {
@@ -109,33 +106,28 @@ const NumberControl = (props: NumberControlProps) => {
     onChange,
   } = props
   return (
-    <div className="flex flex-col gap-1.5">
-      <div className="flex items-center justify-between gap-3 text-body">
-        <span className="font-medium text-ink">{label}</span>
-        <span className="flex items-center gap-1.5">
-          <ResetSlot modified={modified} onReset={onReset} label={resetLabel ?? label} />
-          <output className="tabular-nums text-ink">
-            {value}
-            {unit}
-          </output>
-        </span>
-      </div>
-      {description && (
-        <span id={descriptionId} className="text-description text-ink-soft">
-          {description}
-        </span>
-      )}
-      <input
-        type="range"
-        aria-label={label}
-        aria-describedby={description ? descriptionId : undefined}
-        min={range.min}
-        max={range.max}
-        step={range.step}
-        value={value}
-        onChange={(event) => onChange(Number(event.target.value))}
-        className="h-4 w-full cursor-pointer accent-primary"
-      />
+    <div className="flex min-h-8 items-center justify-between gap-3">
+      <span className="flex min-w-0 flex-col gap-0.5 text-body">
+        <span className="field-label text-ink">{label}</span>
+        {description && (
+          <span id={descriptionId} className="text-description text-ink-soft">
+            {description}
+          </span>
+        )}
+      </span>
+      <span className="flex flex-none items-center gap-1.5">
+        <ResetSlot modified={modified} onReset={onReset} label={resetLabel ?? label} />
+        <NumberInput
+          label={label}
+          value={value}
+          min={range.min}
+          max={range.max}
+          step={range.step}
+          unit={unit}
+          describedBy={description ? descriptionId : undefined}
+          onChange={onChange}
+        />
+      </span>
     </div>
   )
 }
@@ -145,10 +137,12 @@ type ColorControlProps = {
   label: string
   description?: string
   warning?: string
-  value: string
+  value?: string
+  fallbackValue?: string
   modified?: boolean
   onReset?: () => void
   resetLabel?: string
+  compact?: boolean
   onChange: (value: string) => void
 }
 
@@ -158,9 +152,11 @@ const ColorControl = (props: ColorControlProps) => {
     description,
     warning,
     value,
+    fallbackValue = '#ffffff',
     modified = false,
     onReset,
     resetLabel,
+    compact = false,
     onChange,
   } = props
   const id = useId()
@@ -170,15 +166,19 @@ const ColorControl = (props: ColorControlProps) => {
   const [pickerOpen, setPickerOpen] = useState(false)
   const pickerButtonRef = useRef<HTMLButtonElement>(null)
   const describedBy = warning ? warningId : description ? descriptionId : undefined
+  const displayColor = value ?? fallbackValue
 
   const applyPickerColor = (hex: string): void => {
     onChange((hex.startsWith('#') ? hex : `#${hex}`).toLowerCase())
   }
 
   return (
-    <div className="flex min-h-11 items-center justify-between gap-3 py-2">
+    <div
+      className={`flex items-center justify-between gap-3 ${
+        compact ? 'min-h-8' : 'min-h-11 py-2.5'
+      }`}>
       <span className="flex min-w-0 flex-col gap-0.5">
-        <span className="text-body font-medium text-ink">{label}</span>
+        <span className="field-label text-body text-ink">{label}</span>
         {warning ? (
           <span
             id={warningId}
@@ -199,17 +199,27 @@ const ColorControl = (props: ColorControlProps) => {
       </span>
       <span className="flex flex-none items-center gap-2.5">
         <ResetSlot modified={modified} onReset={onReset} label={resetLabel ?? label} />
-        <button
-          ref={pickerButtonRef}
-          type="button"
-          aria-label={`选择${label}`}
-          aria-expanded={pickerOpen}
-          aria-controls={pickerOpen ? pickerId : undefined}
-          aria-describedby={describedBy}
-          onClick={() => setPickerOpen((open) => !open)}
-          className="h-7 w-11 flex-none cursor-pointer rounded-full border border-line bg-white p-0.5 transition-colors hover:border-ink-soft/50">
-          <span className="block h-full w-full rounded-full" style={{ backgroundColor: value }} />
-        </button>
+        <span className="group/color relative flex-none">
+          <button
+            ref={pickerButtonRef}
+            type="button"
+            aria-label={`选择${label}`}
+            aria-expanded={pickerOpen}
+            aria-controls={pickerOpen ? pickerId : undefined}
+            aria-describedby={describedBy}
+            onClick={() => setPickerOpen((open) => !open)}
+            className="h-7 w-11 flex-none cursor-pointer rounded-full border border-line bg-white p-0.5 transition-colors hover:border-ink-soft/50">
+            <span
+              className="block h-full w-full rounded-full"
+              style={{ backgroundColor: displayColor }}
+            />
+          </button>
+          <span
+            aria-hidden="true"
+            className="pointer-events-none absolute top-1/2 right-full z-10 mr-2 -translate-y-1/2 rounded-md bg-ink px-2 py-1 text-description whitespace-nowrap text-white opacity-0 group-hover/color:opacity-100">
+            {displayColor.toUpperCase()}
+          </span>
+        </span>
       </span>
       <Popover
         open={pickerOpen}
@@ -220,7 +230,7 @@ const ColorControl = (props: ColorControlProps) => {
         role="dialog"
         ariaLabel={`选择${label}`}>
         <Sketch
-          color={value}
+          color={displayColor}
           onChange={(color) => applyPickerColor(color.hex)}
           width={240}
           disableAlpha
@@ -232,49 +242,44 @@ const ColorControl = (props: ColorControlProps) => {
 }
 ColorControl.displayName = 'ColorControl'
 
-type SegmentedProps<T extends string> = {
+type DropdownFieldProps = {
   label: string
-  value: T
-  options: { value: T; label: string }[]
+  value: string
+  options: DropdownOption[]
   modified?: boolean
   onReset?: () => void
   resetLabel?: string
-  onChange: (value: T) => void
+  onChange: (value: string) => void
 }
 
-const Segmented = <T extends string>(props: SegmentedProps<T>) => {
+const DropdownField = (props: DropdownFieldProps) => {
   const { label, value, options, modified = false, onReset, resetLabel, onChange } = props
   return (
-    <div className="flex flex-col gap-1.5">
-      <div className="flex items-center justify-between gap-3">
-        <span className="text-body font-medium text-ink">{label}</span>
+    <div className="flex min-h-8 items-center justify-between gap-3">
+      <span className="field-label text-body text-ink">{label}</span>
+      <span className="flex flex-none items-center gap-1.5">
         <ResetSlot modified={modified} onReset={onReset} label={resetLabel ?? label} />
-      </div>
-      <div className="flex rounded-full bg-raised p-0.5" role="group" aria-label={label}>
-        {options.map((option) => (
-          <button
-            key={option.value}
-            type="button"
-            aria-pressed={option.value === value}
-            onClick={() => onChange(option.value)}
-            className={`h-7 flex-1 rounded-full text-body transition-colors ${
-              option.value === value
-                ? 'bg-white font-medium text-ink'
-                : 'text-ink-soft hover:text-ink'
-            }`}>
-            {option.label}
-          </button>
-        ))}
-      </div>
+        <Dropdown label={label} value={value} options={options} onChange={onChange} />
+      </span>
     </div>
   )
 }
-Segmented.displayName = 'Segmented'
+DropdownField.displayName = 'DropdownField'
 
 const ALIGN_OPTIONS = [
   { value: 'left', label: '左对齐' },
   { value: 'center', label: '居中' },
 ] as const
+
+const FONT_WEIGHT_OPTIONS: { value: string; label: string; hint: string }[] = [
+  { value: '100', label: '极细', hint: '100' },
+  { value: '200', label: '特细', hint: '200' },
+  { value: '300', label: '细体', hint: '300' },
+  { value: '400', label: '常规', hint: '400' },
+  { value: '500', label: '中等', hint: '500' },
+  { value: '600', label: '半粗', hint: '600' },
+  { value: '700', label: '粗体', hint: '700' },
+]
 
 const DECORATION_OPTIONS: { value: HeadingDecoration; label: string }[] = [
   { value: 'none', label: '无' },
@@ -297,9 +302,7 @@ const CODE_THEME_OPTIONS: { value: string; label: string }[] = [
 
 const TABS = [
   { value: 'colors', label: '颜色' },
-  { value: 'text', label: '正文' },
-  { value: 'headings', label: '标题' },
-  { value: 'components', label: '组件' },
+  { value: 'typography', label: '排版' },
   { value: 'code', label: '代码' },
 ] as const
 
@@ -307,40 +310,21 @@ type PanelTab = (typeof TABS)[number]['value']
 
 /** 编辑或新建主题草稿：只改 token，实时反映到预览 */
 export const ThemePanel = (props: ThemePanelProps) => {
-  const {
-    theme,
-    baseline,
-    sourceName,
-    dirty,
-    creating,
-    canSave,
-    onTokenChange,
-    onCancel,
-    onSave,
-    onSaveAs,
-  } = props
-  const [tab, setTab] = useState<PanelTab>('text')
+  const { theme, baseline, title, header, footer, onTokenChange } = props
+  const [tab, setTab] = useState<PanelTab>('typography')
   const [level, setLevel] = useState<HeadingKey>('h1')
-  const [saveOpen, setSaveOpen] = useState(false)
-  const [name, setName] = useState(sourceName === '完全自定义' ? '新主题' : `${sourceName} 副本`)
-  const [saving, setSaving] = useState(false)
-  const [savingCurrent, setSavingCurrent] = useState(false)
-  const [error, setError] = useState('')
-  const [currentError, setCurrentError] = useState('')
 
   const token = theme.token
   const heading = token[level]
   const headingBase = baseline[level]
-  const followsTextColor = heading.color === undefined
-  const title = creating ? (sourceName === '完全自定义' ? '新建主题' : '另存为新主题') : '编辑主题'
-  const sourceLabel = sourceName === '完全自定义' ? '完全自定义' : `基于 ${sourceName}`
-  const metaLabel = creating ? sourceLabel : dirty ? '未保存' : ''
-  const footerError = currentError || (creating ? error : '')
-  const textContrastWarning = contrastWarning(token.text.color, [
+  const textContrastBackgrounds = [
     { label: '白底', color: '#ffffff' },
-    { label: '块底色', color: token.backgroundColor },
-    { label: '表头底色', color: token.table.headerBackgroundColor },
-  ])
+    { label: '引用背景色', color: token.backgroundColor },
+    { label: '行内代码背景色', color: token.code.inlineBackgroundColor },
+    { label: '表头背景色', color: token.table.headerBackgroundColor },
+  ]
+  const textContrastWarning = contrastWarning(token.text.color, textContrastBackgrounds)
+  const headingContrastWarning = contrastWarning(token.headingColor, textContrastBackgrounds)
   const secondaryContrastWarning = contrastWarning(token.text.secondaryColor, [
     { label: '白底', color: '#ffffff' },
   ])
@@ -359,92 +343,20 @@ export const ThemePanel = (props: ThemePanelProps) => {
     onTokenChange(next)
   }
 
-  const patchName = (value: string): void => {
-    if (creating) {
-      setName(value)
-      setError('')
-      return
-    }
-    patch({ name: value })
-    setCurrentError('')
-  }
-
-  const handleSaveAs = async (event: FormEvent): Promise<void> => {
-    event.preventDefault()
-    setSaving(true)
-    setError('')
-    const message = await onSaveAs(name)
-    setSaving(false)
-    if (message) setError(message)
-  }
-
-  const handlePrimary = async (): Promise<void> => {
-    if (creating) {
-      setSaving(true)
-      setError('')
-      const message = await onSaveAs(name)
-      setSaving(false)
-      if (message) setError(message)
-      return
-    }
-    setSavingCurrent(true)
-    setCurrentError('')
-    const message = await onSave()
-    setSavingCurrent(false)
-    if (message) setCurrentError(message)
-  }
-
   return (
     <section
       aria-label={title}
       className="flex h-full min-h-0 w-[clamp(340px,32vw,400px)] flex-none flex-col bg-white">
-      <header className="flex-none">
-        <div className="flex h-11 items-center justify-between gap-3 px-6">
-          <h1 className="truncate text-xl font-semibold text-ink">{title}</h1>
-          {metaLabel && (
-            <span className="flex-none text-description text-ink-soft">{metaLabel}</span>
-          )}
-        </div>
-        <div className="px-6 pt-3">
-          <label className="flex flex-col gap-1.5">
-            <span className="text-body font-medium text-ink">主题名称</span>
-            <input
-              type="text"
-              value={creating ? name : token.name}
-              onChange={(event) => patchName(event.target.value)}
-              aria-label="主题名称"
-              autoFocus={creating}
-              className="h-9 w-full rounded-full border border-line bg-white px-3.5 text-body text-ink focus-visible:border-primary focus-visible:outline-none"
-            />
-          </label>
-        </div>
-      </header>
-
-      <div
-        className="mt-4 flex flex-none border-b border-line px-4"
-        role="tablist"
-        aria-label="主题设置">
-        {TABS.map((item) => {
-          const selected = item.value === tab
-          return (
-            <button
-              key={item.value}
-              type="button"
-              role="tab"
-              id={`theme-tab-${item.value}`}
-              aria-selected={selected}
-              aria-controls="theme-panel"
-              onClick={() => setTab(item.value)}
-              className={`relative h-10 flex-1 text-body transition-colors ${
-                selected ? 'font-medium text-ink' : 'text-ink-soft hover:text-ink'
-              }`}>
-              {item.label}
-              {selected && (
-                <span className="absolute inset-x-3 bottom-0 h-0.5 rounded-full bg-primary" />
-              )}
-            </button>
-          )
-        })}
+      {header}
+      <div className="mx-6 mt-5 flex-none">
+        <Segmented
+          label="主题设置"
+          value={tab}
+          options={TABS}
+          idPrefix="theme-tab"
+          panelId="theme-panel"
+          onChange={setTab}
+        />
       </div>
 
       <div
@@ -452,461 +364,636 @@ export const ThemePanel = (props: ThemePanelProps) => {
         role="tabpanel"
         id="theme-panel"
         aria-labelledby={`theme-tab-${tab}`}
-        className="min-h-0 flex-1 overflow-y-auto px-6 py-5">
+        className="my-2 min-h-0 flex-1 overflow-y-auto px-6 pb-5 pt-4">
         {tab === 'colors' && (
-          <div className="divide-y divide-line" role="group" aria-label="颜色">
-            <ColorControl
-              label="主色"
-              description="默认用于标题装饰与引用边条"
-              value={token.primary}
-              modified={token.primary !== baseline.primary}
-              onReset={() => patch({ primary: baseline.primary })}
-              onChange={(value) => patch({ primary: value })}
-            />
-            <ColorControl
-              label="正文色"
-              description="默认正文与标题文字色"
-              warning={textContrastWarning}
-              value={token.text.color}
-              modified={token.text.color !== baseline.text.color}
-              onReset={() => patchText({ color: baseline.text.color })}
-              onChange={(value) => patchText({ color: value })}
-            />
-            <ColorControl
-              label="弱化文字"
-              description="默认用于图注等次要文字"
-              warning={secondaryContrastWarning}
-              value={token.text.secondaryColor}
-              modified={token.text.secondaryColor !== baseline.text.secondaryColor}
-              onReset={() => patchText({ secondaryColor: baseline.text.secondaryColor })}
-              onChange={(value) => patchText({ secondaryColor: value })}
-            />
-            <ColorControl
-              label="块底色"
-              description="默认用于引用与行内代码"
-              value={token.backgroundColor}
-              modified={token.backgroundColor !== baseline.backgroundColor}
-              onReset={() => patch({ backgroundColor: baseline.backgroundColor })}
-              onChange={(value) => patch({ backgroundColor: value })}
-            />
-            <ColorControl
-              label="表头底色"
-              description="默认用于表格表头"
-              value={token.table.headerBackgroundColor}
-              modified={token.table.headerBackgroundColor !== baseline.table.headerBackgroundColor}
-              onReset={() =>
-                patch({
-                  table: {
-                    ...token.table,
-                    headerBackgroundColor: baseline.table.headerBackgroundColor,
-                  },
-                })
-              }
-              onChange={(value) =>
-                patch({ table: { ...token.table, headerBackgroundColor: value } })
-              }
-            />
-            <ColorControl
-              label="边框色"
-              description="默认用于表格边框"
-              value={token.borderColor}
-              modified={token.borderColor !== baseline.borderColor}
-              onReset={() => patch({ borderColor: baseline.borderColor })}
-              onChange={(value) => patch({ borderColor: value })}
-            />
-            <ColorControl
-              label="分割线色"
-              description="默认用于分割线"
-              value={token.divider.borderTopColor}
-              modified={token.divider.borderTopColor !== baseline.divider.borderTopColor}
-              onReset={() =>
-                patch({
-                  divider: {
-                    ...token.divider,
-                    borderTopColor: baseline.divider.borderTopColor,
-                  },
-                })
-              }
-              onChange={(value) => patch({ divider: { ...token.divider, borderTopColor: value } })}
-            />
-          </div>
-        )}
-
-        {tab === 'text' && (
-          <div className="flex flex-col gap-5" role="group" aria-label="正文">
-            <NumberControl
-              label="字号"
-              value={token.text.fontSize}
-              range={THEME_RANGES.fontSize}
-              unit="px"
-              modified={token.text.fontSize !== baseline.text.fontSize}
-              onReset={() => patchText({ fontSize: baseline.text.fontSize })}
-              onChange={(value) => patchText({ fontSize: value })}
-            />
-            <NumberControl
-              label="次级字号"
-              description="用于图注与上下标"
-              value={token.text.secondaryFontSize}
-              range={THEME_RANGES.secondaryFontSize}
-              unit="px"
-              modified={token.text.secondaryFontSize !== baseline.text.secondaryFontSize}
-              onReset={() => patchText({ secondaryFontSize: baseline.text.secondaryFontSize })}
-              onChange={(value) => patchText({ secondaryFontSize: value })}
-            />
-            <NumberControl
-              label="行高"
-              value={token.text.lineHeight}
-              range={THEME_RANGES.lineHeight}
-              modified={token.text.lineHeight !== baseline.text.lineHeight}
-              onReset={() => patchText({ lineHeight: baseline.text.lineHeight })}
-              onChange={(value) => patchText({ lineHeight: value })}
-            />
-            <NumberControl
-              label="字距"
-              value={token.text.letterSpacing}
-              range={THEME_RANGES.letterSpacing}
-              unit="em"
-              modified={token.text.letterSpacing !== baseline.text.letterSpacing}
-              onReset={() => patchText({ letterSpacing: baseline.text.letterSpacing })}
-              onChange={(value) => patchText({ letterSpacing: value })}
-            />
-            <NumberControl
-              label="段后距"
-              value={token.text.marginBottom}
-              range={THEME_RANGES.marginBottom}
-              unit="px"
-              modified={token.text.marginBottom !== baseline.text.marginBottom}
-              onReset={() => patchText({ marginBottom: baseline.text.marginBottom })}
-              onChange={(value) => patchText({ marginBottom: value })}
-            />
-          </div>
-        )}
-
-        {tab === 'headings' && (
-          <div className="flex flex-col gap-5" role="group" aria-label="标题">
-            <Segmented
-              label="层级"
-              value={level}
-              options={HEADING_KEYS.map((key) => ({ value: key, label: key }))}
-              onChange={setLevel}
-            />
-            <div className="flex items-center justify-between gap-3">
-              <label className="flex items-center gap-2 text-body text-ink-soft">
-                <input
-                  type="checkbox"
-                  checked={followsTextColor}
-                  onChange={(event) =>
-                    patchHeading({
-                      color: event.target.checked ? undefined : token.text.color,
+          <div
+            className="flex flex-col gap-6 [&_.field-label]:text-description"
+            role="group"
+            aria-label="颜色">
+            <section className="flex flex-col gap-4">
+              <h2 className="border-b border-line pb-2 text-body text-ink">基础</h2>
+              <div className="[&>div]:py-1.5 [&>div:first-child]:pt-0 [&>div:last-child]:pb-0">
+                <ColorControl
+                  compact
+                  label="主题色"
+                  value={token.primary}
+                  modified={token.primary !== baseline.primary}
+                  onReset={() => patch({ primary: baseline.primary })}
+                  onChange={(value) => patch({ primary: value })}
+                />
+                <ColorControl
+                  compact
+                  label="正文色"
+                  warning={textContrastWarning}
+                  value={token.text.color}
+                  modified={token.text.color !== baseline.text.color}
+                  onReset={() => patchText({ color: baseline.text.color })}
+                  onChange={(value) => patchText({ color: value })}
+                />
+                <ColorControl
+                  compact
+                  label="标题色"
+                  warning={headingContrastWarning}
+                  value={token.headingColor}
+                  modified={token.headingColor !== baseline.headingColor}
+                  onReset={() => patch({ headingColor: baseline.headingColor })}
+                  onChange={(value) => patch({ headingColor: value })}
+                />
+                <ColorControl
+                  compact
+                  label="次级文字色"
+                  warning={secondaryContrastWarning}
+                  value={token.text.secondaryColor}
+                  modified={token.text.secondaryColor !== baseline.text.secondaryColor}
+                  onReset={() => patchText({ secondaryColor: baseline.text.secondaryColor })}
+                  onChange={(value) => patchText({ secondaryColor: value })}
+                />
+              </div>
+            </section>
+            <section className="flex flex-col gap-4">
+              <h2 className="border-b border-line pb-2 text-body text-ink">背景</h2>
+              <div className="[&>div]:py-1.5 [&>div:first-child]:pt-0 [&>div:last-child]:pb-0">
+                <ColorControl
+                  compact
+                  label="引用背景色"
+                  value={token.backgroundColor}
+                  modified={token.backgroundColor !== baseline.backgroundColor}
+                  onReset={() => patch({ backgroundColor: baseline.backgroundColor })}
+                  onChange={(value) => patch({ backgroundColor: value })}
+                />
+                <ColorControl
+                  compact
+                  label="行内代码背景色"
+                  value={token.code.inlineBackgroundColor}
+                  modified={
+                    token.code.inlineBackgroundColor !== baseline.code.inlineBackgroundColor
+                  }
+                  onReset={() =>
+                    patch({
+                      code: {
+                        ...token.code,
+                        inlineBackgroundColor: baseline.code.inlineBackgroundColor,
+                      },
                     })
                   }
-                  className="accent-primary"
+                  onChange={(value) =>
+                    patch({ code: { ...token.code, inlineBackgroundColor: value } })
+                  }
                 />
-                跟随正文色
-              </label>
-              <ResetSlot
-                modified={heading.color !== headingBase.color}
-                onReset={() => patchHeading({ color: headingBase.color })}
-                label={`${level} 标题色`}
-              />
-            </div>
-            {!followsTextColor && (
-              <ColorControl
-                label="标题色"
-                value={heading.color ?? token.text.color}
-                onChange={(value) => patchHeading({ color: value })}
-              />
-            )}
-            <div className="flex flex-col gap-4">
-              <NumberControl
-                label="字号"
-                value={heading.fontSize}
-                range={THEME_RANGES[`${level}FontSize`]}
-                unit="px"
-                modified={heading.fontSize !== headingBase.fontSize}
-                onReset={() => patchHeading({ fontSize: headingBase.fontSize })}
-                resetLabel={`${level} 字号`}
-                onChange={(value) => patchHeading({ fontSize: value })}
-              />
-              <NumberControl
-                label="上边距"
-                value={heading.marginTop}
-                range={THEME_RANGES.headingMarginTop}
-                unit="px"
-                modified={heading.marginTop !== headingBase.marginTop}
-                onReset={() => patchHeading({ marginTop: headingBase.marginTop })}
-                resetLabel={`${level} 上边距`}
-                onChange={(value) => patchHeading({ marginTop: value })}
-              />
-              <NumberControl
-                label="下边距"
-                value={heading.marginBottom}
-                range={THEME_RANGES.headingMarginBottom}
-                unit="px"
-                modified={heading.marginBottom !== headingBase.marginBottom}
-                onReset={() => patchHeading({ marginBottom: headingBase.marginBottom })}
-                resetLabel={`${level} 下边距`}
-                onChange={(value) => patchHeading({ marginBottom: value })}
-              />
-            </div>
-            <Segmented
-              label="对齐"
-              value={heading.textAlign}
-              options={[...ALIGN_OPTIONS]}
-              modified={heading.textAlign !== headingBase.textAlign}
-              onReset={() => patchHeading({ textAlign: headingBase.textAlign })}
-              resetLabel={`${level} 对齐`}
-              onChange={(value) => patchHeading({ textAlign: value })}
-            />
-            <Segmented
-              label="装饰"
-              value={heading.decoration}
-              options={DECORATION_OPTIONS}
-              modified={heading.decoration !== headingBase.decoration}
-              onReset={() => patchHeading({ decoration: headingBase.decoration })}
-              resetLabel={`${level} 装饰`}
-              onChange={(value) => patchHeading({ decoration: value })}
-            />
+                <ColorControl
+                  compact
+                  label="表头背景色"
+                  value={token.table.headerBackgroundColor}
+                  modified={
+                    token.table.headerBackgroundColor !== baseline.table.headerBackgroundColor
+                  }
+                  onReset={() =>
+                    patch({
+                      table: {
+                        ...token.table,
+                        headerBackgroundColor: baseline.table.headerBackgroundColor,
+                      },
+                    })
+                  }
+                  onChange={(value) =>
+                    patch({ table: { ...token.table, headerBackgroundColor: value } })
+                  }
+                />
+              </div>
+            </section>
+            <section className="flex flex-col gap-4">
+              <h2 className="border-b border-line pb-2 text-body text-ink">线条</h2>
+              <div className="[&>div]:py-1.5 [&>div:first-child]:pt-0 [&>div:last-child]:pb-0">
+                <ColorControl
+                  compact
+                  label="表格边框色"
+                  value={token.borderColor}
+                  modified={token.borderColor !== baseline.borderColor}
+                  onReset={() => patch({ borderColor: baseline.borderColor })}
+                  onChange={(value) => patch({ borderColor: value })}
+                />
+                <ColorControl
+                  compact
+                  label="分割线色"
+                  value={token.divider.borderTopColor}
+                  modified={token.divider.borderTopColor !== baseline.divider.borderTopColor}
+                  onReset={() =>
+                    patch({
+                      divider: {
+                        ...token.divider,
+                        borderTopColor: baseline.divider.borderTopColor,
+                      },
+                    })
+                  }
+                  onChange={(value) =>
+                    patch({ divider: { ...token.divider, borderTopColor: value } })
+                  }
+                />
+              </div>
+            </section>
           </div>
         )}
 
-        {tab === 'components' && (
-          <div className="flex flex-col gap-6" role="group" aria-label="组件">
+        {tab === 'typography' && (
+          <div
+            className="flex flex-col gap-6 [&_.field-label]:text-description [&_.field-value]:text-description"
+            role="group"
+            aria-label="排版">
             <section className="flex flex-col gap-4">
-              <h2 className="text-body font-medium text-ink">引用</h2>
-              <NumberControl
-                label="引用内距"
-                value={token.quote.padding}
-                range={THEME_RANGES.quotePadding}
-                unit="px"
-                modified={token.quote.padding !== baseline.quote.padding}
-                onReset={() =>
-                  patch({ quote: { ...token.quote, padding: baseline.quote.padding } })
-                }
-                onChange={(value) => patch({ quote: { ...token.quote, padding: value } })}
-              />
+              <h2 className="border-b border-line pb-2 text-body text-ink">正文</h2>
+              <div>
+                <div className="py-1.5 first:pt-0 last:pb-0">
+                  <NumberControl
+                    label="字号"
+                    value={token.text.fontSize}
+                    range={THEME_RANGES.fontSize}
+                    unit="px"
+                    modified={token.text.fontSize !== baseline.text.fontSize}
+                    onReset={() => patchText({ fontSize: baseline.text.fontSize })}
+                    onChange={(value) => patchText({ fontSize: value })}
+                  />
+                </div>
+                <div className="py-1.5">
+                  <NumberControl
+                    label="次级字号"
+                    value={token.text.secondaryFontSize}
+                    range={THEME_RANGES.secondaryFontSize}
+                    unit="px"
+                    modified={token.text.secondaryFontSize !== baseline.text.secondaryFontSize}
+                    onReset={() =>
+                      patchText({ secondaryFontSize: baseline.text.secondaryFontSize })
+                    }
+                    onChange={(value) => patchText({ secondaryFontSize: value })}
+                  />
+                </div>
+                <div className="py-1.5">
+                  <NumberControl
+                    label="行高"
+                    value={token.text.lineHeight}
+                    range={THEME_RANGES.lineHeight}
+                    modified={token.text.lineHeight !== baseline.text.lineHeight}
+                    onReset={() => patchText({ lineHeight: baseline.text.lineHeight })}
+                    onChange={(value) => patchText({ lineHeight: value })}
+                  />
+                </div>
+                <div className="py-1.5">
+                  <NumberControl
+                    label="字距"
+                    value={token.text.letterSpacing}
+                    range={THEME_RANGES.letterSpacing}
+                    unit="em"
+                    modified={token.text.letterSpacing !== baseline.text.letterSpacing}
+                    onReset={() => patchText({ letterSpacing: baseline.text.letterSpacing })}
+                    onChange={(value) => patchText({ letterSpacing: value })}
+                  />
+                </div>
+                <div className="py-1.5 last:pb-0">
+                  <NumberControl
+                    label="段落间距"
+                    value={token.text.marginBottom}
+                    range={THEME_RANGES.marginBottom}
+                    unit="px"
+                    modified={token.text.marginBottom !== baseline.text.marginBottom}
+                    onReset={() => patchText({ marginBottom: baseline.text.marginBottom })}
+                    onChange={(value) => patchText({ marginBottom: value })}
+                  />
+                </div>
+              </div>
             </section>
+
             <section className="flex flex-col gap-4">
-              <h2 className="text-body font-medium text-ink">表格与图片</h2>
-              <NumberControl
-                label="表格内距"
-                value={token.table.padding}
-                range={THEME_RANGES.tablePadding}
-                unit="px"
-                modified={token.table.padding !== baseline.table.padding}
-                onReset={() =>
-                  patch({ table: { ...token.table, padding: baseline.table.padding } })
-                }
-                onChange={(value) => patch({ table: { ...token.table, padding: value } })}
-              />
-              <NumberControl
-                label="图上距"
-                value={token.image.marginTop}
-                range={THEME_RANGES.imageMarginTop}
-                unit="px"
-                modified={token.image.marginTop !== baseline.image.marginTop}
-                onReset={() =>
-                  patch({ image: { ...token.image, marginTop: baseline.image.marginTop } })
-                }
-                onChange={(value) => patch({ image: { ...token.image, marginTop: value } })}
-              />
-              <NumberControl
-                label="图下距"
-                value={token.image.marginBottom}
-                range={THEME_RANGES.imageMarginBottom}
-                unit="px"
-                modified={token.image.marginBottom !== baseline.image.marginBottom}
-                onReset={() =>
-                  patch({
-                    image: { ...token.image, marginBottom: baseline.image.marginBottom },
-                  })
-                }
-                onChange={(value) => patch({ image: { ...token.image, marginBottom: value } })}
-              />
+              <div className="flex items-center justify-between gap-3 border-b border-line pb-2">
+                <h2 className="text-body text-ink">标题</h2>
+                <Dropdown
+                  label="标题层级"
+                  value={level}
+                  options={HEADING_KEYS.map((key) => ({ value: key, label: key }))}
+                  onChange={(value) => {
+                    const next = HEADING_KEYS.find((key) => key === value)
+                    if (next) setLevel(next)
+                  }}
+                />
+              </div>
+              <div>
+                <div className="py-1.5 first:pt-0">
+                  <NumberControl
+                    label="字号"
+                    value={heading.fontSize}
+                    range={THEME_RANGES[`${level}FontSize`]}
+                    unit="px"
+                    modified={heading.fontSize !== headingBase.fontSize}
+                    onReset={() => patchHeading({ fontSize: headingBase.fontSize })}
+                    resetLabel={`${level} 字号`}
+                    onChange={(value) => patchHeading({ fontSize: value })}
+                  />
+                </div>
+                <div className="py-1.5">
+                  <NumberControl
+                    label="行高"
+                    value={heading.lineHeight}
+                    range={THEME_RANGES.lineHeight}
+                    modified={heading.lineHeight !== headingBase.lineHeight}
+                    onReset={() => patchHeading({ lineHeight: headingBase.lineHeight })}
+                    resetLabel={`${level} 行高`}
+                    onChange={(value) => patchHeading({ lineHeight: value })}
+                  />
+                </div>
+                <div className="py-1.5">
+                  <NumberControl
+                    label="上边距"
+                    value={heading.marginTop}
+                    range={THEME_RANGES.headingMarginTop}
+                    unit="px"
+                    modified={heading.marginTop !== headingBase.marginTop}
+                    onReset={() => patchHeading({ marginTop: headingBase.marginTop })}
+                    resetLabel={`${level} 上边距`}
+                    onChange={(value) => patchHeading({ marginTop: value })}
+                  />
+                </div>
+                <div className="py-1.5">
+                  <NumberControl
+                    label="下边距"
+                    value={heading.marginBottom}
+                    range={THEME_RANGES.headingMarginBottom}
+                    unit="px"
+                    modified={heading.marginBottom !== headingBase.marginBottom}
+                    onReset={() => patchHeading({ marginBottom: headingBase.marginBottom })}
+                    resetLabel={`${level} 下边距`}
+                    onChange={(value) => patchHeading({ marginBottom: value })}
+                  />
+                </div>
+                <div className="py-1.5">
+                  <DropdownField
+                    label="对齐"
+                    value={heading.textAlign}
+                    options={[...ALIGN_OPTIONS]}
+                    modified={heading.textAlign !== headingBase.textAlign}
+                    onReset={() => patchHeading({ textAlign: headingBase.textAlign })}
+                    resetLabel={`${level} 对齐`}
+                    onChange={(value) => {
+                      const next = ALIGN_OPTIONS.find((option) => option.value === value)
+                      if (next) patchHeading({ textAlign: next.value })
+                    }}
+                  />
+                </div>
+                <div className="py-1.5">
+                  <DropdownField
+                    label="字重"
+                    value={String(heading.fontWeight)}
+                    options={FONT_WEIGHT_OPTIONS}
+                    modified={heading.fontWeight !== headingBase.fontWeight}
+                    onReset={() => patchHeading({ fontWeight: headingBase.fontWeight })}
+                    resetLabel={`${level} 字重`}
+                    onChange={(value) => {
+                      const next = FONT_WEIGHT_OPTIONS.find((option) => option.value === value)
+                      if (next) patchHeading({ fontWeight: Number(next.value) })
+                    }}
+                  />
+                </div>
+                <div className="py-1.5 last:pb-0">
+                  <DropdownField
+                    label="装饰"
+                    value={heading.decoration}
+                    options={DECORATION_OPTIONS}
+                    modified={heading.decoration !== headingBase.decoration}
+                    onReset={() => patchHeading({ decoration: headingBase.decoration })}
+                    resetLabel={`${level} 装饰`}
+                    onChange={(value) => {
+                      const next = DECORATION_OPTIONS.find((option) => option.value === value)
+                      if (next) patchHeading({ decoration: next.value })
+                    }}
+                  />
+                </div>
+              </div>
             </section>
+
             <section className="flex flex-col gap-4">
-              <h2 className="text-body font-medium text-ink">圆角与分割线</h2>
-              <NumberControl
-                label="圆角"
-                value={token.borderRadius}
-                range={THEME_RANGES.borderRadius}
-                unit="px"
-                modified={token.borderRadius !== baseline.borderRadius}
-                onReset={() => patch({ borderRadius: baseline.borderRadius })}
-                onChange={(value) => patch({ borderRadius: value })}
-              />
-              <Segmented
-                label="分割线"
-                value={token.divider.borderTopStyle}
-                options={[...DIVIDER_OPTIONS]}
-                modified={token.divider.borderTopStyle !== baseline.divider.borderTopStyle}
-                onReset={() =>
-                  patch({
-                    divider: {
-                      ...token.divider,
-                      borderTopStyle: baseline.divider.borderTopStyle,
-                    },
-                  })
-                }
-                resetLabel="分割线样式"
-                onChange={(value) =>
-                  patch({ divider: { ...token.divider, borderTopStyle: value } })
-                }
-              />
+              <h2 className="border-b border-line pb-2 text-body text-ink">引用</h2>
+              <div>
+                <div className="py-1.5 first:pt-0">
+                  <NumberControl
+                    label="上下内距"
+                    value={token.quote.paddingBlock}
+                    range={THEME_RANGES.quotePadding}
+                    unit="px"
+                    modified={token.quote.paddingBlock !== baseline.quote.paddingBlock}
+                    onReset={() =>
+                      patch({
+                        quote: { ...token.quote, paddingBlock: baseline.quote.paddingBlock },
+                      })
+                    }
+                    onChange={(value) => patch({ quote: { ...token.quote, paddingBlock: value } })}
+                  />
+                </div>
+                <div className="py-1.5">
+                  <NumberControl
+                    label="左右内距"
+                    value={token.quote.paddingInline}
+                    range={THEME_RANGES.quotePadding}
+                    unit="px"
+                    modified={token.quote.paddingInline !== baseline.quote.paddingInline}
+                    onReset={() =>
+                      patch({
+                        quote: { ...token.quote, paddingInline: baseline.quote.paddingInline },
+                      })
+                    }
+                    onChange={(value) => patch({ quote: { ...token.quote, paddingInline: value } })}
+                  />
+                </div>
+                <div className="py-1.5 last:pb-0">
+                  <NumberControl
+                    label="圆角"
+                    value={token.quote.borderRadius}
+                    range={THEME_RANGES.borderRadius}
+                    unit="px"
+                    modified={token.quote.borderRadius !== baseline.quote.borderRadius}
+                    onReset={() =>
+                      patch({
+                        quote: { ...token.quote, borderRadius: baseline.quote.borderRadius },
+                      })
+                    }
+                    onChange={(value) => patch({ quote: { ...token.quote, borderRadius: value } })}
+                  />
+                </div>
+              </div>
+            </section>
+
+            <section className="flex flex-col gap-4">
+              <h2 className="border-b border-line pb-2 text-body text-ink">表格</h2>
+              <div>
+                <div className="py-1.5 first:pt-0">
+                  <NumberControl
+                    label="上下内距"
+                    value={token.table.paddingBlock}
+                    range={THEME_RANGES.tablePadding}
+                    unit="px"
+                    modified={token.table.paddingBlock !== baseline.table.paddingBlock}
+                    onReset={() =>
+                      patch({
+                        table: { ...token.table, paddingBlock: baseline.table.paddingBlock },
+                      })
+                    }
+                    onChange={(value) => patch({ table: { ...token.table, paddingBlock: value } })}
+                  />
+                </div>
+                <div className="py-1.5 last:pb-0">
+                  <NumberControl
+                    label="左右内距"
+                    value={token.table.paddingInline}
+                    range={THEME_RANGES.tablePadding}
+                    unit="px"
+                    modified={token.table.paddingInline !== baseline.table.paddingInline}
+                    onReset={() =>
+                      patch({
+                        table: { ...token.table, paddingInline: baseline.table.paddingInline },
+                      })
+                    }
+                    onChange={(value) => patch({ table: { ...token.table, paddingInline: value } })}
+                  />
+                </div>
+              </div>
+            </section>
+
+            <section className="flex flex-col gap-4">
+              <h2 className="border-b border-line pb-2 text-body text-ink">图片</h2>
+              <div>
+                <div className="py-1.5 first:pt-0">
+                  <NumberControl
+                    label="上边距"
+                    value={token.image.marginTop}
+                    range={THEME_RANGES.imageMarginTop}
+                    unit="px"
+                    modified={token.image.marginTop !== baseline.image.marginTop}
+                    onReset={() =>
+                      patch({ image: { ...token.image, marginTop: baseline.image.marginTop } })
+                    }
+                    onChange={(value) => patch({ image: { ...token.image, marginTop: value } })}
+                  />
+                </div>
+                <div className="py-1.5">
+                  <NumberControl
+                    label="下边距"
+                    value={token.image.marginBottom}
+                    range={THEME_RANGES.imageMarginBottom}
+                    unit="px"
+                    modified={token.image.marginBottom !== baseline.image.marginBottom}
+                    onReset={() =>
+                      patch({
+                        image: { ...token.image, marginBottom: baseline.image.marginBottom },
+                      })
+                    }
+                    onChange={(value) => patch({ image: { ...token.image, marginBottom: value } })}
+                  />
+                </div>
+                <div className="py-1.5 last:pb-0">
+                  <NumberControl
+                    label="圆角"
+                    value={token.image.borderRadius}
+                    range={THEME_RANGES.borderRadius}
+                    unit="px"
+                    modified={token.image.borderRadius !== baseline.image.borderRadius}
+                    onReset={() =>
+                      patch({
+                        image: { ...token.image, borderRadius: baseline.image.borderRadius },
+                      })
+                    }
+                    onChange={(value) => patch({ image: { ...token.image, borderRadius: value } })}
+                  />
+                </div>
+              </div>
+            </section>
+
+            <section className="flex flex-col gap-4">
+              <h2 className="border-b border-line pb-2 text-body text-ink">分割线</h2>
+              <div>
+                <div className="py-1.5 first:pt-0">
+                  <NumberControl
+                    label="上边距"
+                    value={token.divider.marginTop}
+                    range={THEME_RANGES.dividerMarginTop}
+                    unit="px"
+                    modified={token.divider.marginTop !== baseline.divider.marginTop}
+                    onReset={() =>
+                      patch({
+                        divider: { ...token.divider, marginTop: baseline.divider.marginTop },
+                      })
+                    }
+                    onChange={(value) => patch({ divider: { ...token.divider, marginTop: value } })}
+                  />
+                </div>
+                <div className="py-1.5">
+                  <NumberControl
+                    label="下边距"
+                    value={token.divider.marginBottom}
+                    range={THEME_RANGES.dividerMarginBottom}
+                    unit="px"
+                    modified={token.divider.marginBottom !== baseline.divider.marginBottom}
+                    onReset={() =>
+                      patch({
+                        divider: { ...token.divider, marginBottom: baseline.divider.marginBottom },
+                      })
+                    }
+                    onChange={(value) =>
+                      patch({ divider: { ...token.divider, marginBottom: value } })
+                    }
+                  />
+                </div>
+                <div className="py-1.5 last:pb-0">
+                  <DropdownField
+                    label="样式"
+                    value={token.divider.borderTopStyle}
+                    options={[...DIVIDER_OPTIONS]}
+                    modified={token.divider.borderTopStyle !== baseline.divider.borderTopStyle}
+                    onReset={() =>
+                      patch({
+                        divider: {
+                          ...token.divider,
+                          borderTopStyle: baseline.divider.borderTopStyle,
+                        },
+                      })
+                    }
+                    resetLabel="分割线样式"
+                    onChange={(value) => {
+                      const next = DIVIDER_OPTIONS.find((option) => option.value === value)
+                      if (next) patch({ divider: { ...token.divider, borderTopStyle: next.value } })
+                    }}
+                  />
+                </div>
+              </div>
             </section>
           </div>
         )}
 
         {tab === 'code' && (
-          <div className="flex flex-col gap-4" role="group" aria-label="代码">
-            <div className="flex flex-col gap-1.5">
-              <div className="flex items-center justify-between gap-3">
-                <span className="text-body font-medium text-ink">语法主题</span>
-                <ResetSlot
-                  modified={token.code.hljsTheme !== baseline.code.hljsTheme}
-                  onReset={() =>
-                    patch({ code: { ...token.code, hljsTheme: baseline.code.hljsTheme } })
-                  }
-                  label="语法主题"
-                />
+          <div
+            className="flex flex-col gap-6 [&_.field-label]:text-description [&_.field-value]:text-description"
+            role="group"
+            aria-label="代码">
+            <section className="flex flex-col gap-4">
+              <h2 className="border-b border-line pb-2 text-body text-ink">代码块</h2>
+              <div>
+                <div className="py-1.5 first:pt-0">
+                  <DropdownField
+                    label="语法主题"
+                    value={token.code.hljsTheme}
+                    options={CODE_THEME_OPTIONS}
+                    modified={token.code.hljsTheme !== baseline.code.hljsTheme}
+                    onReset={() =>
+                      patch({ code: { ...token.code, hljsTheme: baseline.code.hljsTheme } })
+                    }
+                    onChange={(value) => patch({ code: { ...token.code, hljsTheme: value } })}
+                  />
+                </div>
+                <div className="py-1.5">
+                  <ColorControl
+                    label="背景色"
+                    compact
+                    value={token.code.backgroundColor}
+                    fallbackValue={highlightThemeBackground(token.code.hljsTheme)}
+                    modified={token.code.backgroundColor !== baseline.code.backgroundColor}
+                    onReset={() =>
+                      patch({
+                        code: {
+                          ...token.code,
+                          backgroundColor: baseline.code.backgroundColor,
+                        },
+                      })
+                    }
+                    resetLabel="代码块背景色"
+                    onChange={(value) => patch({ code: { ...token.code, backgroundColor: value } })}
+                  />
+                </div>
+                <div className="py-1.5">
+                  <NumberControl
+                    label="上下内距"
+                    resetLabel="代码上下内距"
+                    value={token.code.paddingBlock}
+                    range={THEME_RANGES.codePadding}
+                    unit="px"
+                    modified={token.code.paddingBlock !== baseline.code.paddingBlock}
+                    onReset={() =>
+                      patch({
+                        code: { ...token.code, paddingBlock: baseline.code.paddingBlock },
+                      })
+                    }
+                    onChange={(value) => patch({ code: { ...token.code, paddingBlock: value } })}
+                  />
+                </div>
+                <div className="py-1.5">
+                  <NumberControl
+                    label="左右内距"
+                    resetLabel="代码左右内距"
+                    value={token.code.paddingInline}
+                    range={THEME_RANGES.codePadding}
+                    unit="px"
+                    modified={token.code.paddingInline !== baseline.code.paddingInline}
+                    onReset={() =>
+                      patch({
+                        code: { ...token.code, paddingInline: baseline.code.paddingInline },
+                      })
+                    }
+                    onChange={(value) => patch({ code: { ...token.code, paddingInline: value } })}
+                  />
+                </div>
+                <div className="py-1.5">
+                  <NumberControl
+                    label="行高"
+                    resetLabel="代码行高"
+                    value={token.code.lineHeight}
+                    range={THEME_RANGES.codeLineHeight}
+                    modified={token.code.lineHeight !== baseline.code.lineHeight}
+                    onReset={() =>
+                      patch({ code: { ...token.code, lineHeight: baseline.code.lineHeight } })
+                    }
+                    onChange={(value) => patch({ code: { ...token.code, lineHeight: value } })}
+                  />
+                </div>
+                <div className="py-1.5 last:pb-0">
+                  <NumberControl
+                    label="圆角"
+                    resetLabel="代码块圆角"
+                    value={token.code.borderRadius}
+                    range={THEME_RANGES.borderRadius}
+                    unit="px"
+                    modified={token.code.borderRadius !== baseline.code.borderRadius}
+                    onReset={() =>
+                      patch({ code: { ...token.code, borderRadius: baseline.code.borderRadius } })
+                    }
+                    onChange={(value) => patch({ code: { ...token.code, borderRadius: value } })}
+                  />
+                </div>
               </div>
-              <Dropdown
-                label="语法主题"
-                value={token.code.hljsTheme}
-                options={CODE_THEME_OPTIONS}
-                onChange={(value) => patch({ code: { ...token.code, hljsTheme: value } })}
-              />
-            </div>
-            <div className="flex min-h-11 items-center justify-between gap-3 py-2">
-              <label htmlFor="code-background-color" className="text-body font-medium text-ink">
-                背景色
-              </label>
-              <span className="flex flex-none items-center gap-2.5">
-                {token.code.backgroundColor ? (
-                  <>
-                    <span className="text-body tabular-nums text-ink-soft">
-                      {token.code.backgroundColor.toUpperCase()}
-                    </span>
-                    <button
-                      type="button"
-                      onClick={() => patch({ code: { ...token.code, backgroundColor: undefined } })}
-                      className="text-body text-ink-soft transition-colors hover:text-ink">
-                      重置
-                    </button>
-                  </>
-                ) : (
-                  <span className="text-body text-ink-soft">跟随语法主题</span>
-                )}
-                <ResetSlot
-                  modified={
-                    token.code.backgroundColor !== baseline.code.backgroundColor &&
-                    baseline.code.backgroundColor !== undefined
-                  }
-                  onReset={() =>
-                    patch({
-                      code: { ...token.code, backgroundColor: baseline.code.backgroundColor },
-                    })
-                  }
-                  label="代码块背景色"
-                />
-                <input
-                  id="code-background-color"
-                  type="color"
-                  value={
-                    token.code.backgroundColor ?? highlightThemeBackground(token.code.hljsTheme)
-                  }
-                  onChange={(event) =>
-                    patch({ code: { ...token.code, backgroundColor: event.target.value } })
-                  }
-                  className="h-7 w-11 cursor-pointer rounded-full border border-line bg-white p-0.5 [&::-webkit-color-swatch-wrapper]:p-0 [&::-webkit-color-swatch]:rounded-full [&::-webkit-color-swatch]:border-0"
-                />
-              </span>
-            </div>
-            <NumberControl
-              label="代码内距"
-              value={token.code.padding}
-              range={THEME_RANGES.codePadding}
-              unit="px"
-              modified={token.code.padding !== baseline.code.padding}
-              onReset={() => patch({ code: { ...token.code, padding: baseline.code.padding } })}
-              onChange={(value) => patch({ code: { ...token.code, padding: value } })}
-            />
-            <NumberControl
-              label="代码行高"
-              value={token.code.lineHeight}
-              range={THEME_RANGES.codeLineHeight}
-              modified={token.code.lineHeight !== baseline.code.lineHeight}
-              onReset={() =>
-                patch({ code: { ...token.code, lineHeight: baseline.code.lineHeight } })
-              }
-              onChange={(value) => patch({ code: { ...token.code, lineHeight: value } })}
-            />
+            </section>
+            <section className="flex flex-col gap-4">
+              <h2 className="border-b border-line pb-2 text-body text-ink">行内代码</h2>
+              <div>
+                <div className="py-1.5 first:pt-0 last:pb-0">
+                  <NumberControl
+                    label="圆角"
+                    resetLabel="行内代码圆角"
+                    value={token.code.inlineBorderRadius}
+                    range={THEME_RANGES.borderRadius}
+                    unit="px"
+                    modified={token.code.inlineBorderRadius !== baseline.code.inlineBorderRadius}
+                    onReset={() =>
+                      patch({
+                        code: {
+                          ...token.code,
+                          inlineBorderRadius: baseline.code.inlineBorderRadius,
+                        },
+                      })
+                    }
+                    onChange={(value) =>
+                      patch({ code: { ...token.code, inlineBorderRadius: value } })
+                    }
+                  />
+                </div>
+              </div>
+            </section>
           </div>
         )}
       </div>
-
-      <footer className="flex-none border-t border-line px-6 py-3">
-        {saveOpen ? (
-          <form onSubmit={handleSaveAs} className="flex flex-col gap-2">
-            <div className="flex items-baseline justify-between gap-3">
-              <span className="text-body font-medium text-ink">另存为新主题</span>
-              <button
-                type="button"
-                onClick={() => {
-                  setSaveOpen(false)
-                  setError('')
-                }}
-                className="text-body text-ink-soft transition-colors hover:text-ink">
-                取消
-              </button>
-            </div>
-            <div className="flex items-center gap-2">
-              <input
-                type="text"
-                value={name}
-                onChange={(event) => {
-                  setName(event.target.value)
-                  setError('')
-                }}
-                aria-label="新主题名称"
-                autoFocus
-                className="h-8 min-w-0 flex-1 rounded-full border border-line bg-white px-3 text-body text-ink focus-visible:border-primary focus-visible:outline-none"
-              />
-              <Button type="submit" variant="primary" disabled={saving} className="h-8">
-                {saving ? '保存中' : '创建'}
-              </Button>
-            </div>
-            {error && (
-              <p role="status" className="text-body text-danger">
-                {error}
-              </p>
-            )}
-          </form>
-        ) : (
-          <div className="flex items-center gap-2">
-            <Button variant="secondary" onClick={onCancel}>
-              取消
-            </Button>
-            <span className="flex-1" />
-            {!creating && canSave && (
-              <Button variant="secondary" onClick={() => setSaveOpen(true)}>
-                另存为
-              </Button>
-            )}
-            <Button
-              variant="primary"
-              onClick={() => void handlePrimary()}
-              disabled={saving || savingCurrent}>
-              {creating ? (saving ? '保存中' : '创建主题') : savingCurrent ? '保存中' : '保存'}
-            </Button>
-          </div>
-        )}
-        {!saveOpen && footerError && (
-          <p role="alert" className="mt-2 text-body text-danger">
-            {footerError}
-          </p>
-        )}
-      </footer>
+      {footer}
     </section>
   )
 }

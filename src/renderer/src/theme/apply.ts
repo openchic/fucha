@@ -1,5 +1,5 @@
 import type { ThemeDefinition, ThemeToken } from '@shared/types'
-import { HEADING_KEYS, headingColor } from '@shared/theme'
+import { HEADING_KEYS } from '@shared/theme'
 import { resolveThemeVariables, scopeCss } from '@shared/theme-css'
 import { BASE_CSS } from './base-css'
 import { highlightThemeBackground, highlightThemeCss } from './highlight'
@@ -12,6 +12,8 @@ export const PREVIEW_BOTTOM_PADDING = 64
 export const ARTICLE_FONT_FAMILY =
   "-apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif"
 
+const SCOPED_BASE_CSS = scopeCss(BASE_CSS, '.article-body')
+
 /** token 到 CSS 变量；text-list-gap 是内部变量，不向 theme.css 开放 */
 export function tokenVariables(token: ThemeToken): Record<string, string> {
   const values: Record<string, string> = {
@@ -19,7 +21,11 @@ export function tokenVariables(token: ThemeToken): Record<string, string> {
     'background-color': token.backgroundColor,
     'table-header-background-color': token.table.headerBackgroundColor,
     'border-color': token.borderColor,
-    'border-radius': `${token.borderRadius}px`,
+    'quote-border-radius': `${token.quote.borderRadius}px`,
+    'image-border-radius': `${token.image.borderRadius}px`,
+    'code-border-radius': `${token.code.borderRadius}px`,
+    'code-inline-border-radius': `${token.code.inlineBorderRadius}px`,
+    'border-radius': `${token.quote.borderRadius}px`,
     'text-font-size': `${token.text.fontSize}px`,
     'text-secondary-font-size': `${token.text.secondaryFontSize}px`,
     'text-line-height': String(token.text.lineHeight),
@@ -28,21 +34,32 @@ export function tokenVariables(token: ThemeToken): Record<string, string> {
     'text-list-gap': `${Math.max(4, Math.round(token.text.marginBottom / 2))}px`,
     'text-color': token.text.color,
     'text-secondary-color': token.text.secondaryColor,
-    'quote-padding': `${token.quote.padding}px`,
+    'quote-padding-block': `${token.quote.paddingBlock}px`,
+    'quote-padding-inline': `${token.quote.paddingInline}px`,
+    'quote-padding': `${token.quote.paddingBlock}px ${token.quote.paddingInline}px`,
     'code-line-height': String(token.code.lineHeight),
-    'code-padding': `${token.code.padding}px`,
+    'code-padding-block': `${token.code.paddingBlock}px`,
+    'code-padding-inline': `${token.code.paddingInline}px`,
+    'code-padding': `${token.code.paddingBlock}px ${token.code.paddingInline}px`,
     'code-background-color':
       token.code.backgroundColor ?? highlightThemeBackground(token.code.hljsTheme),
-    'table-padding': `${token.table.padding}px`,
+    'code-inline-background-color': token.code.inlineBackgroundColor,
+    'table-padding-block': `${token.table.paddingBlock}px`,
+    'table-padding-inline': `${token.table.paddingInline}px`,
+    'table-padding': `${token.table.paddingBlock}px ${token.table.paddingInline}px`,
     'image-margin-top': `${token.image.marginTop}px`,
     'image-margin-bottom': `${token.image.marginBottom}px`,
     'divider-border-top-style': token.divider.borderTopStyle,
     'divider-border-top-color': token.divider.borderTopColor,
+    'divider-margin-top': `${token.divider.marginTop}px`,
+    'divider-margin-bottom': `${token.divider.marginBottom}px`,
   }
 
   for (const key of HEADING_KEYS) {
     values[`${key}-font-size`] = `${token[key].fontSize}px`
-    values[`${key}-color`] = headingColor(token, key)
+    values[`${key}-font-weight`] = String(token[key].fontWeight)
+    values[`${key}-line-height`] = String(token[key].lineHeight)
+    values[`${key}-color`] = token.headingColor
     values[`${key}-text-align`] = token[key].textAlign
     values[`${key}-margin-top`] = `${token[key].marginTop}px`
     values[`${key}-margin-bottom`] = `${token[key].marginBottom}px`
@@ -84,23 +101,44 @@ function previewCanvas(): string {
   ].join('\n')
 }
 
-/** 预览：token 变量 + base.css + 装饰 + 语法色 + theme.css，全部限定在 .article-body */
-export function buildPreviewCss(theme: ThemeDefinition): string {
-  const token = theme.token
-  const variables = Object.entries(tokenVariables(token))
-    .map(([name, value]) => `  --fucha-${name}: ${value};`)
-    .join('\n')
-  const themeCss = [decorationCss(token), highlightThemeCss(token.code.hljsTheme), theme.css]
-    .filter(Boolean)
-    .join('\n\n')
-
-  return [
-    `.article-body {\n${variables}\n${previewCanvas()}\n}`,
-    scopeCss(BASE_CSS, '.article-body'),
-    themeCss ? scopeCss(themeCss, '.article-body') : '',
+function scopedThemeCss(theme: ThemeDefinition): string {
+  const themeCss = [
+    decorationCss(theme.token),
+    highlightThemeCss(theme.token.code.hljsTheme),
+    theme.css,
   ]
     .filter(Boolean)
     .join('\n\n')
+  return themeCss ? scopeCss(themeCss, '.article-body') : ''
+}
+
+/** 预览：token 变量 + base.css + 装饰 + 语法色 + theme.css，全部限定在 .article-body */
+export function buildPreviewCss(theme: ThemeDefinition): string {
+  const variables = Object.entries(tokenVariables(theme.token))
+    .map(([name, value]) => `  --fucha-${name}: ${value};`)
+    .join('\n')
+
+  return [
+    `.article-body {\n${variables}\n${previewCanvas()}\n}`,
+    SCOPED_BASE_CSS,
+    scopedThemeCss(theme),
+  ]
+    .filter(Boolean)
+    .join('\n\n')
+}
+
+/** 预览静态样式：画布、base、装饰与语法色；token 变量由预览容器内联，拖动时只改变量 */
+export function buildPreviewStyle(theme: ThemeDefinition): string {
+  return [`.article-body {\n${previewCanvas()}\n}`, SCOPED_BASE_CSS, scopedThemeCss(theme)]
+    .filter(Boolean)
+    .join('\n\n')
+}
+
+/** 预览容器内联的 token 变量，键名带 --fucha- 前缀 */
+export function previewStyleVariables(token: ThemeToken): Record<string, string> {
+  return Object.fromEntries(
+    Object.entries(tokenVariables(token)).map(([name, value]) => [`--fucha-${name}`, value])
+  )
 }
 
 /** 导出：同一份 CSS 去掉作用域并把变量解析成具体值，juice 不解析 var() */
