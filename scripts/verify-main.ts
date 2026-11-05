@@ -247,14 +247,46 @@ async function main(): Promise<void> {
       .catch(() => false)
   )
   const versionRow = getDb().prepare('PRAGMA user_version').get() as { user_version: number }
-  check('1.2 迁移到最新 schema', versionRow.user_version === 5, String(versionRow.user_version))
+  check('1.2 迁移到最新 schema', versionRow.user_version === 6, String(versionRow.user_version))
   const articleIndexes = getDb().prepare("PRAGMA index_list('articles')").all() as {
     name: string
   }[]
+  const updatedIndexColumns = getDb()
+    .prepare("PRAGMA index_info('articles_updated_idx')")
+    .all() as { name: string }[]
   check(
-    '1.2 历史排序索引已切换',
+    '1.2 历史排序复合索引',
     articleIndexes.some((item) => item.name === 'articles_updated_idx') &&
-      !articleIndexes.some((item) => item.name === 'articles_activity_idx')
+      !articleIndexes.some((item) => item.name === 'articles_activity_idx') &&
+      updatedIndexColumns.map((item) => item.name).join(',') === 'updated_at,created_at'
+  )
+  const imageIndexes = getDb().prepare("PRAGMA index_list('article_images')").all() as {
+    name: string
+  }[]
+  check(
+    '1.2 无消费者索引已移除',
+    !articleIndexes.some((item) => item.name === 'articles_final_url_idx') &&
+      !imageIndexes.some((item) => item.name === 'article_images_url_idx')
+  )
+  const themeIndexes = getDb().prepare("PRAGMA index_list('themes')").all() as {
+    name: string
+    unique: number
+  }[]
+  check(
+    '1.2 主题排序与名称唯一索引',
+    themeIndexes.some((item) => item.name === 'themes_sort_idx') &&
+      themeIndexes.some((item) => item.name === 'themes_name_idx' && item.unique === 1)
+  )
+  const listPlan = getDb()
+    .prepare(
+      'EXPLAIN QUERY PLAN SELECT hash FROM articles ORDER BY updated_at DESC, created_at DESC LIMIT 50 OFFSET 0'
+    )
+    .all() as { detail: string }[]
+  const planDetail = listPlan.map((row) => row.detail).join(' ')
+  check(
+    '1.2 历史列表排序走复合索引',
+    planDetail.includes('articles_updated_idx') && !planDetail.includes('TEMP B-TREE'),
+    planDetail
   )
 
   setPreference('theme.active', 'default')
@@ -263,7 +295,7 @@ async function main(): Promise<void> {
 
   const higherPath = join(storeDir, 'higher.db')
   const higher = new DatabaseSync(higherPath)
-  higher.exec('PRAGMA user_version = 6')
+  higher.exec('PRAGMA user_version = 7')
   higher.close()
   check('1.1 版本高于代码时降级', initLocalStore(higherPath).available === false)
   initLocalStore(storePath)

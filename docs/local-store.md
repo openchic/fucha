@@ -8,7 +8,7 @@
 - 图片字节仍存现有目录 `userData/article-cache/<hash>/`，不写入数据库。
 - 文章 `hash` 取 `SHA-256(finalUrl)` 前 32 位，与图片缓存目录同名。
 - 数据库读写只在主进程；渲染进程经 preload 暴露的领域方法使用存储，不直接执行 SQL。历史栏用 `listArticles` 读摘要，点击后用 `getArticle(hash)` 打开快照并 `touchArticle`；应用默认进入 Home 布局的 `/`（New 输入页），打开历史切换到 `/preview`，左侧历史栏常驻。
-- v1 是初始 schema，当前 schema 为 v4；迁移只处理本文件定义的旧版本。
+- v1 是初始 schema，当前 schema 为 v6；迁移只处理本文件定义的旧版本。
 
 ## 驱动选择
 
@@ -79,18 +79,21 @@
 
 ### 索引
 
-| 索引名                   | 表               | 字段              | 用途                   |
-| ------------------------ | ---------------- | ----------------- | ---------------------- |
-| `articles_updated_idx`   | `articles`       | `updated_at DESC` | 历史列表按最近提取排序 |
-| `articles_theme_idx`     | `articles`       | `theme_id`        | 按主题查找引用文章     |
-| `articles_final_url_idx` | `articles`       | `final_url`       | 按最终地址查找与去重   |
-| `article_images_url_idx` | `article_images` | `original_url`    | 缓存复用与孤儿检查     |
+| 索引名                 | 表         | 字段                               | 用途                            |
+| ---------------------- | ---------- | ---------------------------------- | ------------------------------- |
+| `articles_updated_idx` | `articles` | `updated_at DESC, created_at DESC` | 历史列表排序，覆盖完整 ORDER BY |
+| `articles_theme_idx`   | `articles` | `theme_id`                         | 按主题查找引用文章              |
+| `themes_sort_idx`      | `themes`   | `sort, created_at`                 | 自定义主题列表稳定排序          |
+| `themes_name_idx`      | `themes`   | `name COLLATE NOCASE`（唯一）      | 主题名称大小写不敏感唯一与查重  |
+
+`final_url` 与 `article_images.original_url` 当前没有查询消费者，v6 移除对应索引；需要按地址查找时再加。
 
 ## 版本与迁移
 
 - 版本号存 SQLite 内置的 `PRAGMA user_version`，不建 `schema_meta` 表。
-- 首次打开时按顺序执行 v1 建表、v2 主题字段迁移、v3 默认主题 id 迁移、v4 主题字段迁移与 v5 历史排序索引迁移，并把 `user_version` 设置为 5。
-- v2 为 `articles` 增加 `theme_id` 与 `articles_theme_idx`；v3 将默认主题 id 从 `technical` 统一为 `default`，已有文章与 `theme.active` 偏好一并更新；v4 为 `themes` 增加 `css`、`token_version` 与 `source_theme_id`；v5 用 `articles_updated_idx` 替换旧的按访问活动排序索引。
+- 首次打开时按顺序执行 v1–v6 迁移，并把 `user_version` 设置为 6。
+- v2 为 `articles` 增加 `theme_id` 与 `articles_theme_idx`；v3 将默认主题 id 从 `technical` 统一为 `default`，已有文章与 `theme.active` 偏好一并更新；v4 为 `themes` 增加 `css`、`token_version` 与 `source_theme_id`；v5 用 `articles_updated_idx` 替换旧的按访问活动排序索引；v6 把 `articles_updated_idx` 扩成 `(updated_at DESC, created_at DESC)`，新增 `themes_sort_idx` 与唯一 `themes_name_idx`，删除无查询消费者的 `articles_final_url_idx`、`article_images_url_idx`。
+- 连接设置 `journal_mode = WAL`、`synchronous = NORMAL`、`foreign_keys = ON`、`busy_timeout = 5000`；迁移完成后执行 `PRAGMA optimize`。
 - 后续迁移按版本号顺序执行，每次迁移与版本号更新放在同一事务。
 - `user_version` 高于代码支持的版本时判定存储不可用，不执行迁移，避免旧代码改坏新库。
 - `initLocalStore()` 支持传入数据库路径，验证包使用临时目录，不污染真实历史。
@@ -132,11 +135,13 @@
 | 版本回退     | `user_version` 高于代码期望时直接降级                                         | 防止旧代码对新库执行错误迁移                           |
 | 时间格式     | ISO 8601 UTC 字符串                                                           | 排序直接可用，跨进程可读                               |
 
-## v5 建表草案
+## 当前建表草案（v6）
 
 ```sql
 PRAGMA journal_mode = WAL;
+PRAGMA synchronous = NORMAL;
 PRAGMA foreign_keys = ON;
+PRAGMA busy_timeout = 5000;
 
 CREATE TABLE preferences (
   key TEXT PRIMARY KEY CHECK (length(trim(key)) > 0),
@@ -183,12 +188,12 @@ CREATE TABLE article_images (
   PRIMARY KEY (article_hash, id)
 );
 
-CREATE INDEX articles_updated_idx ON articles(updated_at DESC);
+CREATE INDEX articles_updated_idx ON articles(updated_at DESC, created_at DESC);
 CREATE INDEX articles_theme_idx ON articles(theme_id);
-CREATE INDEX articles_final_url_idx ON articles(final_url);
-CREATE INDEX article_images_url_idx ON article_images(original_url);
+CREATE INDEX themes_sort_idx ON themes(sort, created_at);
+CREATE UNIQUE INDEX themes_name_idx ON themes(name COLLATE NOCASE);
 
-PRAGMA user_version = 5;
+PRAGMA user_version = 6;
 ```
 
 ## 不在本期

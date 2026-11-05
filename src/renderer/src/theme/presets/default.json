@@ -3,44 +3,49 @@
   "name": "清简",
   "builtin": true,
   "text": {
-    "fontSize": 16,
-    "secondaryFontSize": 14,
-    "lineHeight": 1.75,
-    "letterSpacing": 0.03,
-    "marginBottom": 12,
+    "fontSize": 14,
+    "secondaryFontSize": 12,
+    "lineHeight": 1.8,
+    "letterSpacing": 0.02,
+    "marginBottom": 14,
     "color": "#333333",
     "secondaryColor": "#6b7280"
   },
-  "primary": "#5e7b6f",
-  "backgroundColor": "#f6f8fa",
-  "borderColor": "#d0d7de",
+  "primary": "#a8b9f0",
+  "borderColor": "#d9e0ef",
   "headingColor": "#333333",
+  "page": {
+    "paddingTop": 40,
+    "paddingRight": 24,
+    "paddingBottom": 40,
+    "paddingLeft": 24
+  },
   "h1": {
-    "fontSize": 22,
+    "fontSize": 24,
     "fontWeight": 700,
     "lineHeight": 1.4,
     "textAlign": "left",
-    "decoration": "bar",
-    "marginTop": 24,
-    "marginBottom": 12
+    "decoration": "none",
+    "marginTop": 28,
+    "marginBottom": 14
   },
   "h2": {
     "fontSize": 20,
     "fontWeight": 700,
     "lineHeight": 1.4,
     "textAlign": "left",
-    "decoration": "bar",
+    "decoration": "none",
     "marginTop": 24,
-    "marginBottom": 12
+    "marginBottom": 10
   },
   "h3": {
     "fontSize": 18,
     "fontWeight": 700,
     "lineHeight": 1.4,
     "textAlign": "left",
-    "decoration": "bar",
-    "marginTop": 24,
-    "marginBottom": 12
+    "decoration": "none",
+    "marginTop": 20,
+    "marginBottom": 8
   },
   "h4": {
     "fontSize": 16,
@@ -48,7 +53,7 @@
     "lineHeight": 1.5,
     "textAlign": "left",
     "decoration": "none",
-    "marginTop": 20,
+    "marginTop": 16,
     "marginBottom": 8
   },
   "h5": {
@@ -57,7 +62,7 @@
     "lineHeight": 1.5,
     "textAlign": "left",
     "decoration": "none",
-    "marginTop": 20,
+    "marginTop": 14,
     "marginBottom": 8
   },
   "h6": {
@@ -66,37 +71,40 @@
     "lineHeight": 1.5,
     "textAlign": "left",
     "decoration": "none",
-    "marginTop": 20,
+    "marginTop": 14,
     "marginBottom": 8
   },
   "quote": {
-    "paddingBlock": 12,
-    "paddingInline": 12,
+    "backgroundColor": "#f7f8fe",
+    "paddingBlock": 14,
+    "paddingInline": 14,
     "borderRadius": 4
   },
   "code": {
-    "hljsTheme": "github",
-    "inlineBackgroundColor": "#f6f8fa",
+    "hljsTheme": "atom-one-light",
+    "backgroundColor": "#f7f8fe",
+    "inlineBackgroundColor": "#f7f8fe",
     "lineHeight": 1.6,
-    "paddingBlock": 16,
-    "paddingInline": 16,
+    "paddingBlock": 14,
+    "paddingInline": 14,
     "borderRadius": 4,
-    "inlineBorderRadius": 4
+    "inlineBorderRadius": 4,
+    "borderStyle": "solid"
   },
   "table": {
-    "headerBackgroundColor": "#f6f8fa",
+    "headerBackgroundColor": "#f7f8fe",
     "paddingBlock": 8,
     "paddingInline": 8
   },
   "image": {
-    "marginTop": 16,
-    "marginBottom": 16,
+    "marginTop": 14,
+    "marginBottom": 14,
     "borderRadius": 4
   },
   "divider": {
     "borderTopStyle": "solid",
-    "borderTopColor": "#d0d7de",
-    "marginTop": 20,
-    "marginBottom": 20
+    "borderTopColor": "#ccd4e6",
+    "marginTop": 18,
+    "marginBottom": 18
   }
 }

@@ -7,6 +7,7 @@
 - [x] 1.5 v3 迁移：把默认主题 id 从 `technical` 统一为 `default`，同步已有文章与 `theme.active` 偏好；验证：v2 库升级后默认主题引用为 `default`
 - [x] 1.6 v4 迁移：为 `themes` 增加 `css`、`token_version` 与 `source_theme_id`；验证：v1–v3 旧库升级后主题字段可用
 - [x] 1.7 v5 迁移：删除 `articles_activity_idx`，新建 `articles_updated_idx(updated_at DESC)`；验证：新库与旧库升级后 `user_version = 5`，旧索引不存在
+- [x] 1.8 v6 索引优化：`articles_updated_idx` 扩为 `(updated_at DESC, created_at DESC)`，新增 `themes_sort_idx` 与唯一 `themes_name_idx`，删除无消费者的 `articles_final_url_idx`、`article_images_url_idx`；连接补 `synchronous = NORMAL` 与迁移后 `PRAGMA optimize`；验证：新库 `user_version = 6`，历史列表查询计划走复合索引且无临时排序
 
 ## 2. 类型与仓储
 
@@ -20,7 +21,7 @@
 
 ## 3. 验证与文档
 
-- [x] 3.1 扩展 `scripts/verify-main.ts`，用临时数据库路径覆盖初始化、重复初始化、版本过高、v2–v5 迁移、偏好、主题创建与更新校验、引用删除保护、文章/图片替换、文章主题关联、级联删除与损坏降级；验证：主进程 harness 全绿且不污染真实历史
+- [x] 3.1 扩展 `scripts/verify-main.ts`，用临时数据库路径覆盖初始化、重复初始化、版本过高、v2–v6 迁移、偏好、主题创建与更新校验、引用删除保护、文章/图片替换、文章主题关联、级联删除与损坏降级；验证：主进程 harness 全绿且不污染真实历史
 - [x] 3.2 更新 `docs/design.md` 的存储边界与目录结构，把「不引库、JSON 文件」改为「SQLite 管结构化数据、图片仍走文件缓存」，并链接 `docs/local-store.md`；验证：grep 不再残留与实现冲突的旧存储描述
 - [x] 3.3 更新 `theme-panel` 的依赖说明，明确主题/偏好仓储由 `local-store` 提供；历史栏读取路径同步写入本 change；验证：OpenSpec 严格校验通过
 - [x] 3.4 运行 npm run typecheck、npm run lint 与 Prettier 检查；验证：全部通过

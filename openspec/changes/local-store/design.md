@@ -25,7 +25,7 @@
 
 **主进程 repository，IPC 只暴露领域方法。** `src/main/store.ts` 暴露类型化函数，`ipc.ts` 按历史栏与主题面板的真实需求接 `themes:*`、`articles:*`、`preferences:*` 频道；渲染进程不提交 SQL，也不拿数据库对象。
 
-**版本只存 `PRAGMA user_version`。** 不建 `schema_meta` 表；当前 schema 为 v5：v1 建表，v2 增加文章主题字段与索引，v3 把默认主题 id 从 `technical` 统一为 `default` 并更新已有文章与偏好，v4 为 `themes` 增加 `css`、`token_version` 与 `source_theme_id`，v5 把历史排序索引从访问活动改为 `updated_at`。未来迁移继续按版本顺序执行。代价是没有迁移审计时间，当前应用不需要。
+**版本只存 `PRAGMA user_version`。** 不建 `schema_meta` 表；当前 schema 为 v6：v1 建表，v2 增加文章主题字段与索引，v3 把默认主题 id 从 `technical` 统一为 `default` 并更新已有文章与偏好，v4 为 `themes` 增加 `css`、`token_version` 与 `source_theme_id`，v5 把历史排序索引从访问活动改为 `updated_at`，v6 收敛索引。未来迁移继续按版本顺序执行。代价是没有迁移审计时间，当前应用不需要。
 
 **主题表只存自定义主题，校验提升到 shared。** 内置主题留在代码，避免代码与数据库两份来源。ThemeToken 校验在 `src/shared/theme.ts`，主题 CSS 契约校验在 `src/shared/theme-css.ts`；主进程写入前同时校验 token 与 CSS，渲染层使用同一入口。
 
@@ -33,7 +33,7 @@
 
 **删除历史只删数据库行。** 当前预览与导出可能正在使用缓存文件，直接删目录会产生竞态和裂图；当前版本只删 `articles` 与级联的 `article_images`，缓存清理留给后续有「无活跃预览」前提的清理任务。
 
-**历史排序按最近提取时间，不按访问活动。** 列表使用 `updated_at DESC, created_at DESC`：新建与重新提取刷新 `updated_at`，因此回到顶部；打开文章只更新 `last_visited_at` 与 `visit_count`，不改变排序。排序由 `articles_updated_idx` 覆盖，v5 迁移会删除旧的表达式索引。
+**历史排序按最近提取时间，不按访问活动。** 列表使用 `updated_at DESC, created_at DESC`：新建与重新提取刷新 `updated_at`，因此回到顶部；打开文章只更新 `last_visited_at` 与 `visit_count`，不改变排序。排序由 `articles_updated_idx(updated_at DESC, created_at DESC)` 完整覆盖，v6 迁移收敛索引后不再产生临时排序；`final_url` 与 `article_images.original_url` 没有查询消费者，对应索引一并移除。
 
 **文章主题只存引用 id，不存 token。** `articles.theme_id` 默认 `default`；首次 upsert 写入当前选择的主题，重新提取保留文章原主题，`setArticleTheme` 只更新引用 id。自定义主题可原地编辑，引用它的文章同步换样；删除仍被文章引用的主题会被拒绝，消费方读取到未知 id 时回退默认主题但保留原引用。
 

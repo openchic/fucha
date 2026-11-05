@@ -42,6 +42,13 @@ for (const [name, language] of LANGUAGES) {
   hljs.registerLanguage(name, language)
 }
 
+/** 文档站常见的语言别名，映射到已注册的 hljs 语言 */
+const LANGUAGE_ALIASES: Record<string, string> = {
+  tsx: 'typescript',
+  jsx: 'javascript',
+  html: 'xml',
+}
+
 /** hljs 主题自带背景会与代码块 surface 冲突，只保留语法色 */
 function stripBackground(cssText: string): string {
   return cssText.replace(/background(?:-color)?\s*:\s*[^;}]+;?/gi, '')
@@ -73,7 +80,8 @@ function languageOf(code: Element): string | undefined {
   const match = /(?:^|\s)(?:language|lang)-([\w-]+)/i.exec(code.getAttribute('class') ?? '')
   if (!match) return undefined
   const name = match[1]!.toLowerCase()
-  return hljs.getLanguage(name) ? name : undefined
+  const language = LANGUAGE_ALIASES[name] ?? name
+  return hljs.getLanguage(language) ? language : undefined
 }
 
 /** 对正文代码块做语法高亮；显式语言优先，缺省走已注册语言自动检测 */

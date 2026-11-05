@@ -7,6 +7,9 @@ import { useConfirm } from '../../../hooks'
 import { themeErrorMessage } from '../../../theme/library'
 import { useSettingsContext } from '../context'
 
+/** 暂时隐藏新建主题与主题包入口；恢复时改回 true */
+const SHOW_THEME_AUTHORING_ACTIONS = false
+
 type RowMenuProps = {
   onSaveAs: () => void
   onExport: () => void
@@ -51,13 +54,15 @@ const RowMenu = (props: RowMenuProps) => {
           className="w-full rounded-lg px-2.5 py-1.5 text-left text-body text-ink-soft transition-colors hover:bg-raised hover:text-ink">
           另存为
         </button>
-        <button
-          type="button"
-          role="menuitem"
-          onClick={() => run(onExport)}
-          className="w-full rounded-lg px-2.5 py-1.5 text-left text-body text-ink-soft transition-colors hover:bg-raised hover:text-ink">
-          导出
-        </button>
+        {SHOW_THEME_AUTHORING_ACTIONS && (
+          <button
+            type="button"
+            role="menuitem"
+            onClick={() => run(onExport)}
+            className="w-full rounded-lg px-2.5 py-1.5 text-left text-body text-ink-soft transition-colors hover:bg-raised hover:text-ink">
+            导出
+          </button>
+        )}
         <button
           type="button"
           role="menuitem"
@@ -89,7 +94,7 @@ const ThemeSpecimen = ({ theme }: { theme: AvailableTheme }) => {
       aria-hidden="true"
       className="flex h-[60px] w-[88px] flex-none flex-col justify-between overflow-hidden p-2.5"
       style={{
-        backgroundColor: token.backgroundColor,
+        backgroundColor: token.quote.backgroundColor,
         border: `1px solid ${token.borderColor}`,
         borderRadius: Math.min(token.quote.borderRadius, 8),
       }}>
@@ -263,14 +268,20 @@ const ThemeList = () => {
               内置主题只读；自定义主题保存后，改动会同步到所有使用该主题的文章。
             </p>
           </div>
-          <div className="flex flex-none items-center gap-2">
-            <Button variant="primary" onClick={openNew} disabled={busy} className="h-7 px-3">
-              新建主题
-            </Button>
-            <Button variant="secondary" onClick={handleImport} disabled={busy} className="h-7 px-3">
-              导入主题包
-            </Button>
-          </div>
+          {SHOW_THEME_AUTHORING_ACTIONS && (
+            <div className="flex flex-none items-center gap-2">
+              <Button variant="primary" onClick={openNew} disabled={busy} className="h-7 px-3">
+                新建主题
+              </Button>
+              <Button
+                variant="secondary"
+                onClick={handleImport}
+                disabled={busy}
+                className="h-7 px-3">
+                导入主题包
+              </Button>
+            </div>
+          )}
         </div>
       </header>
 
@@ -281,24 +292,28 @@ const ThemeList = () => {
           ) : (
             <>
               <section>
-                <h2 className="text-title text-ink">内置主题</h2>
-                <ul className="mt-1 divide-y divide-line">{builtins.map(renderRow)}</ul>
+                <h2 className="mb-3 text-title text-ink">内置主题</h2>
+                <ul className="divide-y divide-line">{builtins.map(renderRow)}</ul>
               </section>
 
               <section className="mt-8">
-                <h2 className="text-title text-ink">自定义主题</h2>
+                <h2 className="mb-3 text-title text-ink">自定义主题</h2>
                 {customs.length === 0 ? (
-                  <div className="mt-1 flex h-11 items-center justify-between gap-4 rounded-lg border border-dashed border-line px-3">
-                    <p className="truncate text-body text-ink-soft">还没有自定义主题</p>
-                    <button
-                      type="button"
-                      onClick={openNew}
-                      className="flex-none text-body text-primary transition-colors hover:underline">
-                      新建主题
-                    </button>
+                  <div className="flex h-14 items-center justify-between gap-4 rounded-lg border border-dashed border-line px-4">
+                    <p className="min-w-0 text-body text-ink-soft">
+                      还没有自定义主题，通过内置主题的「另存为」新建主题。
+                    </p>
+                    {SHOW_THEME_AUTHORING_ACTIONS && (
+                      <button
+                        type="button"
+                        onClick={openNew}
+                        className="flex-none text-body text-primary transition-colors hover:underline">
+                        新建主题
+                      </button>
+                    )}
                   </div>
                 ) : (
-                  <ul className="mt-1 divide-y divide-line">{customs.map(renderRow)}</ul>
+                  <ul className="divide-y divide-line">{customs.map(renderRow)}</ul>
                 )}
               </section>
             </>

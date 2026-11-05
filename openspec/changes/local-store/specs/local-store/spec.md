@@ -2,27 +2,32 @@
 
 ### Requirement: 本地数据库初始化与版本迁移
 
-系统 SHALL 在主进程使用 Electron 自带 `node:sqlite` 打开 `userData/fucha.db`，以 `PRAGMA user_version` 管理 schema 版本；首次创建 SHALL 建立当前 schema（v5），已有 v1–v4 库 SHALL 顺序迁移补齐文章主题字段、统一默认主题 id、增加主题字段并切换历史排序索引。数据库打开、迁移失败或 `user_version` 高于代码支持版本时，系统 SHALL 将存储标记为不可用，且不阻断抓取、提取与预览主链路。
+系统 SHALL 在主进程使用 Electron 自带 `node:sqlite` 打开 `userData/fucha.db`，以 `PRAGMA user_version` 管理 schema 版本；首次创建 SHALL 建立当前 schema（v6），已有 v1–v5 库 SHALL 顺序迁移补齐文章主题字段、统一默认主题 id、增加主题字段、切换历史排序索引并收敛索引。数据库打开、迁移失败或 `user_version` 高于代码支持版本时，系统 SHALL 将存储标记为不可用，且不阻断抓取、提取与预览主链路。
 
 #### Scenario: 首次创建当前数据库
 
 - **WHEN** 用户数据目录中尚不存在 `fucha.db`
-- **THEN** 系统创建数据库与当前四张表，并把 `user_version` 设置为 5
+- **THEN** 系统创建数据库与当前四张表，并把 `user_version` 设置为 6
 
 #### Scenario: v1 库升级
 
 - **WHEN** 数据库已有文章且 `user_version = 1`
-- **THEN** 系统在事务中为 `articles` 增加 `theme_id` 与主题索引，保留原有文章数据并升级到 5
+- **THEN** 系统在事务中为 `articles` 增加 `theme_id` 与主题索引，保留原有文章数据并升级到 6
 
 #### Scenario: v2 库升级默认主题 id
 
 - **WHEN** 数据库为 v2，文章或偏好使用 `technical`
-- **THEN** 系统把默认主题 id 统一为 `default`，保留自定义主题 id 与文章数据，并继续升级到 v5
+- **THEN** 系统把默认主题 id 统一为 `default`，保留自定义主题 id 与文章数据，并继续升级到 v6
 
 #### Scenario: v4 库升级排序索引
 
 - **WHEN** 数据库为 v4，使用旧的访问活动排序索引
 - **THEN** v5 迁移删除旧索引并建立 `articles_updated_idx`，文章数据保留
+
+#### Scenario: v5 库升级索引
+
+- **WHEN** 数据库为 v5
+- **THEN** v6 迁移把 `articles_updated_idx` 扩为 `(updated_at DESC, created_at DESC)`，新增 `themes_sort_idx` 与唯一 `themes_name_idx`，删除 `articles_final_url_idx` 与 `article_images_url_idx`，文章与主题数据保留
 
 #### Scenario: 重复初始化不重复建表
 

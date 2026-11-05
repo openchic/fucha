@@ -7,6 +7,17 @@ import { registerFuchaProtocol, registerIpcHandlers, serveFuchaProtocol } from '
 
 registerFuchaProtocol()
 
+const EXTERNAL_PROTOCOLS = new Set(['http:', 'https:', 'mailto:'])
+
+function openExternal(url: string): void {
+  try {
+    if (!EXTERNAL_PROTOCOLS.has(new URL(url).protocol)) return
+  } catch {
+    return
+  }
+  void shell.openExternal(url)
+}
+
 function createWindow(): void {
   const mainWindow = new BrowserWindow({
     width: 1180,
@@ -36,8 +47,14 @@ function createWindow(): void {
   })
 
   mainWindow.webContents.setWindowOpenHandler((details) => {
-    shell.openExternal(details.url)
+    openExternal(details.url)
     return { action: 'deny' }
+  })
+
+  mainWindow.webContents.on('will-navigate', (event, url) => {
+    if (url === mainWindow.webContents.getURL()) return
+    event.preventDefault()
+    openExternal(url)
   })
 
   if (is.dev && process.env['ELECTRON_RENDERER_URL']) {

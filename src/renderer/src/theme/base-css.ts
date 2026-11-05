@@ -117,9 +117,13 @@ blockquote {
   color: var(--fucha-text-color);
   font-size: var(--fucha-text-font-size);
   line-height: var(--fucha-text-line-height);
-  background-color: var(--fucha-background-color);
+  background-color: var(--fucha-quote-background-color);
   border-left: 3px solid var(--fucha-primary);
   border-radius: var(--fucha-quote-border-radius);
+}
+
+blockquote > :last-child {
+  margin-bottom: 0;
 }
 
 pre {
@@ -129,6 +133,7 @@ pre {
   font-size: 0.875em;
   line-height: var(--fucha-code-line-height);
   background-color: var(--fucha-code-background-color);
+  border: 1px var(--fucha-code-border-style) var(--fucha-border-color);
   border-radius: var(--fucha-code-border-radius);
   overflow-x: auto;
   white-space: pre;
@@ -147,6 +152,29 @@ pre code {
   word-break: normal;
 }
 
+figure.code-block {
+  background-color: var(--fucha-code-background-color);
+  border: 1px var(--fucha-code-border-style) var(--fucha-border-color);
+  border-radius: var(--fucha-code-border-radius);
+}
+
+figure.code-block figcaption {
+  margin: 0;
+  padding: var(--fucha-code-padding-block) var(--fucha-code-padding-inline);
+  color: var(--fucha-text-secondary-color);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: var(--fucha-text-secondary-font-size);
+  line-height: 1.6;
+  text-align: left;
+  border-bottom: 1px solid var(--fucha-border-color);
+}
+
+figure.code-block pre {
+  margin: 0;
+  border: none;
+  border-radius: 0 0 var(--fucha-code-border-radius) var(--fucha-code-border-radius);
+}
+
 code {
   padding: 2px 4px;
   color: var(--fucha-text-color);
@@ -163,6 +191,39 @@ table {
   font-size: 0.875em;
   line-height: 1.6;
   border-collapse: collapse;
+}
+
+figure.table-scroll {
+  margin: 0 0 var(--fucha-text-margin-bottom);
+  border: 1px solid var(--fucha-border-color);
+  border-radius: var(--fucha-code-border-radius);
+  overflow-x: auto;
+}
+
+figure.table-scroll table {
+  margin: 0;
+  width: 100%;
+}
+
+figure.table-scroll-wide table {
+  min-width: 600px;
+}
+
+figure.table-scroll thead > tr:first-child > *,
+figure.table-scroll tbody:first-child > tr:first-child > * {
+  border-top: none;
+}
+
+figure.table-scroll tbody:last-child > tr:last-child > * {
+  border-bottom: none;
+}
+
+figure.table-scroll tr > :first-child {
+  border-left: none;
+}
+
+figure.table-scroll tr > :last-child {
+  border-right: none;
 }
 
 th {

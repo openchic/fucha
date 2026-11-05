@@ -6,9 +6,6 @@ import { highlightThemeBackground, highlightThemeCss } from './highlight'
 
 /** 预览画布常量，不进入 token，也不参与导出 */
 export const PREVIEW_CONTENT_WIDTH = 676
-export const PREVIEW_PADDING = 24
-export const PREVIEW_TOP_PADDING = 40
-export const PREVIEW_BOTTOM_PADDING = 64
 export const ARTICLE_FONT_FAMILY =
   "-apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif"
 
@@ -18,14 +15,13 @@ const SCOPED_BASE_CSS = scopeCss(BASE_CSS, '.article-body')
 export function tokenVariables(token: ThemeToken): Record<string, string> {
   const values: Record<string, string> = {
     primary: token.primary,
-    'background-color': token.backgroundColor,
+    'quote-background-color': token.quote.backgroundColor,
     'table-header-background-color': token.table.headerBackgroundColor,
     'border-color': token.borderColor,
     'quote-border-radius': `${token.quote.borderRadius}px`,
     'image-border-radius': `${token.image.borderRadius}px`,
     'code-border-radius': `${token.code.borderRadius}px`,
     'code-inline-border-radius': `${token.code.inlineBorderRadius}px`,
-    'border-radius': `${token.quote.borderRadius}px`,
     'text-font-size': `${token.text.fontSize}px`,
     'text-secondary-font-size': `${token.text.secondaryFontSize}px`,
     'text-line-height': String(token.text.lineHeight),
@@ -36,23 +32,25 @@ export function tokenVariables(token: ThemeToken): Record<string, string> {
     'text-secondary-color': token.text.secondaryColor,
     'quote-padding-block': `${token.quote.paddingBlock}px`,
     'quote-padding-inline': `${token.quote.paddingInline}px`,
-    'quote-padding': `${token.quote.paddingBlock}px ${token.quote.paddingInline}px`,
     'code-line-height': String(token.code.lineHeight),
     'code-padding-block': `${token.code.paddingBlock}px`,
     'code-padding-inline': `${token.code.paddingInline}px`,
-    'code-padding': `${token.code.paddingBlock}px ${token.code.paddingInline}px`,
     'code-background-color':
       token.code.backgroundColor ?? highlightThemeBackground(token.code.hljsTheme),
+    'code-border-style': token.code.borderStyle,
     'code-inline-background-color': token.code.inlineBackgroundColor,
     'table-padding-block': `${token.table.paddingBlock}px`,
     'table-padding-inline': `${token.table.paddingInline}px`,
-    'table-padding': `${token.table.paddingBlock}px ${token.table.paddingInline}px`,
     'image-margin-top': `${token.image.marginTop}px`,
     'image-margin-bottom': `${token.image.marginBottom}px`,
     'divider-border-top-style': token.divider.borderTopStyle,
     'divider-border-top-color': token.divider.borderTopColor,
     'divider-margin-top': `${token.divider.marginTop}px`,
     'divider-margin-bottom': `${token.divider.marginBottom}px`,
+    'page-padding-top': `${token.page.paddingTop}px`,
+    'page-padding-right': `${token.page.paddingRight}px`,
+    'page-padding-bottom': `${token.page.paddingBottom}px`,
+    'page-padding-left': `${token.page.paddingLeft}px`,
   }
 
   for (const key of HEADING_KEYS) {
@@ -88,9 +86,9 @@ function decorationCss(token: ThemeToken): string {
 
 function previewCanvas(): string {
   return [
-    `  max-width: ${PREVIEW_CONTENT_WIDTH + PREVIEW_PADDING * 2}px;`,
+    `  max-width: calc(${PREVIEW_CONTENT_WIDTH}px + var(--fucha-page-padding-left) + var(--fucha-page-padding-right));`,
     '  margin: 0 auto;',
-    `  padding: ${PREVIEW_TOP_PADDING}px ${PREVIEW_PADDING}px ${PREVIEW_BOTTOM_PADDING}px;`,
+    '  padding: var(--fucha-page-padding-top) var(--fucha-page-padding-right) var(--fucha-page-padding-bottom) var(--fucha-page-padding-left);',
     `  font-family: ${ARTICLE_FONT_FAMILY};`,
     '  font-size: var(--fucha-text-font-size);',
     '  line-height: var(--fucha-text-line-height);',
@@ -159,6 +157,8 @@ export function exportRootStyle(token: ThemeToken): string {
     `line-height: ${values['text-line-height']}`,
     `letter-spacing: ${values['text-letter-spacing']}`,
     `color: ${values['text-color']}`,
+    `padding: ${values['page-padding-top']} ${values['page-padding-right']} ${values['page-padding-bottom']} ${values['page-padding-left']}`,
+    'box-sizing: border-box',
     'word-break: break-word',
     'text-align: left',
   ].join('; ')

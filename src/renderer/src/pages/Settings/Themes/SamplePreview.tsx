@@ -1,5 +1,5 @@
-import { type CSSProperties, useMemo, useState } from 'react'
-import { Dropdown } from '../../../components'
+import { useMemo } from 'react'
+import { PhonePreview } from '../../../components'
 import { highlightArticleHtml } from '../../../theme/highlight'
 
 const SAMPLE_IMAGE = `data:image/svg+xml,${encodeURIComponent(
@@ -45,22 +45,6 @@ const SAMPLE_ARTICLE = `
 <p>示例到此结束，保存后回到文章即可看到同一主题在真实内容上的效果。</p>
 `
 
-type PreviewDevice = {
-  value: string
-  label: string
-  hint: string
-  width: number
-  height: number
-}
-
-const PREVIEW_DEVICES: PreviewDevice[] = [
-  { value: 'iphone-18-pro', label: 'iPhone 18 Pro', hint: '402 × 874', width: 402, height: 874 },
-  { value: 'iphone-16', label: 'iPhone 16', hint: '393 × 852', width: 393, height: 852 },
-  { value: 'iphone-se', label: 'iPhone SE', hint: '375 × 667', width: 375, height: 667 },
-  { value: 'pixel-7', label: 'Pixel 7', hint: '412 × 915', width: 412, height: 915 },
-  { value: 'galaxy-s21', label: 'Galaxy S21', hint: '360 × 800', width: 360, height: 800 },
-]
-
 type SamplePreviewProps = {
   styleCss: string
   variables: Record<string, string>
@@ -68,41 +52,17 @@ type SamplePreviewProps = {
 
 /** 主题配置页左侧：固定示例文章，使用当前草稿实时渲染 */
 export const SamplePreview = ({ styleCss, variables }: SamplePreviewProps) => {
-  const [deviceValue, setDeviceValue] = useState(PREVIEW_DEVICES[0].value)
-  const device = PREVIEW_DEVICES.find((item) => item.value === deviceValue) ?? PREVIEW_DEVICES[0]
   const sampleHtml = useMemo(() => highlightArticleHtml(SAMPLE_ARTICLE), [])
 
   return (
-    <section
-      aria-label="主题预览"
-      className="relative flex h-full min-h-0 min-w-0 flex-1 flex-col border-r border-line bg-raised">
-      <div className="absolute inset-x-0 top-0 z-10 flex h-11 items-center justify-between gap-3 px-6 pt-3">
-        <h2 className="text-body text-ink">示例文章</h2>
-        <Dropdown
-          label="预览设备"
-          value={deviceValue}
-          options={PREVIEW_DEVICES}
-          onChange={setDeviceValue}
-        />
-      </div>
-      <div className="flex min-h-0 flex-1 items-start justify-center px-6 pb-6 pt-16">
-        <div
-          style={
-            {
-              width: `min(${device.width}px, 100%)`,
-              height: `min(${device.height}px, 100%)`,
-              ...variables,
-            } as CSSProperties
-          }
-          className="flex flex-col overflow-hidden rounded-[28px] border border-line bg-white transition-[width,height] duration-200 ease-out">
-          <style dangerouslySetInnerHTML={{ __html: styleCss }} />
-          <div
-            className="article-body min-h-0 flex-1 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
-            dangerouslySetInnerHTML={{ __html: sampleHtml }}
-          />
-        </div>
-      </div>
-    </section>
+    <PhonePreview
+      title="示例文章"
+      ariaLabel="主题预览"
+      styleCss={styleCss}
+      variables={variables}
+      html={sampleHtml}
+      className="border-r border-line"
+    />
   )
 }
 

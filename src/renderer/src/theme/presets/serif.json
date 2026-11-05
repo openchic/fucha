@@ -12,9 +12,14 @@
     "secondaryColor": "#8a7f74"
   },
   "primary": "#a05a3c",
-  "backgroundColor": "#faf7f2",
   "borderColor": "#e3d9cc",
   "headingColor": "#2f2a26",
+  "page": {
+    "paddingTop": 40,
+    "paddingRight": 24,
+    "paddingBottom": 40,
+    "paddingLeft": 24
+  },
   "h1": {
     "fontSize": 24,
     "fontWeight": 600,
@@ -70,6 +75,7 @@
     "marginBottom": 8
   },
   "quote": {
+    "backgroundColor": "#faf7f2",
     "paddingBlock": 16,
     "paddingInline": 16,
     "borderRadius": 0
@@ -81,7 +87,8 @@
     "paddingBlock": 18,
     "paddingInline": 18,
     "borderRadius": 0,
-    "inlineBorderRadius": 0
+    "inlineBorderRadius": 0,
+    "borderStyle": "solid"
   },
   "table": {
     "headerBackgroundColor": "#faf7f2",
@@ -94,7 +101,7 @@
     "borderRadius": 0
   },
   "divider": {
-    "borderTopStyle": "dotted",
+    "borderTopStyle": "dashed",
     "borderTopColor": "#e3d9cc",
     "marginTop": 20,
     "marginBottom": 20

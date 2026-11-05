@@ -15,6 +15,8 @@ type ArticleMetaProps = {
   onManageThemes: () => void
   onCopy: () => void
   exportState: ExportState
+  phonePreview: boolean
+  onTogglePhonePreview: () => void
 }
 
 export const ArticleMeta = (props: ArticleMetaProps) => {
@@ -29,6 +31,8 @@ export const ArticleMeta = (props: ArticleMetaProps) => {
     onManageThemes,
     onCopy,
     exportState,
+    phonePreview,
+    onTogglePhonePreview,
   } = props
   const exporting = exportState.action !== null
 
@@ -100,6 +104,27 @@ export const ArticleMeta = (props: ArticleMetaProps) => {
             role="tooltip"
             className="pointer-events-none absolute left-1/2 top-full z-10 mt-1 -translate-x-1/2 whitespace-nowrap rounded-md bg-ink px-2 py-1 text-description leading-5 text-white opacity-0 transition-opacity duration-100 group-hover:opacity-100 group-focus-within:opacity-100">
             重新提取
+          </span>
+        </div>
+        <div className="group relative flex items-center">
+          <button
+            type="button"
+            onClick={onTogglePhonePreview}
+            aria-label="手机预览"
+            aria-pressed={phonePreview}
+            aria-describedby="phone-preview-tooltip"
+            className={`flex h-7 w-7 flex-none items-center justify-center rounded-full transition-colors active:scale-95 ${
+              phonePreview
+                ? 'bg-primary/30 text-primary hover:bg-primary/35'
+                : 'text-ink-soft hover:bg-raised hover:text-ink'
+            }`}>
+            <Icon name="smartphone" className="h-4 w-4 flex-none" />
+          </button>
+          <span
+            id="phone-preview-tooltip"
+            role="tooltip"
+            className="pointer-events-none absolute left-1/2 top-full z-10 mt-1 -translate-x-1/2 whitespace-nowrap rounded-md bg-ink px-2 py-1 text-description leading-5 text-white opacity-0 transition-opacity duration-100 group-hover:opacity-100 group-has-[:focus-visible]:opacity-100">
+            手机预览
           </span>
         </div>
         <div className="group relative flex items-center">

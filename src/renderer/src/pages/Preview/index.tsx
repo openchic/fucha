@@ -1,9 +1,9 @@
 import type { Article } from '@shared/types'
 import type { StoredImageInput } from '@shared/store-types'
 import { usePageBridge } from '@shared/pageBridge'
-import { useEffect, useMemo, useRef } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { Navigate, useLocation, useNavigate, useSearchParams } from 'react-router'
-import { ArticleMeta, ErrorPanel, LoadingPanel } from '../../components'
+import { ArticleMeta, ErrorPanel, LoadingPanel, PhonePreview } from '../../components'
 import { useArticleExport, useArticlePreview, useArticleTheme, useThemeLibrary } from '../../hooks'
 import { updatePreviewImages } from '../../pipeline/images'
 import { buildPreviewCss } from '../../theme/apply'
@@ -29,6 +29,7 @@ const PreviewContent = ({ url, snapshotHash }: PreviewContentProps) => {
   const location = useLocation()
   const { setPage, refreshHistory } = usePageBridge()
   const { state, retry, refresh } = useArticlePreview(url, { snapshotHash })
+  const [phonePreview, setPhonePreview] = useState(false)
   const articleBodyRef = useRef<HTMLDivElement>(null)
   const savedHashRef = useRef('')
   const savedSnapshotRef = useRef('')
@@ -60,7 +61,7 @@ const PreviewContent = ({ url, snapshotHash }: PreviewContentProps) => {
   useEffect(() => {
     if (state.view !== 'preview') return
     updatePreviewImages(articleBodyRef.current, state.article, state.articleHash)
-  }, [state])
+  }, [state, phonePreview])
 
   useEffect(() => {
     if (state.view !== 'preview' || !state.fromSnapshot) return
@@ -125,16 +126,27 @@ const PreviewContent = ({ url, snapshotHash }: PreviewContentProps) => {
             }}
             onCopy={copy}
             exportState={exportState}
+            phonePreview={phonePreview}
+            onTogglePhonePreview={() => setPhonePreview((value) => !value)}
           />
-          <div className="reading-viewport animate-fade-in min-h-0 flex-1 overflow-y-auto">
-            <style dangerouslySetInnerHTML={{ __html: previewCss }} />
-            {/* html 已在提取或快照读取时经白名单净化 */}
-            <div
-              ref={articleBodyRef}
-              className="article-body"
-              dangerouslySetInnerHTML={{ __html: state.previewHtml }}
+          {phonePreview ? (
+            <PhonePreview
+              styleCss={previewCss}
+              html={state.previewHtml}
+              bodyRef={articleBodyRef}
+              className="animate-fade-in"
             />
-          </div>
+          ) : (
+            <div className="reading-viewport animate-fade-in min-h-0 flex-1 overflow-y-auto">
+              <style dangerouslySetInnerHTML={{ __html: previewCss }} />
+              {/* html 已在提取或快照读取时经白名单净化 */}
+              <div
+                ref={articleBodyRef}
+                className="article-body"
+                dangerouslySetInnerHTML={{ __html: state.previewHtml }}
+              />
+            </div>
+          )}
         </>
       )}
     </>

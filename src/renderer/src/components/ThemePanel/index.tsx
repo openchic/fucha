@@ -288,9 +288,9 @@ const DECORATION_OPTIONS: { value: HeadingDecoration; label: string }[] = [
   { value: 'bracket', label: '括号' },
 ]
 
-const DIVIDER_OPTIONS = [
+const BORDER_STYLE_OPTIONS = [
   { value: 'solid', label: '实线' },
-  { value: 'dotted', label: '点线' },
+  { value: 'dashed', label: '虚线' },
   { value: 'none', label: '无' },
 ] as const
 
@@ -304,6 +304,7 @@ const TABS = [
   { value: 'colors', label: '颜色' },
   { value: 'typography', label: '排版' },
   { value: 'code', label: '代码' },
+  { value: 'page', label: '页面' },
 ] as const
 
 type PanelTab = (typeof TABS)[number]['value']
@@ -319,7 +320,7 @@ export const ThemePanel = (props: ThemePanelProps) => {
   const headingBase = baseline[level]
   const textContrastBackgrounds = [
     { label: '白底', color: '#ffffff' },
-    { label: '引用背景色', color: token.backgroundColor },
+    { label: '引用背景色', color: token.quote.backgroundColor },
     { label: '行内代码背景色', color: token.code.inlineBackgroundColor },
     { label: '表头背景色', color: token.table.headerBackgroundColor },
   ]
@@ -416,10 +417,17 @@ export const ThemePanel = (props: ThemePanelProps) => {
                 <ColorControl
                   compact
                   label="引用背景色"
-                  value={token.backgroundColor}
-                  modified={token.backgroundColor !== baseline.backgroundColor}
-                  onReset={() => patch({ backgroundColor: baseline.backgroundColor })}
-                  onChange={(value) => patch({ backgroundColor: value })}
+                  value={token.quote.backgroundColor}
+                  modified={token.quote.backgroundColor !== baseline.quote.backgroundColor}
+                  onReset={() =>
+                    patch({
+                      quote: {
+                        ...token.quote,
+                        backgroundColor: baseline.quote.backgroundColor,
+                      },
+                    })
+                  }
+                  onChange={(value) => patch({ quote: { ...token.quote, backgroundColor: value } })}
                 />
                 <ColorControl
                   compact
@@ -466,7 +474,7 @@ export const ThemePanel = (props: ThemePanelProps) => {
               <div className="[&>div]:py-1.5 [&>div:first-child]:pt-0 [&>div:last-child]:pb-0">
                 <ColorControl
                   compact
-                  label="表格边框色"
+                  label="边框色"
                   value={token.borderColor}
                   modified={token.borderColor !== baseline.borderColor}
                   onReset={() => patch({ borderColor: baseline.borderColor })}
@@ -842,7 +850,7 @@ export const ThemePanel = (props: ThemePanelProps) => {
                   <DropdownField
                     label="样式"
                     value={token.divider.borderTopStyle}
-                    options={[...DIVIDER_OPTIONS]}
+                    options={[...BORDER_STYLE_OPTIONS]}
                     modified={token.divider.borderTopStyle !== baseline.divider.borderTopStyle}
                     onReset={() =>
                       patch({
@@ -854,7 +862,7 @@ export const ThemePanel = (props: ThemePanelProps) => {
                     }
                     resetLabel="分割线样式"
                     onChange={(value) => {
-                      const next = DIVIDER_OPTIONS.find((option) => option.value === value)
+                      const next = BORDER_STYLE_OPTIONS.find((option) => option.value === value)
                       if (next) patch({ divider: { ...token.divider, borderTopStyle: next.value } })
                     }}
                   />
@@ -901,6 +909,22 @@ export const ThemePanel = (props: ThemePanelProps) => {
                     }
                     resetLabel="代码块背景色"
                     onChange={(value) => patch({ code: { ...token.code, backgroundColor: value } })}
+                  />
+                </div>
+                <div className="py-1.5">
+                  <DropdownField
+                    label="边框"
+                    value={token.code.borderStyle}
+                    options={[...BORDER_STYLE_OPTIONS]}
+                    modified={token.code.borderStyle !== baseline.code.borderStyle}
+                    onReset={() =>
+                      patch({ code: { ...token.code, borderStyle: baseline.code.borderStyle } })
+                    }
+                    resetLabel="代码块边框"
+                    onChange={(value) => {
+                      const next = BORDER_STYLE_OPTIONS.find((option) => option.value === value)
+                      if (next) patch({ code: { ...token.code, borderStyle: next.value } })
+                    }}
                   />
                 </div>
                 <div className="py-1.5">
@@ -990,6 +1014,75 @@ export const ThemePanel = (props: ThemePanelProps) => {
                 </div>
               </div>
             </section>
+          </div>
+        )}
+
+        {tab === 'page' && (
+          <div
+            className="flex flex-col gap-4 [&_.field-label]:text-description [&_.field-value]:text-description"
+            role="group"
+            aria-label="页面">
+            <h2 className="border-b border-line pb-2 text-body text-ink">内边距</h2>
+            <div>
+              <div className="py-1.5 first:pt-0">
+                <NumberControl
+                  label="上边距"
+                  resetLabel="页面上内边距"
+                  value={token.page.paddingTop}
+                  range={THEME_RANGES.pagePadding}
+                  unit="px"
+                  modified={token.page.paddingTop !== baseline.page.paddingTop}
+                  onReset={() =>
+                    patch({ page: { ...token.page, paddingTop: baseline.page.paddingTop } })
+                  }
+                  onChange={(value) => patch({ page: { ...token.page, paddingTop: value } })}
+                />
+              </div>
+              <div className="py-1.5">
+                <NumberControl
+                  label="右边距"
+                  resetLabel="页面右内边距"
+                  value={token.page.paddingRight}
+                  range={THEME_RANGES.pagePadding}
+                  unit="px"
+                  modified={token.page.paddingRight !== baseline.page.paddingRight}
+                  onReset={() =>
+                    patch({ page: { ...token.page, paddingRight: baseline.page.paddingRight } })
+                  }
+                  onChange={(value) => patch({ page: { ...token.page, paddingRight: value } })}
+                />
+              </div>
+              <div className="py-1.5">
+                <NumberControl
+                  label="下边距"
+                  resetLabel="页面下内边距"
+                  value={token.page.paddingBottom}
+                  range={THEME_RANGES.pagePadding}
+                  unit="px"
+                  modified={token.page.paddingBottom !== baseline.page.paddingBottom}
+                  onReset={() =>
+                    patch({
+                      page: { ...token.page, paddingBottom: baseline.page.paddingBottom },
+                    })
+                  }
+                  onChange={(value) => patch({ page: { ...token.page, paddingBottom: value } })}
+                />
+              </div>
+              <div className="py-1.5 last:pb-0">
+                <NumberControl
+                  label="左边距"
+                  resetLabel="页面左内边距"
+                  value={token.page.paddingLeft}
+                  range={THEME_RANGES.pagePadding}
+                  unit="px"
+                  modified={token.page.paddingLeft !== baseline.page.paddingLeft}
+                  onReset={() =>
+                    patch({ page: { ...token.page, paddingLeft: baseline.page.paddingLeft } })
+                  }
+                  onChange={(value) => patch({ page: { ...token.page, paddingLeft: value } })}
+                />
+              </div>
+            </div>
           </div>
         )}
       </div>

@@ -1,6 +1,7 @@
 import type { Article, ImageAsset } from '@shared/types'
 import { Readability } from '@mozilla/readability'
 import { matchProfile } from '@shared/profiles'
+import { normalizeRspressCodeBlocks } from './rspress'
 import { sanitizeHtml } from './sanitize'
 import {
   collectEmbeddedSvgFonts,
@@ -100,11 +101,14 @@ export function extractArticle(html: string, url: string): Article {
   const svgFontFaces = collectEmbeddedSvgFonts(doc)
   preserveSvgHeadings(doc)
   inlineSvgStyles(doc)
+  const preservedClasses = normalizeRspressCodeBlocks(doc)
 
   const cover = extractCover(doc)
   const publishedAt = extractPublishedAt(doc)
 
-  const parsed = new Readability(doc.cloneNode(true) as Document).parse()
+  const parsed = new Readability(doc.cloneNode(true) as Document, {
+    classesToPreserve: preservedClasses,
+  }).parse()
   if (!parsed?.content) {
     throw new ExtractError('未能在页面中定位到正文，该链接可能不是文章页')
   }

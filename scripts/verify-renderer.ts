@@ -5,11 +5,16 @@ import { sanitizeHtml } from '../src/renderer/src/pipeline/sanitize'
 import { preserveSvgHeadings } from '../src/renderer/src/pipeline/svg'
 import { renderPreviewHtml, updatePreviewImages } from '../src/renderer/src/pipeline/images'
 import { buildExportHtml, exportHtmlToText } from '../src/renderer/src/pipeline/export'
-import { exportRootStyle, buildExportCss, buildPreviewCss } from '../src/renderer/src/theme/apply'
+import {
+  exportRootStyle,
+  buildExportCss,
+  buildPreviewCss,
+  tokenVariables,
+} from '../src/renderer/src/theme/apply'
 import { highlightArticleHtml, highlightThemeCss } from '../src/renderer/src/theme/highlight'
 import { BUILTIN_THEMES, DEFAULT_THEME } from '../src/renderer/src/theme/presets'
 import { validateThemeToken } from '../src/renderer/src/theme/tokens'
-import { BUILTIN_THEME_NAMES, headingColor } from '../src/shared/theme'
+import { BUILTIN_THEME_NAMES } from '../src/shared/theme'
 import { resolveThemeVariables, scopeCss, validateThemeCss } from '../src/shared/theme-css'
 
 const results: string[] = []
@@ -232,10 +237,51 @@ function testExtract(): void {
   )
 }
 
+function testRspressCodeBlocks(): void {
+  const filler = `<p>${'用于让 Readability 判定正文的填充段落。'.repeat(20)}</p>`
+  const titled = `<div class="rp-codeblock language-tsx"><div class="rp-codeblock__title">app/article/[id]/page.tsx</div><div class="rp-codeblock__content"><pre class="shiki" data-lang="tsx" data-title="app/article/[id]/page.tsx"><code>export default async function ArticlePage() {}</code></pre></div></div>`
+  const plain = `<div class="rp-codeblock language-html"><div class="rp-codeblock__content"><pre data-lang="html"><code>&lt;p&gt;hi&lt;/p&gt;</code></pre></div></div>`
+  const article = extractArticle(
+    `<html><head><title>Rspress 代码块</title></head><body><article><h1>Rspress 代码块</h1>${filler}${titled}${plain}<pre><code>const a = 1</code></pre>${filler}</article></body></html>`,
+    'https://example.com/rspress'
+  )
+  check(
+    '5.1 带标题代码块归一为通用结构',
+    article.html.includes(
+      '<figure class="code-block"><figcaption>app/article/[id]/page.tsx</figcaption>'
+    ) &&
+      /class="language-tsx"/.test(article.html) &&
+      !/<p>app\/article\/\[id\]\/page\.tsx<\/p>/.test(article.html)
+  )
+  check(
+    '5.1 无标题代码块不生成标题',
+    !/<figcaption[^>]*><\/figcaption>/.test(article.html) &&
+      /class="language-html"/.test(article.html)
+  )
+  check('5.1 普通代码块不变', article.html.includes('<pre><code>const a = 1</code></pre>'))
+
+  const highlighted = highlightArticleHtml(
+    '<pre><code class="language-tsx">const a: number = 1</code></pre>'
+  )
+  check(
+    '5.3 tsx 映射到 typescript 高亮',
+    /hljs-keyword/.test(highlighted) && highlighted.includes('language-typescript')
+  )
+}
+
 function testTheme(): void {
   const validated = validateThemeToken(DEFAULT_THEME.token)
   check('1.1 内置预设通过校验', validated.id === 'default' && validated.name === '清简')
-  check('1.1 默认主题主色跟随应用主色', validated.primary === '#5e7b6f')
+  check('1.1 默认主题主色为 #a8b9f0', validated.primary === '#a8b9f0')
+  check(
+    '1.1 引用背景色位于 quote',
+    validated.quote.backgroundColor === '#f7f8fe' && !('backgroundColor' in validated)
+  )
+  check(
+    '1.1 引用背景使用 quote 变量',
+    tokenVariables(DEFAULT_THEME.token)['quote-background-color'] ===
+      DEFAULT_THEME.token.quote.backgroundColor
+  )
   check(
     '1.1 内置主题名称与共享名称一致',
     BUILTIN_THEMES.every(
@@ -243,9 +289,47 @@ function testTheme(): void {
         BUILTIN_THEME_NAMES[theme.token.id as keyof typeof BUILTIN_THEME_NAMES] === theme.token.name
     )
   )
+  const danxia = BUILTIN_THEMES.find((theme) => theme.token.id === 'danxia')!
+  check(
+    '1.1 丹霞使用暖橙主色与标题竖条',
+    danxia.token.name === '丹霞' &&
+      danxia.token.primary === '#fa5700' &&
+      danxia.token.h1.decoration === 'bar' &&
+      danxia.token.h2.decoration === 'bar'
+  )
   check(
     '1.1 标题六级直接挂在 token 顶层',
     ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'].every((key) => key in validated)
+  )
+
+  let invalidBorder = ''
+  try {
+    validateThemeToken({
+      ...DEFAULT_THEME.token,
+      code: { ...DEFAULT_THEME.token.code, borderStyle: 'double' },
+    })
+  } catch (error) {
+    invalidBorder = String(error)
+  }
+  check('1.1 非法代码边框样式被拒', invalidBorder.includes('theme.code.borderStyle'))
+  check(
+    '1.1 代码边框支持虚线',
+    validateThemeToken({
+      ...DEFAULT_THEME.token,
+      code: { ...DEFAULT_THEME.token.code, borderStyle: 'dashed' },
+    }).code.borderStyle === 'dashed'
+  )
+
+  const noBorderExport = buildExportCss({
+    token: {
+      ...DEFAULT_THEME.token,
+      code: { ...DEFAULT_THEME.token.code, borderStyle: 'none' },
+    },
+    css: '',
+  })
+  check(
+    '1.1 代码边框样式可关闭',
+    /pre \{([\s\S]*?)\}/.exec(noBorderExport)?.[1]?.includes('none') === true
   )
 
   let rejected = ''
@@ -270,19 +354,11 @@ function testTheme(): void {
   check('1.1 缺少 h6 被拒', missingHeading.includes('theme.h6'), missingHeading)
 
   check(
-    '1.1 标题颜色缺省回退正文色',
-    headingColor(DEFAULT_THEME.token, 'h2') === DEFAULT_THEME.token.text.color
+    '1.1 标题颜色统一使用 headingColor',
+    /h2 \{([\s\S]*?)\}/
+      .exec(buildExportCss(DEFAULT_THEME))?.[1]
+      ?.includes(`color: ${DEFAULT_THEME.token.headingColor}`) === true
   )
-
-  const fallbackExport = buildExportCss({
-    token: {
-      ...DEFAULT_THEME.token,
-      h2: { ...DEFAULT_THEME.token.h2, color: undefined },
-    },
-    css: '',
-  })
-  const h2Rule = /h2 \{([\s\S]*?)\}/.exec(fallbackExport)?.[1] ?? ''
-  check('1.1 h2 颜色回退到正文色', h2Rule.includes('color: #333333'))
 
   const previewCss = buildPreviewCss(DEFAULT_THEME)
   const exportCss = buildExportCss(DEFAULT_THEME)
@@ -294,6 +370,24 @@ function testTheme(): void {
   check(
     '1.1 预览 CSS 使用作用域变量',
     previewCss.includes('.article-body') && previewCss.includes('--fucha-primary')
+  )
+  check(
+    '1.1 预览注入 quote 背景变量',
+    previewCss.includes('--fucha-quote-background-color') &&
+      !previewCss.includes('--fucha-background-color')
+  )
+  let legacyQuoteVariable = ''
+  try {
+    validateThemeCss('blockquote { background-color: var(--fucha-background-color); }')
+  } catch (error) {
+    legacyQuoteVariable = String(error)
+  }
+  check('1.1 旧引用背景变量被拒', legacyQuoteVariable.includes('background-color'))
+  check(
+    '1.1 新引用背景变量可用',
+    validateThemeCss(
+      'blockquote { background-color: var(--fucha-quote-background-color); }'
+    ).includes('quote-background-color')
   )
 
   const serif = BUILTIN_THEMES.find((theme) => theme.token.id === 'serif')!
@@ -379,6 +473,7 @@ function testTheme(): void {
     'borderRadius',
     'display',
     'maxWidth',
+    'minWidth',
     'overflowX',
     'whiteSpace',
     'listStyleType',
@@ -387,7 +482,7 @@ function testTheme(): void {
     'verticalAlign',
   ]
 
-  const sample = `<p>正文 <strong>强调</strong> <em>斜体</em> <a href="#">链接</a></p><h1>一级</h1><h2>二级</h2><h3>三级</h3><h4>四级</h4><h5>五级</h5><h6>六级</h6><ul><li>列表</li></ul><ol><li>有序</li></ol><blockquote><p>引用</p></blockquote><pre><code>const a = 1</code></pre><table><thead><tr><th>表头</th></tr></thead><tbody><tr><td>值</td></tr></tbody></table><figure><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=" alt="图"><figcaption>图注</figcaption></figure><hr>`
+  const sample = `<p>正文 <strong>强调</strong> <em>斜体</em> <a href="#">链接</a></p><h1>一级</h1><h2>二级</h2><h3>三级</h3><h4>四级</h4><h5>五级</h5><h6>六级</h6><ul><li>列表</li></ul><ol><li>有序</li></ol><blockquote><p>引用</p></blockquote><pre><code>const a = 1</code></pre><figure class="code-block"><figcaption>app/page.tsx</figcaption><pre><code>const b = 2</code></pre></figure><figure class="table-scroll"><table><thead><tr><th>表头</th></tr></thead><tbody><tr><td>值</td></tr></tbody></table></figure><figure><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=" alt="图"><figcaption>图注</figcaption></figure><hr>`
 
   const preview = document.createElement('div')
   preview.className = 'article-body'
@@ -422,10 +517,15 @@ function testTheme(): void {
     'pre code',
     'code',
     'table',
+    'figure.table-scroll',
+    'figure.table-scroll table',
     'th',
     'td',
     'img',
     'figcaption',
+    'figure.code-block',
+    'figure.code-block figcaption',
+    'figure.code-block pre',
     'hr',
   ]
   const mismatches: string[] = []
@@ -446,6 +546,33 @@ function testTheme(): void {
       }
     }
   }
+
+  const plainPre = preview.querySelector('pre')
+  const blockFigure = preview.querySelector('figure.code-block')
+  const blockPre = blockFigure?.querySelector('pre')
+  check(
+    '5.6 无标题与带标题代码块外框一致',
+    !!plainPre &&
+      !!blockFigure &&
+      !!blockPre &&
+      getComputedStyle(plainPre).borderTopWidth === getComputedStyle(blockFigure).borderTopWidth &&
+      getComputedStyle(plainPre).borderTopColor === getComputedStyle(blockFigure).borderTopColor &&
+      getComputedStyle(plainPre).borderTopLeftRadius ===
+        getComputedStyle(blockFigure).borderTopLeftRadius &&
+      getComputedStyle(blockPre).borderTopWidth === '0px'
+  )
+
+  const framedWrapper = preview.querySelector('figure.table-scroll')
+  const framedFirstCell = preview.querySelector('figure.table-scroll th')
+  check(
+    '6.1 表格外框由滚动容器承担',
+    !!framedWrapper &&
+      !!framedFirstCell &&
+      getComputedStyle(framedWrapper).borderTopWidth === '1px' &&
+      getComputedStyle(framedWrapper).borderTopLeftRadius === '4px' &&
+      getComputedStyle(framedFirstCell).borderTopWidth === '0px' &&
+      getComputedStyle(framedFirstCell).borderLeftWidth === '0px'
+  )
 
   preview.remove()
   exported.remove()
@@ -480,12 +607,35 @@ function testHighlightAndExport(): void {
   check('3.1 外链降级为文本', !/href="https?:/.test(html) && html.includes('外链'))
   check('3.1 微信不支持的属性已剔除', !/(position:|float:|display:\s*(grid|flex))/.test(html))
   check('3.1 代码块保留横向滚动', /<pre[^>]*style="[^"]*overflow-x: auto/.test(html))
+  check(
+    '5.6 无标题代码块外框导出',
+    /<pre[^>]*style="[^"]*border-width/.test(html) &&
+      /<pre[^>]*style="[^"]*border-radius/.test(html)
+  )
   check('3.1 高亮样式已内联', /hljs-keyword/.test(html))
   check(
     '3.3 导出不附加来源行',
     !html.includes('原文：https://example.com/post') && !html.includes('作者：示例作者')
   )
   check('3.3 纯文本兜底不含来源行', !exportHtmlToText(html).includes('原文：'))
+
+  const titledExport = buildExportHtml(
+    {
+      ...article,
+      html: '<figure class="code-block"><figcaption>app/page.tsx</figcaption><pre><code class="language-ts">const a = 1</code></pre></figure>',
+    },
+    DEFAULT_THEME
+  )
+  const figureAttrs = /<figure([^>]*)>/.exec(titledExport)?.[1] ?? ''
+  const captionAttrs = /<figcaption([^>]*)>/.exec(titledExport)?.[1] ?? ''
+  check(
+    '5.4 代码标题卡片导出样式已内联',
+    figureAttrs.includes('border-radius') &&
+      figureAttrs.includes('border-width') &&
+      captionAttrs.includes('border-bottom') &&
+      captionAttrs.includes('font-family') &&
+      /<pre[^>]*style="[^"]*(?:border-radius|border-bottom-left-radius)/.test(titledExport)
+  )
 }
 
 function testDomParity(): void {
@@ -509,6 +659,43 @@ function testDomParity(): void {
   check(
     '6.2 预览与导出引用末段间距一致',
     previewTail?.style.marginBottom === '0px' && exportTail?.style.marginBottom === '0px'
+  )
+
+  const tableArticle: Article = {
+    title: '表格滚动',
+    sourceUrl: 'https://example.com/table',
+    html: '<p>正文</p><table><thead><tr><th>列一</th><th>列二</th><th>列三</th></tr></thead><tbody><tr><td>甲</td><td>乙</td><td>丙</td></tr></tbody></table>',
+    images: [],
+  }
+  const tablePreview = renderPreviewHtml(tableArticle)
+  const tableExported = buildExportHtml(tableArticle, DEFAULT_THEME)
+  check(
+    '6.1 表格包横向滚动容器',
+    /<figure class="table-scroll table-scroll-wide">/.test(tablePreview) &&
+      /<figure class="table-scroll table-scroll-wide"/.test(tableExported)
+  )
+  check(
+    '6.1 宽表最小宽度与滚动导出',
+    /min-width: 600px/.test(tableExported) &&
+      /overflow-x: auto/.test(tableExported) &&
+      /<figure class="table-scroll[^"]*"[^>]*style="[^"]*border/.test(tableExported) &&
+      /<th[^>]*style="[^"]*(?:border-top: none|border-top-width: 0)/.test(tableExported)
+  )
+
+  const narrowArticle: Article = {
+    title: '窄表',
+    sourceUrl: 'https://example.com/narrow-table',
+    html: '<p>正文</p><table><thead><tr><th>列一</th><th>列二</th></tr></thead><tbody><tr><td>甲</td><td>乙</td></tr></tbody></table>',
+    images: [],
+  }
+  const narrowPreview = renderPreviewHtml(narrowArticle)
+  const narrowExported = buildExportHtml(narrowArticle, DEFAULT_THEME)
+  check(
+    '6.3 2 列表格不强制滚动',
+    /<figure class="table-scroll">/.test(narrowPreview) &&
+      /<figure class="table-scroll"/.test(narrowExported) &&
+      !/table-scroll-wide/.test(narrowExported) &&
+      !/min-width: 600px/.test(narrowExported)
   )
 }
 
@@ -619,6 +806,7 @@ async function run(): Promise<void> {
   testInlineSvg()
   testSvgHeadingLine()
   testExtract()
+  testRspressCodeBlocks()
   testTheme()
   testHighlightAndExport()
   testDomParity()

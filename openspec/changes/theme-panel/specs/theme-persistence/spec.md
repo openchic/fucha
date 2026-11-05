@@ -72,7 +72,7 @@
 
 #### Scenario: 内置 id 保护
 
-- **WHEN** 保存、更新或导入 id 为 `default` 或 `serif` 的自定义主题
+- **WHEN** 保存、更新或导入 id 为 `default`、`serif` 或 `danxia` 的自定义主题
 - **THEN** 操作被拒绝
 
 #### Scenario: 存储降级

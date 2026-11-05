@@ -85,9 +85,14 @@ export type ThemeToken = {
     secondaryColor: string // 次级文字色（图注等）
   }
   primary: string // 标题装饰与引用边条
-  backgroundColor: string // 引用与行内代码底色
   borderColor: string // 表格边框
-  headingColor: string // 标题文字色；各级标题未填 color 时回退此值
+  headingColor: string // 标题文字色
+  page: {
+    paddingTop: number // px
+    paddingRight: number // px
+    paddingBottom: number // px
+    paddingLeft: number // px
+  }
   h1: HeadingToken
   h2: HeadingToken
   h3: HeadingToken
@@ -95,6 +100,7 @@ export type ThemeToken = {
   h5: HeadingToken
   h6: HeadingToken
   quote: {
+    backgroundColor: string // 引用块背景色
     paddingBlock: number // px
     paddingInline: number // px
     borderRadius: number // px
@@ -102,12 +108,13 @@ export type ThemeToken = {
   code: {
     hljsTheme: string
     backgroundColor?: string // 代码块背景色；缺省跟随语法主题
-    inlineBackgroundColor: string // 行内代码背景色；旧主题读取时回退 backgroundColor
+    inlineBackgroundColor: string // 行内代码背景色
     lineHeight: number // 倍数
     paddingBlock: number // px，代码块上下内边距
     paddingInline: number // px，代码块左右内边距
     borderRadius: number // px，代码块圆角
     inlineBorderRadius: number // px，行内代码圆角
+    borderStyle: 'solid' | 'dashed' | 'none' // 代码块外边框样式
   }
   table: {
     headerBackgroundColor: string // 表头背景色
@@ -120,7 +127,7 @@ export type ThemeToken = {
     borderRadius: number // px
   }
   divider: {
-    borderTopStyle: 'solid' | 'dotted' | 'none'
+    borderTopStyle: 'solid' | 'dashed' | 'none'
     borderTopColor: string // 分割线颜色
     marginTop: number // px
     marginBottom: number // px

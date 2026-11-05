@@ -3,7 +3,7 @@ import { mkdirSync } from 'fs'
 import { dirname, join } from 'path'
 import { app } from 'electron'
 
-export const LOCAL_STORE_SCHEMA_VERSION = 5
+export const LOCAL_STORE_SCHEMA_VERSION = 6
 
 export type LocalStoreStatus = {
   available: boolean
@@ -84,6 +84,15 @@ DROP INDEX IF EXISTS articles_activity_idx;
 CREATE INDEX IF NOT EXISTS articles_updated_idx ON articles(updated_at DESC);
 `
 
+const V6_SCHEMA = `
+DROP INDEX IF EXISTS articles_final_url_idx;
+DROP INDEX IF EXISTS article_images_url_idx;
+DROP INDEX IF EXISTS articles_updated_idx;
+CREATE INDEX articles_updated_idx ON articles(updated_at DESC, created_at DESC);
+CREATE INDEX themes_sort_idx ON themes(sort, created_at);
+CREATE UNIQUE INDEX themes_name_idx ON themes(name COLLATE NOCASE);
+`
+
 type Migration = {
   version: number
   sql: string
@@ -95,6 +104,7 @@ const MIGRATIONS: Migration[] = [
   { version: 3, sql: V3_SCHEMA },
   { version: 4, sql: V4_SCHEMA },
   { version: 5, sql: V5_SCHEMA },
+  { version: 6, sql: V6_SCHEMA },
 ]
 
 let database: DatabaseSync | null = null
@@ -118,6 +128,7 @@ export function initLocalStore(
     mkdirSync(dirname(dbPath), { recursive: true })
     next = new DatabaseSync(dbPath)
     next.exec('PRAGMA journal_mode = WAL')
+    next.exec('PRAGMA synchronous = NORMAL')
     next.exec('PRAGMA foreign_keys = ON')
     next.exec('PRAGMA busy_timeout = 5000')
 
@@ -141,6 +152,8 @@ export function initLocalStore(
         throw error
       }
     }
+
+    next.exec('PRAGMA optimize')
 
     database = next
     storeError = null

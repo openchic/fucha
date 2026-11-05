@@ -6,8 +6,8 @@ M1 的主题是只读内置预设，用户只能整体切换，不能基于现�
 
 ## What Changes
 
-- ThemeToken v1：h1–h6 移到顶层，每级有 `fontSize / fontWeight / lineHeight / textAlign / decoration / marginTop / marginBottom`；字段名对齐 CSS 属性（`backgroundColor`、`borderColor`、`headingColor`、`table.headerBackgroundColor`、`table.padding`、`image.marginTop/marginBottom`、`code.inlineBackgroundColor`、`divider.borderTopStyle`、`divider.borderTopColor`、`divider.marginTop/marginBottom`）。
-- 内置主题改为「token 默认值 + theme.css」，提供 `default` 与 `serif` 两套；内置主题只读，升级视觉时新增 id，旧 id 保留。
+- ThemeToken v1：h1–h6 移到顶层，每级有 `fontSize / fontWeight / lineHeight / textAlign / decoration / marginTop / marginBottom`；字段名对齐 CSS 属性（`quote.backgroundColor`、`borderColor`、`headingColor`、`table.headerBackgroundColor`、`table.padding`、`image.marginTop/marginBottom`、`code.inlineBackgroundColor`、`divider.borderTopStyle`、`divider.borderTopColor`、`divider.marginTop/marginBottom`）。
+- 内置主题改为「token 默认值 + theme.css」，提供 `default`、`serif` 与 `danxia` 三套；内置主题只读，升级视觉时新增 id，旧 id 保留。
 - 新增应用级 `base.css`（正文排版、引用、代码、表格、图片、分割线；代码与表格字号按正文 0.875 倍，其余只引用 token 变量）与每主题 `theme.css`；预览与导出共用同一份 CSS，导出时解析 `var()` 后再 juice 内联。
 - 新增主题 CSS 契约与 fail-closed 校验：只允许元素/类/后代选择器与微信安全属性，禁止伪类、`@` 规则、`!important`、外部资源与契约外变量，错误带行号。
 - 新增设置页与主题管理：`/settings` 布局左侧设置导航，右侧主题列表与配置页；配置页左侧固定示例文章预览、右侧 token 控件。
@@ -18,12 +18,12 @@ M1 的主题是只读内置预设，用户只能整体切换，不能基于现�
 - 新增主题配置控件：按颜色、排版、代码分组，排版包含正文、标题、引用、表格、图片、分割线；颜色用取色器、数值用输入与步进，示例预览实时反映；`次级字号` 只控制图注与上下标，代码与表格按正文 0.875 倍缩放。
 - 单字段重置：控件偏离打开时的保存值时显示重置图标，只恢复该字段；预览样张补行内代码与上下标，分别验证块底色与次级字号。
 - 颜色精确输入与对比度提示：点击色块打开取色弹层（`@uiw/react-color` 的 Sketch，关闭 alpha），Hex/RGB 字段可输入或粘贴；正文色/次级文字色与相关底色的对比度低于 4.5:1 时行内提示但不阻止保存；说明通过 `aria-describedby` 关联输入。
-- 块底色与表头背景色拆开：新增 `table.headerBackgroundColor`，颜色 tab 单独配置；旧主题缺少该字段时读取回退到 `backgroundColor`，视觉保持不变。
-- 引用与行内代码背景色拆开：颜色 tab 的「块底色」拆为「引用背景色」与「行内代码背景色」；行内代码背景独立存储为 `code.inlineBackgroundColor`，旧主题读取时回退 `backgroundColor`。
-- 边框色与分割线色拆开：新增 `divider.borderTopColor`，颜色 tab 单独配置；旧主题缺少该字段时读取回退到 `borderColor`，视觉保持不变。
+- 块底色与表头背景色拆开：新增 `table.headerBackgroundColor`，颜色 tab 单独配置。
+- 引用与行内代码背景色拆开：颜色 tab 的「块底色」拆为「引用背景色」与「行内代码背景色」；引用背景存于 `quote.backgroundColor`，行内代码背景独立存储为 `code.inlineBackgroundColor`。
+- 边框色与分割线色拆开：新增 `divider.borderTopColor`，颜色 tab 单独配置。
 - 新增自定义主题管理：设置页列表支持导入、导出、删除，改名在配置页随保存提交；主题名称全局唯一，重名的新建、导入与改名被拒绝；被文章引用的主题拒绝删除。
 - 新增 `.fucha-theme` 主题包（`theme.json` + `theme.css`）导入导出；导入校验 token、CSS、zip 结构与文件完整性，id 冲突或内置 id 拒绝。
-- 本地存储 schema v5 保持：`themes` 已有 `css`、`token_version`、`source_theme_id`；自定义主题可更新 token/css，另存为与新建创建新行。
+- 本地存储 schema v6 不含新增字段：`themes` 已有 `css`、`token_version`、`source_theme_id`；自定义主题可更新 token/css，另存为与新建创建新行。
 - 文章快照写入本地存储，切换主题只更新 `articles.theme_id`，并记住 `theme.active` 作为新文章默认主题；编辑当前主题会让引用它的文章同步换样。
 
 不在本 change 范围：token 自动生成（取主色/自动选预设）、历史侧栏界面、应用内 CSS 编辑器、批量把文章迁移到新主题。
@@ -44,4 +44,4 @@ M1 的主题是只读内置预设，用户只能整体切换，不能基于现�
 
 - 代码：`src/shared/theme.ts`、`src/shared/theme-css.ts`、`src/shared/types.ts`、`src/shared/store-types.ts`、`src/main/db.ts`、`src/main/store.ts`、`src/main/theme-package.ts`、`src/main/zip.ts`、`src/main/ipc.ts`、`src/preload/index.ts`、`src/renderer/src/theme/*`、`src/renderer/src/hooks/useThemeLibrary.ts`、`src/renderer/src/hooks/useArticleTheme.ts`、`src/renderer/src/components/ThemePanel`、`src/renderer/src/components/Sidebar`、`src/renderer/src/pages/Settings`、`src/renderer/src/pages/Preview`；移除 `ThemeManager` 弹窗。
 - 依赖：无新增第三方依赖；主题包 zip 读写由主进程内置模块实现。
-- 存储：schema v5 保持；新增 `updateTheme` IPC，不新增表或版本。
+- 存储：schema v6 无新增字段；新增 `updateTheme` IPC，不新增表或版本。

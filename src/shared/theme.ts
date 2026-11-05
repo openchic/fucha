@@ -3,15 +3,17 @@ import type { HeadingDecoration, HeadingToken, ThemeToken } from './types'
 export const THEME_TOKEN_VERSION = 1
 
 /** 内置主题 id；主进程据此拒绝同 id 的自定义主题，避免解析歧义 */
-export const BUILTIN_THEME_IDS = ['default', 'serif'] as const
+export const BUILTIN_THEME_IDS = ['default', 'serif', 'danxia'] as const
 
 /** 代码语法主题白名单；值必须与 renderer theme/highlight.ts 的 THEME_CSS 对齐 */
 export const HLJS_THEME_VALUES = ['github', 'atom-one-light', 'xcode'] as const
+export const CODE_BORDER_STYLE_VALUES = ['solid', 'dashed', 'none'] as const
 
 /** 内置主题名称；主进程据此拒绝重名的自定义主题 */
 export const BUILTIN_THEME_NAMES: Record<(typeof BUILTIN_THEME_IDS)[number], string> = {
   default: '清简',
   serif: '书卷',
+  danxia: '丹霞',
 }
 
 export type NumericRange = {
@@ -45,6 +47,7 @@ export const THEME_RANGES = {
   tablePadding: { min: 0, max: 40, step: 1, integer: true },
   imageMarginTop: { min: 0, max: 40, step: 1, integer: true },
   imageMarginBottom: { min: 0, max: 40, step: 1, integer: true },
+  pagePadding: { min: 0, max: 80, step: 1, integer: true },
   borderRadius: { min: 0, max: 20, step: 1, integer: true },
 } satisfies Record<string, NumericRange>
 
@@ -54,7 +57,7 @@ export type HeadingKey = (typeof HEADING_KEYS)[number]
 
 const HEADING_ALIGN = ['left', 'center'] as const
 const HEADING_DECORATION = ['none', 'bar', 'underline', 'bracket'] as const
-const DIVIDER_BORDER_TOP_STYLE = ['solid', 'dotted', 'none'] as const
+const DIVIDER_BORDER_TOP_STYLE = ['solid', 'dashed', 'none'] as const
 
 function fail(path: string, reason: string): never {
   throw new Error(`${path} ${reason}`)
@@ -137,169 +140,7 @@ function readHeading(value: unknown, path: string, fontSizeRange: NumericRange):
   }
 }
 
-/** 旧主题兼容：未知 hljsTheme 归一到 github；表头与分割线颜色缺省回退到各自旧字段 */
-export function normalizeThemeToken(input: unknown): unknown {
-  if (!isRecord(input)) return input
-  let token = input
-  const code = token.code
-  if (isRecord(code)) {
-    const hljsTheme = code.hljsTheme
-    if (
-      typeof hljsTheme === 'string' &&
-      !HLJS_THEME_VALUES.includes(hljsTheme as (typeof HLJS_THEME_VALUES)[number])
-    ) {
-      token = { ...token, code: { ...code, hljsTheme: 'github' } }
-    }
-  }
-  const table = token.table
-  if (
-    isRecord(table) &&
-    (table.headerBackgroundColor === undefined ||
-      table.headerBackgroundColor === null ||
-      table.headerBackgroundColor === '') &&
-    typeof token.backgroundColor === 'string'
-  ) {
-    token = {
-      ...token,
-      table: { ...table, headerBackgroundColor: token.backgroundColor },
-    }
-  }
-  const divider = token.divider
-  if (
-    isRecord(divider) &&
-    (divider.borderTopColor === undefined ||
-      divider.borderTopColor === null ||
-      divider.borderTopColor === '') &&
-    typeof token.borderColor === 'string'
-  ) {
-    token = {
-      ...token,
-      divider: { ...divider, borderTopColor: token.borderColor },
-    }
-  }
-  const dividerToken = token.divider
-  if (isRecord(dividerToken)) {
-    const nextDivider = { ...dividerToken }
-    if (nextDivider.marginTop === undefined) nextDivider.marginTop = 20
-    if (nextDivider.marginBottom === undefined) nextDivider.marginBottom = 20
-    if (
-      nextDivider.marginTop !== dividerToken.marginTop ||
-      nextDivider.marginBottom !== dividerToken.marginBottom
-    ) {
-      token = { ...token, divider: nextDivider }
-    }
-  }
-  const quote = token.quote
-  if (isRecord(quote) && typeof quote.padding === 'number' && Number.isFinite(quote.padding)) {
-    const paddingBlock = typeof quote.paddingBlock === 'number' ? quote.paddingBlock : quote.padding
-    const paddingInline =
-      typeof quote.paddingInline === 'number' ? quote.paddingInline : quote.padding
-    token = { ...token, quote: { ...quote, paddingBlock, paddingInline } }
-  }
-  const tablePadding = token.table
-  if (
-    isRecord(tablePadding) &&
-    typeof tablePadding.padding === 'number' &&
-    Number.isFinite(tablePadding.padding)
-  ) {
-    const paddingBlock =
-      typeof tablePadding.paddingBlock === 'number'
-        ? tablePadding.paddingBlock
-        : tablePadding.padding
-    const paddingInline =
-      typeof tablePadding.paddingInline === 'number'
-        ? tablePadding.paddingInline
-        : tablePadding.padding
-    token = { ...token, table: { ...tablePadding, paddingBlock, paddingInline } }
-  }
-  const codePadding = token.code
-  if (
-    isRecord(codePadding) &&
-    typeof codePadding.padding === 'number' &&
-    Number.isFinite(codePadding.padding)
-  ) {
-    const paddingBlock =
-      typeof codePadding.paddingBlock === 'number' ? codePadding.paddingBlock : codePadding.padding
-    const paddingInline =
-      typeof codePadding.paddingInline === 'number'
-        ? codePadding.paddingInline
-        : codePadding.padding
-    token = { ...token, code: { ...codePadding, paddingBlock, paddingInline } }
-  }
-  const textColorGroup = token.text
-  if (isRecord(textColorGroup) && typeof textColorGroup.color === 'string') {
-    if (
-      token.headingColor === undefined ||
-      token.headingColor === null ||
-      token.headingColor === ''
-    ) {
-      token = { ...token, headingColor: textColorGroup.color }
-    }
-  }
-  const codeInlineBackground = token.code
-  if (isRecord(codeInlineBackground) && typeof token.backgroundColor === 'string') {
-    const inlineBackgroundColor = codeInlineBackground.inlineBackgroundColor
-    if (
-      inlineBackgroundColor === undefined ||
-      inlineBackgroundColor === null ||
-      inlineBackgroundColor === ''
-    ) {
-      token = {
-        ...token,
-        code: { ...codeInlineBackground, inlineBackgroundColor: token.backgroundColor },
-      }
-    }
-  }
-  const legacyRadius =
-    typeof token.borderRadius === 'number' && Number.isFinite(token.borderRadius)
-      ? token.borderRadius
-      : undefined
-  if (legacyRadius !== undefined) {
-    const quoteToken = token.quote
-    if (isRecord(quoteToken) && quoteToken.borderRadius === undefined) {
-      token = { ...token, quote: { ...quoteToken, borderRadius: legacyRadius } }
-    }
-    const imageToken = token.image
-    if (isRecord(imageToken) && imageToken.borderRadius === undefined) {
-      token = { ...token, image: { ...imageToken, borderRadius: legacyRadius } }
-    }
-    const codeToken = token.code
-    if (isRecord(codeToken)) {
-      const nextCode = { ...codeToken }
-      if (nextCode.borderRadius === undefined) nextCode.borderRadius = legacyRadius
-      if (nextCode.inlineBorderRadius === undefined) {
-        nextCode.inlineBorderRadius = legacyRadius
-      }
-      token = { ...token, code: nextCode }
-    }
-  }
-  for (const key of HEADING_KEYS) {
-    const heading = token[key]
-    if (!isRecord(heading)) continue
-    const size = heading.fontSize
-    if (typeof size !== 'number' || !Number.isFinite(size)) continue
-    const range = THEME_RANGES[`${key}FontSize`]
-    const clamped = Math.min(range.max, Math.max(range.min, Math.round(size)))
-    const nextHeading = { ...heading }
-    let changed = false
-    if (clamped !== size) {
-      nextHeading.fontSize = clamped
-      changed = true
-    }
-    if (nextHeading.lineHeight === undefined) {
-      nextHeading.lineHeight = key === 'h1' || key === 'h2' || key === 'h3' ? 1.4 : 1.5
-      changed = true
-    }
-    if (nextHeading.fontWeight === undefined) {
-      nextHeading.fontWeight = 700
-      changed = true
-    }
-    if (changed) token = { ...token, [key]: nextHeading }
-  }
-  return token
-}
-
-/** 校验并归一化主题 token；不合法时抛出带字段路径的可读错误 */
+/** 校验主题 token；不合法时抛出带字段路径的可读错误 */
 export function validateThemeToken(input: unknown): ThemeToken {
   const root = readGroup(input, 'theme')
   const text = readGroup(root.text, 'theme.text')
@@ -308,6 +149,7 @@ export function validateThemeToken(input: unknown): ThemeToken {
   const table = readGroup(root.table, 'theme.table')
   const image = readGroup(root.image, 'theme.image')
   const divider = readGroup(root.divider, 'theme.divider')
+  const page = readGroup(root.page, 'theme.page')
 
   return {
     id: requiredString(root.id, 'theme.id'),
@@ -335,9 +177,30 @@ export function validateThemeToken(input: unknown): ThemeToken {
       secondaryColor: requiredColor(text.secondaryColor, 'theme.text.secondaryColor'),
     },
     primary: requiredColor(root.primary, 'theme.primary'),
-    backgroundColor: requiredColor(root.backgroundColor, 'theme.backgroundColor'),
     borderColor: requiredColor(root.borderColor, 'theme.borderColor'),
     headingColor: requiredColor(root.headingColor, 'theme.headingColor'),
+    page: {
+      paddingTop: requiredNumber(
+        page.paddingTop,
+        'theme.page.paddingTop',
+        THEME_RANGES.pagePadding
+      ),
+      paddingRight: requiredNumber(
+        page.paddingRight,
+        'theme.page.paddingRight',
+        THEME_RANGES.pagePadding
+      ),
+      paddingBottom: requiredNumber(
+        page.paddingBottom,
+        'theme.page.paddingBottom',
+        THEME_RANGES.pagePadding
+      ),
+      paddingLeft: requiredNumber(
+        page.paddingLeft,
+        'theme.page.paddingLeft',
+        THEME_RANGES.pagePadding
+      ),
+    },
     h1: readHeading(root.h1, 'theme.h1', THEME_RANGES.h1FontSize),
     h2: readHeading(root.h2, 'theme.h2', THEME_RANGES.h2FontSize),
     h3: readHeading(root.h3, 'theme.h3', THEME_RANGES.h3FontSize),
@@ -345,6 +208,7 @@ export function validateThemeToken(input: unknown): ThemeToken {
     h5: readHeading(root.h5, 'theme.h5', THEME_RANGES.h5FontSize),
     h6: readHeading(root.h6, 'theme.h6', THEME_RANGES.h6FontSize),
     quote: {
+      backgroundColor: requiredColor(quote.backgroundColor, 'theme.quote.backgroundColor'),
       paddingBlock: requiredNumber(
         quote.paddingBlock,
         'theme.quote.paddingBlock',
@@ -392,6 +256,11 @@ export function validateThemeToken(input: unknown): ThemeToken {
         code.inlineBorderRadius,
         'theme.code.inlineBorderRadius',
         THEME_RANGES.borderRadius
+      ),
+      borderStyle: requiredEnum(
+        code.borderStyle,
+        'theme.code.borderStyle',
+        CODE_BORDER_STYLE_VALUES
       ),
     },
     table: {

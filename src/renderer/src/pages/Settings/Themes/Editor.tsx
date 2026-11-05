@@ -71,8 +71,7 @@ const ThemeEditor = (props: ThemeEditorProps) => {
   const [primaryError, setPrimaryError] = useState('')
   const dirty = JSON.stringify(draft.token) !== JSON.stringify(baseline)
   const title = creating ? (sourceName === '完全自定义' ? '新建主题' : '另存为新主题') : '编辑主题'
-  const sourceLabel = sourceName === '完全自定义' ? '完全自定义' : `基于 ${sourceName}`
-  const metaLabel = creating ? sourceLabel : dirty ? '未保存' : ''
+  const metaLabel = dirty ? '未保存' : ''
   const previewStyle = useMemo(() => buildPreviewStyle(draft), [draft])
   const previewVariables = useMemo(() => previewStyleVariables(draft.token), [draft.token])
 

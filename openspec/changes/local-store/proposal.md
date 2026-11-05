@@ -5,7 +5,7 @@
 ## What Changes
 
 - 新增主进程 SQLite 存储层，使用 Electron 自带 `node:sqlite`，不增加 npm 原生依赖。
-- 建立并迁移到 v5 schema：`preferences`、`themes`、`articles`、`article_images`，版本由 `PRAGMA user_version` 管理；v4 为主题表补齐 `css`、`token_version` 与 `source_theme_id`，v5 把历史排序改为最近提取时间。
+- 建立并迁移到 v6 schema：`preferences`、`themes`、`articles`、`article_images`，版本由 `PRAGMA user_version` 管理；v4 为主题表补齐 `css`、`token_version` 与 `source_theme_id`，v5 把历史排序改为最近提取时间，v6 收敛索引（复合历史排序、主题排序与名称唯一）并移除无消费者索引。
 - 新增主进程领域仓储：偏好读写、自定义主题的创建/更新/读取/改名/删除、文章快照 upsert/读取/删除、图片集合替换与历史列表查询。
 - 将 ThemeToken 校验从渲染层提升到 `src/shared/theme.ts`，主进程写入主题前即可复用。
 - 文章与图片在同一事务写入；图片文件映射继续由缓存 `index.json` 唯一负责，数据库不保存本地文件名。
