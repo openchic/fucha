@@ -77,7 +77,7 @@ export type ThemeToken = {
   builtin: boolean
   text: {
     fontSize: number // px
-    secondaryFontSize: number // px，图注、上下标；代码与表格按正文 0.875 倍
+    secondaryFontSize: number // px，图注、上下标；表格与行内代码按正文 0.875 倍
     lineHeight: number // 倍数
     letterSpacing: number // em
     marginBottom: number // px，块级元素段后距
@@ -101,6 +101,7 @@ export type ThemeToken = {
   h6: HeadingToken
   quote: {
     backgroundColor: string // 引用块背景色
+    fontSize: number // px
     paddingBlock: number // px
     paddingInline: number // px
     borderRadius: number // px
@@ -108,6 +109,7 @@ export type ThemeToken = {
   code: {
     hljsTheme: string
     backgroundColor?: string // 代码块背景色；缺省跟随语法主题
+    fontSize: number // px，代码块文字字号
     inlineBackgroundColor: string // 行内代码背景色
     lineHeight: number // 倍数
     paddingBlock: number // px，代码块上下内边距

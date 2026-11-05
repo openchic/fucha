@@ -13,8 +13,7 @@ import {
 } from '../src/renderer/src/theme/apply'
 import { highlightArticleHtml, highlightThemeCss } from '../src/renderer/src/theme/highlight'
 import { BUILTIN_THEMES, DEFAULT_THEME } from '../src/renderer/src/theme/presets'
-import { validateThemeToken } from '../src/renderer/src/theme/tokens'
-import { BUILTIN_THEME_NAMES } from '../src/shared/theme'
+import { THEME_RANGES, validateThemeToken } from '../src/renderer/src/theme/tokens'
 import { resolveThemeVariables, scopeCss, validateThemeCss } from '../src/shared/theme-css'
 
 const results: string[] = []
@@ -271,7 +270,8 @@ function testRspressCodeBlocks(): void {
 
 function testTheme(): void {
   const validated = validateThemeToken(DEFAULT_THEME.token)
-  check('1.1 内置预设通过校验', validated.id === 'default' && validated.name === '清简')
+  check('1.1 内置预设通过校验', validated.id === 'default' && validated.name === '雾紫')
+  check('1.1 雾紫代码主题为 GitHub', validated.code.hljsTheme === 'github')
   check('1.1 默认主题主色为 #a8b9f0', validated.primary === '#a8b9f0')
   check(
     '1.1 引用背景色位于 quote',
@@ -283,11 +283,37 @@ function testTheme(): void {
       DEFAULT_THEME.token.quote.backgroundColor
   )
   check(
-    '1.1 内置主题名称与共享名称一致',
-    BUILTIN_THEMES.every(
-      (theme) =>
-        BUILTIN_THEME_NAMES[theme.token.id as keyof typeof BUILTIN_THEME_NAMES] === theme.token.name
-    )
+    '1.1 引用字号默认等于正文',
+    BUILTIN_THEMES.every((theme) => theme.token.quote.fontSize === theme.token.text.fontSize)
+  )
+  check(
+    '1.1 代码块字号统一为 13px',
+    BUILTIN_THEMES.every((theme) => theme.token.code.fontSize === 13)
+  )
+  let rejectedCodeSize = ''
+  try {
+    validateThemeToken({
+      ...DEFAULT_THEME.token,
+      code: { ...DEFAULT_THEME.token.code, fontSize: 17 },
+    })
+  } catch (error) {
+    rejectedCodeSize = String(error)
+  }
+  check('1.1 代码块字号上限为 16px', rejectedCodeSize.includes('theme.code.fontSize'))
+  check('1.1 代码块字号步长为 0.5', THEME_RANGES.codeFontSize.step === 0.5)
+  check(
+    '1.1 引用与代码块字号与来源字段解耦',
+    BUILTIN_THEMES.every(({ token }) => {
+      const variables = tokenVariables({
+        ...token,
+        text: { ...token.text, fontSize: 18 },
+        code: { ...token.code, hljsTheme: 'xcode' },
+      })
+      return (
+        variables['quote-font-size'] === `${token.quote.fontSize}px` &&
+        variables['code-font-size'] === `${token.code.fontSize}px`
+      )
+    })
   )
   const danxia = BUILTIN_THEMES.find((theme) => theme.token.id === 'danxia')!
   check(
@@ -296,6 +322,30 @@ function testTheme(): void {
       danxia.token.primary === '#fa5700' &&
       danxia.token.h1.decoration === 'bar' &&
       danxia.token.h2.decoration === 'bar'
+  )
+  check(
+    '1.1 丹霞正文行高与字距对齐雾紫',
+    danxia.token.text.lineHeight === 1.8 && danxia.token.text.letterSpacing === 0.02
+  )
+  check(
+    '1.1 内置主题对齐雾紫排版规范',
+    BUILTIN_THEMES.every(
+      ({ token }) =>
+        token.page.paddingTop === 40 &&
+        token.page.paddingRight === 24 &&
+        token.page.paddingBottom === 40 &&
+        token.page.paddingLeft === 24 &&
+        token.h1.fontSize === 24 &&
+        token.h2.fontSize === 20 &&
+        token.h3.fontSize === 18 &&
+        token.h4.fontSize === 16 &&
+        token.h5.fontSize === 14 &&
+        token.h6.fontSize === 14
+    )
+  )
+  check(
+    '1.1 内置主题显式设置代码块背景',
+    BUILTIN_THEMES.every(({ token }) => typeof token.code.backgroundColor === 'string')
   )
   check(
     '1.1 标题六级直接挂在 token 顶层',
@@ -390,11 +440,17 @@ function testTheme(): void {
     ).includes('quote-background-color')
   )
 
-  const serif = BUILTIN_THEMES.find((theme) => theme.token.id === 'serif')!
-  const serifPreview = buildPreviewCss(serif)
+  const shujuan = BUILTIN_THEMES.find((theme) => theme.token.id === 'shujuan')!
+  check(
+    '1.1 书卷正文字号对齐雾紫',
+    shujuan.token.text.fontSize === 14 && shujuan.token.text.secondaryFontSize === 12
+  )
+  check('1.1 书卷主题色为柔化暖棕', shujuan.token.primary === '#ad6849')
+  check('1.1 书卷次级文字色满足 AA', shujuan.token.text.secondaryColor === '#7a6f64')
+  const shujuanPreview = buildPreviewCss(shujuan)
   check(
     '1.1 第二套内置主题带入自己的 theme.css',
-    serifPreview.includes('Songti SC') && serifPreview.includes('.article-body h1')
+    shujuanPreview.includes('Songti SC') && shujuanPreview.includes('.article-body h1')
   )
   check(
     '1.1 内置主题 token 全部通过校验',
@@ -423,7 +479,7 @@ function testTheme(): void {
     }
     check(`1.1 主题 CSS 拒绝${item.name}`, message.includes(item.expected), message)
   }
-  check('1.1 合法主题 CSS 通过', validateThemeCss(serif.css) === serif.css)
+  check('1.1 合法主题 CSS 通过', validateThemeCss(shujuan.css) === shujuan.css)
 
   let lineMessage = ''
   try {

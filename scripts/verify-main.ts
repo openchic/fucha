@@ -35,7 +35,7 @@ import {
 } from '../src/main/store'
 import { buildThemePackage, parseThemePackage } from '../src/main/theme-package'
 import { createZip, readZip } from '../src/main/zip'
-import defaultTheme from '../src/renderer/src/theme/presets/default.json'
+import defaultTheme from '../src/shared/theme-presets/default.json'
 import { looksLikeCaptcha, matchProfile } from '../src/shared/profiles'
 import { validateThemeToken } from '../src/shared/theme'
 
@@ -247,7 +247,7 @@ async function main(): Promise<void> {
       .catch(() => false)
   )
   const versionRow = getDb().prepare('PRAGMA user_version').get() as { user_version: number }
-  check('1.2 迁移到最新 schema', versionRow.user_version === 6, String(versionRow.user_version))
+  check('1.2 迁移到最新 schema', versionRow.user_version === 8, String(versionRow.user_version))
   const articleIndexes = getDb().prepare("PRAGMA index_list('articles')").all() as {
     name: string
   }[]
@@ -293,9 +293,85 @@ async function main(): Promise<void> {
   const reopened = initLocalStore(storePath)
   check('1.2 重复初始化保留数据', reopened.available && getPreference('theme.active') === 'default')
 
+  const legacyDefaultHash = 'ffffffffffffffffffffffffffffffff'
+  const legacySerifHash = 'eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee'
+  const legacyTime = new Date().toISOString()
+  getDb()
+    .prepare(
+      `INSERT INTO articles
+         (hash, source_url, final_url, theme_id, title, html, created_at, updated_at, last_visited_at, visit_count)
+       VALUES (?, ?, ?, ?, '旧主题', '<p>正文</p>', ?, ?, ?, 1)`
+    )
+    .run(
+      legacyDefaultHash,
+      'https://example.com/legacy-default',
+      'https://example.com/legacy-default',
+      'default',
+      legacyTime,
+      legacyTime,
+      legacyTime
+    )
+  getDb()
+    .prepare(
+      `INSERT INTO articles
+         (hash, source_url, final_url, theme_id, title, html, created_at, updated_at, last_visited_at, visit_count)
+       VALUES (?, ?, ?, ?, '旧主题', '<p>正文</p>', ?, ?, ?, 1)`
+    )
+    .run(
+      legacySerifHash,
+      'https://example.com/legacy-serif',
+      'https://example.com/legacy-serif',
+      'serif',
+      legacyTime,
+      legacyTime,
+      legacyTime
+    )
+  setPreference('theme.active', 'serif')
+  closeLocalStore()
+  const v6Db = new DatabaseSync(storePath)
+  v6Db.exec('PRAGMA user_version = 6')
+  v6Db.close()
+  check('1.2 v6 库主题 id 迁移', initLocalStore(storePath).available)
+  check('1.2 默认主题 id 保持不变', getArticle(legacyDefaultHash)?.themeId === 'default')
+  check(
+    '1.2 书卷 id 映射到 shujuan',
+    getArticle(legacySerifHash)?.themeId === 'shujuan' &&
+      getPreference('theme.active') === 'shujuan'
+  )
+  deleteArticle(legacyDefaultHash)
+  deleteArticle(legacySerifHash)
+  setPreference('theme.active', 'default')
+
+  const cleanupHash = 'dddddddddddddddddddddddddddddddd'
+  getDb()
+    .prepare(
+      `INSERT INTO articles
+         (hash, source_url, final_url, theme_id, title, html, created_at, updated_at, last_visited_at, visit_count)
+       VALUES (?, ?, ?, 'xueqing', '中间主题', '<p>正文</p>', ?, ?, ?, 1)`
+    )
+    .run(
+      cleanupHash,
+      'https://example.com/cleanup',
+      'https://example.com/cleanup',
+      legacyTime,
+      legacyTime,
+      legacyTime
+    )
+  setPreference('theme.active', 'xueqing')
+  closeLocalStore()
+  const v7Db = new DatabaseSync(storePath)
+  v7Db.exec('PRAGMA user_version = 7')
+  v7Db.close()
+  check('1.2 v7 库清理中间主题 id', initLocalStore(storePath).available)
+  check(
+    '1.2 中间 id 回到 default',
+    getArticle(cleanupHash)?.themeId === 'default' && getPreference('theme.active') === 'default'
+  )
+  deleteArticle(cleanupHash)
+
   const higherPath = join(storeDir, 'higher.db')
   const higher = new DatabaseSync(higherPath)
-  higher.exec('PRAGMA user_version = 7')
+  higher.exec('PRAGMA user_version = 9')
   higher.close()
   check('1.1 版本高于代码时降级', initLocalStore(higherPath).available === false)
   initLocalStore(storePath)
@@ -398,7 +474,7 @@ async function main(): Promise<void> {
   check(
     '2.3 自定义主题不能与内置主题重名',
     throws(() =>
-      createTheme({ token: { ...customTheme, id: 'builtin-name', name: '清简' }, css: '' })
+      createTheme({ token: { ...customTheme, id: 'builtin-name', name: '雾紫' }, css: '' })
     )
   )
   check(

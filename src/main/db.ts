@@ -3,7 +3,7 @@ import { mkdirSync } from 'fs'
 import { dirname, join } from 'path'
 import { app } from 'electron'
 
-export const LOCAL_STORE_SCHEMA_VERSION = 6
+export const LOCAL_STORE_SCHEMA_VERSION = 8
 
 export type LocalStoreStatus = {
   available: boolean
@@ -93,6 +93,18 @@ CREATE INDEX themes_sort_idx ON themes(sort, created_at);
 CREATE UNIQUE INDEX themes_name_idx ON themes(name COLLATE NOCASE);
 `
 
+const V7_SCHEMA = `
+UPDATE articles SET theme_id = 'shujuan' WHERE theme_id = 'serif';
+UPDATE themes SET source_theme_id = 'shujuan' WHERE source_theme_id = 'serif';
+UPDATE preferences SET value = '"shujuan"' WHERE key = 'theme.active' AND value = '"serif"';
+`
+
+const V8_SCHEMA = `
+UPDATE articles SET theme_id = 'default' WHERE theme_id = 'xueqing';
+UPDATE themes SET source_theme_id = 'default' WHERE source_theme_id = 'xueqing';
+UPDATE preferences SET value = '"default"' WHERE key = 'theme.active' AND value = '"xueqing"';
+`
+
 type Migration = {
   version: number
   sql: string
@@ -105,6 +117,8 @@ const MIGRATIONS: Migration[] = [
   { version: 4, sql: V4_SCHEMA },
   { version: 5, sql: V5_SCHEMA },
   { version: 6, sql: V6_SCHEMA },
+  { version: 7, sql: V7_SCHEMA },
+  { version: 8, sql: V8_SCHEMA },
 ]
 
 let database: DatabaseSync | null = null

@@ -100,7 +100,7 @@ export const NumberInput = (props: NumberInputProps) => {
           onChange={handleChange}
           onBlur={handleBlur}
           onKeyDown={handleKeyDown}
-          className="field-value h-7 w-9 bg-transparent p-0 pr-1 text-right text-body tabular-nums text-ink focus-visible:outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+          className="field-value h-7 w-10 bg-transparent p-0 pr-1 text-right text-body tabular-nums text-ink focus-visible:outline-none [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
         />
         <span className="text-description text-ink-soft">{unit}</span>
       </span>

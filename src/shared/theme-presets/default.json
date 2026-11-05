@@ -1,6 +1,6 @@
 {
   "id": "default",
-  "name": "清简",
+  "name": "雾紫",
   "builtin": true,
   "text": {
     "fontSize": 14,
@@ -76,13 +76,15 @@
   },
   "quote": {
     "backgroundColor": "#f7f8fe",
+    "fontSize": 14,
     "paddingBlock": 14,
     "paddingInline": 14,
     "borderRadius": 4
   },
   "code": {
-    "hljsTheme": "atom-one-light",
+    "hljsTheme": "github",
     "backgroundColor": "#f7f8fe",
+    "fontSize": 13,
     "inlineBackgroundColor": "#f7f8fe",
     "lineHeight": 1.6,
     "paddingBlock": 14,

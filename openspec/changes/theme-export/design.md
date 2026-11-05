@@ -48,7 +48,7 @@
 
 **hljs 主题只保留语法色。** github 主题的结构规则与背景会和 `pre`/`code` 的 token 样式冲突，因此只保留颜色、字重与斜体规则；代码块背景取 `code.backgroundColor`，未设置时用语法主题背景。主题 CSS 固化为 TS 常量，保证 Vite 与 esbuild 验证包都能使用。
 
-**内置主题从一开始就按多套设计。** 每套 = token 默认值 + theme.css，M1 先提供 default；M2 增加 serif 与 danxia，共用同一 token 接口与渲染管线。
+**内置主题从一开始就按多套设计。** 每套 = token 默认值 + theme.css，M1 先提供 default；M2 增加 shujuan 与 danxia，共用同一 token 接口与渲染管线。
 
 **兼容性清单与 bad case 样张落仓库。** 清单是流程资产，每项含验证步骤与预期，规则一变可快速重跑；样张存 artifacts 便于对比。
 

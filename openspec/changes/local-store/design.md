@@ -25,7 +25,7 @@
 
 **主进程 repository，IPC 只暴露领域方法。** `src/main/store.ts` 暴露类型化函数，`ipc.ts` 按历史栏与主题面板的真实需求接 `themes:*`、`articles:*`、`preferences:*` 频道；渲染进程不提交 SQL，也不拿数据库对象。
 
-**版本只存 `PRAGMA user_version`。** 不建 `schema_meta` 表；当前 schema 为 v6：v1 建表，v2 增加文章主题字段与索引，v3 把默认主题 id 从 `technical` 统一为 `default` 并更新已有文章与偏好，v4 为 `themes` 增加 `css`、`token_version` 与 `source_theme_id`，v5 把历史排序索引从访问活动改为 `updated_at`，v6 收敛索引。未来迁移继续按版本顺序执行。代价是没有迁移审计时间，当前应用不需要。
+**版本只存 `PRAGMA user_version`。** 不建 `schema_meta` 表；当前 schema 为 v8：v1 建表，v2 增加文章主题字段与索引，v3 把默认主题 id 从 `technical` 统一为 `default` 并更新已有文章与偏好，v4 为 `themes` 增加 `css`、`token_version` 与 `source_theme_id`，v5 把历史排序索引从访问活动改为 `updated_at`，v6 收敛索引，v7 把书卷主题 id 从 `serif` 统一为 `shujuan`，v8 清理中间态 `xueqing`，默认主题保持 `default`。未来迁移继续按版本顺序执行。代价是没有迁移审计时间，当前应用不需要。
 
 **主题表只存自定义主题，校验提升到 shared。** 内置主题留在代码，避免代码与数据库两份来源。ThemeToken 校验在 `src/shared/theme.ts`，主题 CSS 契约校验在 `src/shared/theme-css.ts`；主进程写入前同时校验 token 与 CSS，渲染层使用同一入口。
 

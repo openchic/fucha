@@ -169,7 +169,7 @@ interface ImageAsset {
 主题系统以 `docs/theme-system.md` 为准，本节只保留边界：
 
 - token 是稳定接口：正文、颜色、圆角、quote/code/table/image/divider，以及顶层 h1–h6；每级标题有字号、字重、行高、对齐、装饰与上下边距。字段名对齐 CSS 属性名。
-- 内置主题「清简」（`default`）、「书卷」（`serif`）与「丹霞」（`danxia`）各自带 token 默认值与 `theme.css`，只读；升级视觉时新增 id，旧 id 保留。
+- 内置主题「雾紫」（`default`）、「书卷」（`shujuan`）与「丹霞」（`danxia`）各自带 token 默认值与 `theme.css`，只读；升级视觉时新增 id，旧 id 保留。
 - 应用维护 `base.css`，元素规则只引用 token 变量；主题 CSS 只写差异。加载顺序为 base.css → 装饰规则 → hljs 语法色 → theme.css。
 - 文章只保存 `theme_id`；内置主题只读，自定义主题可在设置页原地编辑并同步所有引用文章，另存为与新建生成新主题；文章页只负责选择主题。
 - 自定义主题以 `.fucha-theme` 主题包导入导出（`theme.json` + `theme.css`），导入时 fail-closed 校验 token 与 CSS。
@@ -298,21 +298,23 @@ src/
         hljs-github.ts    github 语法色常量
         library.ts        主题解析与可用主题合并
         presets/
-          index.ts        内置主题加载
-          default.json    内置默认主题 token
-          serif.json      内置衬线主题 token
-          serif-css.ts    衬线主题 theme.css
-          danxia.json     内置丹霞主题 token
+          index.ts        内置主题加载与 CSS 绑定
+          shujuan-css.ts  书卷主题 theme.css
       styles/
         app.css           样式入口与公共规则：base、布局、拖动、减弱动效
         tokens.css        应用壳设计 token 与动画关键帧
   shared/
-    pageBridge.ts         Home/Preview 页面桥接：活动 hash 与历史刷新（仅渲染层）
-    theme.ts              ThemeToken 范围常量与校验（主进程/渲染层共用）
-    theme-css.ts          主题 CSS 契约校验、作用域与变量解析
-    store-types.ts        本地存储记录类型
-    types.ts              跨进程数据契约（含 IPC 接口签名）
-    profiles.ts           域名适配（微信必须，其余按需）
+    theme-presets/
+      index.ts        内置主题 token 汇总
+      default.json    内置雾紫主题 token
+      shujuan.json    内置书卷主题 token
+      danxia.json     内置丹霞主题 token
+    pageBridge.ts      Home/Preview 页面桥接：活动 hash 与历史刷新（仅渲染层）
+    theme.ts           ThemeToken 范围常量与校验（主进程/渲染层共用）
+    theme-css.ts       主题 CSS 契约校验、作用域与变量解析
+    store-types.ts     本地存储记录类型
+    types.ts           跨进程数据契约（含 IPC 接口签名）
+    profiles.ts        域名适配（微信必须，其余按需）
 ```
 
 ## 里程碑

@@ -1,20 +1,26 @@
 import type { HeadingDecoration, HeadingToken, ThemeToken } from './types'
+import { BUILTIN_THEME_TOKENS } from './theme-presets'
 
 export const THEME_TOKEN_VERSION = 1
 
+const builtinIds = BUILTIN_THEME_TOKENS.map(({ id }) => id.trim())
+const builtinNames = BUILTIN_THEME_TOKENS.map(({ name }) => name.trim())
+if (new Set(builtinIds).size !== builtinIds.length) throw new Error('内置主题 id 重复')
+if (new Set(builtinNames.map((name) => name.toLowerCase())).size !== builtinNames.length) {
+  throw new Error('内置主题名称重复')
+}
+
 /** 内置主题 id；主进程据此拒绝同 id 的自定义主题，避免解析歧义 */
-export const BUILTIN_THEME_IDS = ['default', 'serif', 'danxia'] as const
+export const BUILTIN_THEME_IDS: readonly string[] = builtinIds
 
 /** 代码语法主题白名单；值必须与 renderer theme/highlight.ts 的 THEME_CSS 对齐 */
 export const HLJS_THEME_VALUES = ['github', 'atom-one-light', 'xcode'] as const
 export const CODE_BORDER_STYLE_VALUES = ['solid', 'dashed', 'none'] as const
 
 /** 内置主题名称；主进程据此拒绝重名的自定义主题 */
-export const BUILTIN_THEME_NAMES: Record<(typeof BUILTIN_THEME_IDS)[number], string> = {
-  default: '清简',
-  serif: '书卷',
-  danxia: '丹霞',
-}
+export const BUILTIN_THEME_NAMES: Record<string, string> = Object.fromEntries(
+  BUILTIN_THEME_TOKENS.map(({ id, name }) => [id.trim(), name.trim()])
+)
 
 export type NumericRange = {
   min: number
@@ -42,7 +48,9 @@ export const THEME_RANGES = {
   dividerMarginTop: { min: 0, max: 40, step: 1, integer: true },
   dividerMarginBottom: { min: 0, max: 40, step: 1, integer: true },
   quotePadding: { min: 0, max: 40, step: 1, integer: true },
+  quoteFontSize: { min: 12, max: 20, step: 1, integer: true },
   codeLineHeight: { min: 1, max: 3, step: 0.05 },
+  codeFontSize: { min: 10, max: 16, step: 0.5 },
   codePadding: { min: 0, max: 40, step: 1, integer: true },
   tablePadding: { min: 0, max: 40, step: 1, integer: true },
   imageMarginTop: { min: 0, max: 40, step: 1, integer: true },
@@ -209,6 +217,7 @@ export function validateThemeToken(input: unknown): ThemeToken {
     h6: readHeading(root.h6, 'theme.h6', THEME_RANGES.h6FontSize),
     quote: {
       backgroundColor: requiredColor(quote.backgroundColor, 'theme.quote.backgroundColor'),
+      fontSize: requiredNumber(quote.fontSize, 'theme.quote.fontSize', THEME_RANGES.quoteFontSize),
       paddingBlock: requiredNumber(
         quote.paddingBlock,
         'theme.quote.paddingBlock',
@@ -228,6 +237,7 @@ export function validateThemeToken(input: unknown): ThemeToken {
     code: {
       hljsTheme: requiredEnum(code.hljsTheme, 'theme.code.hljsTheme', HLJS_THEME_VALUES),
       backgroundColor: optionalColor(code.backgroundColor, 'theme.code.backgroundColor'),
+      fontSize: requiredNumber(code.fontSize, 'theme.code.fontSize', THEME_RANGES.codeFontSize),
       inlineBackgroundColor: requiredColor(
         code.inlineBackgroundColor,
         'theme.code.inlineBackgroundColor'

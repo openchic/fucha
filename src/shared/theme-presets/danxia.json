@@ -5,8 +5,8 @@
   "text": {
     "fontSize": 14,
     "secondaryFontSize": 12,
-    "lineHeight": 1.6,
-    "letterSpacing": 0.1,
+    "lineHeight": 1.8,
+    "letterSpacing": 0.02,
     "marginBottom": 12,
     "color": "#4f4f4f",
     "secondaryColor": "#6b7280"
@@ -17,11 +17,11 @@
   "page": {
     "paddingTop": 40,
     "paddingRight": 24,
-    "paddingBottom": 64,
+    "paddingBottom": 40,
     "paddingLeft": 24
   },
   "h1": {
-    "fontSize": 22,
+    "fontSize": 24,
     "fontWeight": 700,
     "lineHeight": 1.4,
     "textAlign": "left",
@@ -76,12 +76,15 @@
   },
   "quote": {
     "backgroundColor": "#f5f5f5",
+    "fontSize": 14,
     "paddingBlock": 12,
     "paddingInline": 12,
     "borderRadius": 4
   },
   "code": {
     "hljsTheme": "github",
+    "backgroundColor": "#ffffff",
+    "fontSize": 13,
     "inlineBackgroundColor": "#f5f5f5",
     "lineHeight": 1.6,
     "paddingBlock": 16,

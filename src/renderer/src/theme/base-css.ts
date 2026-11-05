@@ -115,11 +115,19 @@ blockquote {
   margin: 0 0 var(--fucha-text-margin-bottom);
   padding: var(--fucha-quote-padding-block) var(--fucha-quote-padding-inline);
   color: var(--fucha-text-color);
-  font-size: var(--fucha-text-font-size);
+  font-size: var(--fucha-quote-font-size);
   line-height: var(--fucha-text-line-height);
   background-color: var(--fucha-quote-background-color);
   border-left: 3px solid var(--fucha-primary);
   border-radius: var(--fucha-quote-border-radius);
+}
+
+blockquote p,
+blockquote ul,
+blockquote ol,
+blockquote li {
+  font-size: inherit;
+  line-height: inherit;
 }
 
 blockquote > :last-child {
@@ -130,7 +138,7 @@ pre {
   margin: 0 0 var(--fucha-text-margin-bottom);
   padding: var(--fucha-code-padding-block) var(--fucha-code-padding-inline);
   color: var(--fucha-text-color);
-  font-size: 0.875em;
+  font-size: var(--fucha-code-font-size);
   line-height: var(--fucha-code-line-height);
   background-color: var(--fucha-code-background-color);
   border: 1px var(--fucha-code-border-style) var(--fucha-border-color);

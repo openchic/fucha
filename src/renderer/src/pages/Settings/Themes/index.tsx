@@ -292,14 +292,14 @@ const ThemeList = () => {
           ) : (
             <>
               <section>
-                <h2 className="mb-3 text-title text-ink">内置主题</h2>
+                <h2 className="mb-2 text-title text-ink">内置主题</h2>
                 <ul className="divide-y divide-line">{builtins.map(renderRow)}</ul>
               </section>
 
               <section className="mt-8">
-                <h2 className="mb-3 text-title text-ink">自定义主题</h2>
+                <h2 className="mb-2 text-title text-ink">自定义主题</h2>
                 {customs.length === 0 ? (
-                  <div className="flex h-14 items-center justify-between gap-4 rounded-lg border border-dashed border-line px-4">
+                  <div className="mt-5 flex h-14 items-center justify-between gap-4 rounded-lg border border-dashed border-line px-4">
                     <p className="min-w-0 text-body text-ink-soft">
                       还没有自定义主题，通过内置主题的「另存为」新建主题。
                     </p>

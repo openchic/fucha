@@ -1,7 +1,7 @@
 ## 1. Token 契约与主题实现
 
 - [x] 1.1 ThemeToken v1：h1–h6 顶层、可选标题色回退正文色、字段名对齐 CSS；校验与范围同步更新
-- [x] 1.2 内置主题 `default`、`serif` 与 `danxia`：各自 token 默认值 + theme.css（`danxia` 无额外 CSS），加载时校验 token 与 CSS
+- [x] 1.2 内置主题 `default`、`shujuan` 与 `danxia`：各自 token 默认值 + theme.css（`danxia` 无额外 CSS），加载时校验 token 与 CSS
 - [x] 1.3 应用级 `base.css`：正文、引用、代码、表格、图片、分割线全部只引用 token 变量
 - [x] 1.4 主题 CSS 契约与 fail-closed 校验：选择器、属性白名单、变量白名单、`!important`、外部资源、注入字符，错误带行号
 - [x] 1.5 CSS 管线合流：预览作用域与变量、导出变量解析、装饰规则与 hljs 语法色顺序，预览/导出共用同一份 CSS
@@ -93,10 +93,10 @@
 - [x] 3.75 分组间距统一缩小：三个 tab 的分组间距由 32px 收到 24px，组内标题到首行仍 16px、行距仍 12px
 - [x] 3.76 新增页面 tab：token 增加 `page.paddingTop/Right/Bottom/Left`（0–80，默认 40/24/64/24），配置页加入第四个 tab 与四边距控件；预览 `.article-body` 与导出外层 section 使用这四值，旧主题读取时补默认值
 - [x] 3.77 页面 tab 分组标题由「页边距」改为「内边距」，四个重置标签同步为页面上/右/下/左内边距；token 字段不变
-- [x] 3.78 内置主题页面内边距默认值调整：`default` 与 `serif` 的下边距由 64px 改为 40px，四值统一为 40/24/40/24
-- [x] 3.79 清简主题排版默认值优化：正文行高 1.8、字距 0.02em、段距 16px；h1 24px、h6 14px，标题上下间距按层级拉开（32/28/24/20/16 与 16/12/10/8）；引用内距 16px；代码、表格、图片不变
-- [x] 3.80 清简主题正文字号改为 14px、次级字号改为 12px；标题字号与其余排版值不变
-- [x] 3.81 清简主题其余间距随 14px 正文收紧：段距 14px，标题上下边距 28/24/20/16/14/14 与 14/10/8/8/8/8，引用/代码内距 14px，图片边距 14px，分割线间距 18px；标题字号与页面内距不变
+- [x] 3.78 内置主题页面内边距默认值调整：`default` 与 `shujuan` 的下边距由 64px 改为 40px，四值统一为 40/24/40/24
+- [x] 3.79 雾紫主题排版默认值优化：正文行高 1.8、字距 0.02em、段距 16px；h1 24px、h6 14px，标题上下间距按层级拉开（32/28/24/20/16 与 16/12/10/8）；引用内距 16px；代码、表格、图片不变
+- [x] 3.80 雾紫主题正文字号改为 14px、次级字号改为 12px；标题字号与其余排版值不变
+- [x] 3.81 雾紫主题其余间距随 14px 正文收紧：段距 14px，标题上下边距 28/24/20/16/14/14 与 14/10/8/8/8/8，引用/代码内距 14px，图片边距 14px，分割线间距 18px；标题字号与页面内距不变
 - [x] 3.82 引用底部空白修正：`blockquote > :last-child` 段后距清零，配置页样张与真实预览/导出的引用上下内距对称
 - [x] 3.83 代码块边框样式：代码 tab 增加「边框」下拉（实线/虚线/无），token 为 `code.borderStyle`；颜色 tab「表格边框色」更名为「边框色」；验证：默认实线视觉不变，无边框时 `pre` 与带标题卡片外框消失、标题分隔线与表格边框不变
 - [x] 3.84 分割线样式选项改为实线/虚线/无；`divider.borderTopStyle` 允许 solid/dashed/none；衬线主题分割线改为 dashed；验证：排版 tab 菜单为实线/虚线/无
@@ -104,6 +104,19 @@
 - [x] 3.86 内置主题注册完整性断言：加载时校验预设 id 集合与 shared 的 `BUILTIN_THEME_IDS` 双向一致、无重复，名称与 `BUILTIN_THEME_NAMES` 一致；验证：typecheck、lint 与 harness 全绿
 - [x] 3.87 移除旧主题兼容并下沉引用背景：删除 `normalizeThemeToken` 兼容层与主题 CSS 旧值别名；顶层 `backgroundColor` 改为 `quote.backgroundColor`，主题 CSS 变量改为 `--fucha-quote-background-color`；3 份预设、配置页、文档与 harness 同步；验证：typecheck、lint、Prettier 与 harness 全绿
 - [x] 3.88 内置主题 CSS 载体统一：新增 `defineBuiltinTheme(token, css = '')` 统一做 token/CSS 校验，三套预设同一入口，删除空的 `default-css.ts`；验证：typecheck、lint、Prettier 与 harness 全绿
+- [x] 3.89 内置主题按雾紫规范对齐：页面内距统一 40/24/40/24；标题字号统一 24/20/18/16/14/14（丹霞 h1 22→24、书卷 h5 15→14）；书卷与丹霞显式写入 `code.backgroundColor`；保留各自配色、字体、标题装饰与间距；验证：typecheck、lint、Prettier 与 harness 全绿
+- [x] 3.90 内置主题命名与文件对齐：默认主题定名「雾紫」（id `default`，文件 `default.json`），书卷 id 改为 `shujuan`（文件 `shujuan.json` / `shujuan-css.ts`），丹霞不变；`BUILTIN_THEME_IDS`、名称表、默认主题回退、测试与文档同步；验证：typecheck、lint、Prettier 与 harness 全绿
+- [x] 3.91 内置主题名称单一来源：预设 JSON 移到 `shared/theme-presets`，`BUILTIN_THEME_IDS` / `BUILTIN_THEME_NAMES` 从 token 派生，删除手工名称表与跨源断言；验证：typecheck、lint、Prettier 与 harness 全绿
+- [x] 3.92 丹霞正文阅读节奏对齐雾紫：`text.letterSpacing` 0.1em→0.02em、`text.lineHeight` 1.6→1.8，段距保持 12；验证：真实窗口字距 0.28px、行高 25.2px
+- [x] 3.93 雾紫代码语法主题改为 GitHub：`hljsTheme` 由 atom-one-light 改为 github；代码块与行内代码背景保持 `#f7f8fe`；验证：token 校验与 harness 通过
+- [x] 3.94 书卷正文字号对齐雾紫：`text.fontSize` 17→14、`text.secondaryFontSize` 14→12，行高 1.85 与段距 16 保留；验证：真实窗口正文 14px、次级 12px
+- [x] 3.95 书卷主题色提亮：`primary` `#a05a3c`→`#ad6849`，同色相提亮一档；标题下划线与引用边条同步变浅；验证：真实窗口边条颜色与 contrast 检查
+- [x] 3.96 书卷次级文字色对比度：`text.secondaryColor` `#8a7f74`→`#7a6f64`，白底 3.91:1→4.90:1、纸底 4.59:1，消除低于 4.5:1 提示；验证：配置页不再出现该警告
+- [x] 3.97 代码块与引用字号：新增 `quote.fontSize`（12–20，初始等于正文）与 `code.fontSize`（10–20，step 0.25，初始为正文 0.875 倍）；排版引用组与代码 tab 各加字号控件；预览/导出变量与文案同步；验证：真实窗口引用 14px、代码块 12.25px
+- [x] 3.98 字号默认值解耦：引用与代码块字号以固定 token 保存，初始值只在预设/新建时写入；修改正文字号或语法主题不回写；harness 增加解耦断言
+- [x] 3.99 代码块字号统一 13px：三套内置主题 `code.fontSize` 统一为 13；引用字号保持 14；验证：真实窗口代码块 13px、harness 通过
+- [x] 3.100 代码块字号范围收窄：`code.fontSize` 范围由 10–20 改为 10–16，step 0.25 不变；验证：17px 被校验拒绝，控件上限为 16
+- [x] 3.101 代码块字号步长调整：`code.fontSize` step 由 0.25 改为 0.5；验证：控件步进为 0.5，harness 通过
 
 ## 4. 主题包
 
@@ -113,7 +126,7 @@
 
 ## 5. 验证与文档
 
-- [x] 5.1 `verify-main`：schema v6、主题 create/update、名称唯一、引用保护、zip 与主题包往返、非法包拒绝
+- [x] 5.1 `verify-main`：schema v8、主题 create/update、名称唯一、引用保护、zip 与主题包往返、非法包拒绝
 - [x] 5.2 `verify-renderer`：token 校验、CSS 契约与行号、预览/导出计算样式一致、导出无变量
 - [x] 5.3 typecheck 与 lint 全绿
 - [x] 5.4 真实 Electron 窗口验收：设置页新建/另存为、示例预览实时更新、自定义原地保存与文章同步、编辑页改名、引用删除保护、返回文章加载

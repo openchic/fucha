@@ -1,7 +1,7 @@
 ## 1. 主题 token 与预设
 
 - [x] 1.1 src/shared/types.ts 增加 ThemeToken 契约（h1–h6 顶层、每级可选颜色回退、CSS 命名、范围常量表，fontSize 14-18 约束），shared/theme.ts 实现校验函数；验证：合法 token 通过、fontSize 10 被拒并带字段路径、标题 color 缺省回退正文色的测试通过
-- [x] 1.2 theme/presets/default.json 内置默认主题预设（新 token 形状的默认值，代码块与表格优先打磨）；验证：加载后字段齐全并通过校验，首次预览零配置使用该预设
+- [x] 1.2 shared/theme-presets/default.json 内置雾紫主题预设（新 token 形状的默认值，代码块与表格优先打磨）；验证：加载后字段齐全并通过校验，首次预览零配置使用该预设
 
 ## 2. CSS 生成与主题化预览
 

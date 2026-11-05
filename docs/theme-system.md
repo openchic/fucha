@@ -84,7 +84,7 @@ type HeadingLevel = {
 ```json
 {
   "id": "default",
-  "name": "清简",
+  "name": "雾紫",
   "builtin": true,
   "text": {
     "fontSize": 14,
@@ -160,13 +160,15 @@ type HeadingLevel = {
   },
   "quote": {
     "backgroundColor": "#f7f8fe",
+    "fontSize": 14,
     "paddingBlock": 14,
     "paddingInline": 14,
     "borderRadius": 4
   },
   "code": {
-    "hljsTheme": "atom-one-light",
+    "hljsTheme": "github",
     "backgroundColor": "#f7f8fe",
+    "fontSize": 13,
     "inlineBackgroundColor": "#f7f8fe",
     "lineHeight": 1.6,
     "paddingBlock": 14,
@@ -198,7 +200,7 @@ type HeadingLevel = {
 
 | 字段                          | 默认                                    | 范围 / 值                        | 说明                                              |
 | ----------------------------- | --------------------------------------- | -------------------------------- | ------------------------------------------------- |
-| `text.fontSize`               | 14px                                    | 12–20                            | 正文、列表、引用、h4–h6 的回落字号                |
+| `text.fontSize`               | 14px                                    | 12–20                            | 正文、列表、h4–h6 的回落字号                      |
 | `text.secondaryFontSize`      | 12px                                    | 12–20                            | 图注、上下标                                      |
 | `text.lineHeight`             | 1.8                                     | 1–3                              | 正文、列表、引用行高                              |
 | `text.letterSpacing`          | 0.02em                                  | 0–0.3                            | 正文基础字距                                      |
@@ -217,10 +219,12 @@ type HeadingLevel = {
 | 各级 `marginTop`              | 28 / 24 / 20 / 16 / 14 / 14             | 0–40                             | 标题上外边距                                      |
 | 各级 `marginBottom`           | 14 / 10 / 8 / 8 / 8 / 8                 | 0–40                             | 标题下外边距                                      |
 | `quote.backgroundColor`       | #f7f8fe                                 | 颜色                             | 引用块背景色                                      |
+| `quote.fontSize`              | 14px                                    | 12–20                            | 引用文字字号；初始等于正文，之后独立              |
 | `quote.paddingBlock`          | 14px                                    | 0–40                             | 引用块上下内边距                                  |
 | `quote.paddingInline`         | 14px                                    | 0–40                             | 引用块左右内边距                                  |
 | `quote.borderRadius`          | 4px                                     | 0–20                             | 引用块圆角                                        |
-| `code.hljsTheme`              | atom-one-light                          | github / atom-one-light / xcode  | highlight.js 语法色主题，未知值拒绝               |
+| `code.hljsTheme`              | github                                  | github / atom-one-light / xcode  | highlight.js 语法色主题，未知值拒绝               |
+| `code.fontSize`               | 13px                                    | 10–16, step 0.5                  | 代码块文字字号；三套内置主题统一 13px，之后独立   |
 | `code.lineHeight`             | 1.6                                     | 1–3                              | 代码块行高                                        |
 | `code.paddingBlock`           | 14px                                    | 0–40                             | 代码块上下内边距                                  |
 | `code.paddingInline`          | 14px                                    | 0–40                             | 代码块左右内边距                                  |
@@ -243,7 +247,7 @@ type HeadingLevel = {
 | `divider.marginTop`           | 18px                                    | 0–40                             | 分割线上外边距                                    |
 | `divider.marginBottom`        | 18px                                    | 0–40                             | 分割线下外边距                                    |
 
-标题颜色统一使用 `headingColor`。代码正文、行内代码与表格不读 `secondaryFontSize`，字号按正文的 0.875 倍缩放，随 `text.fontSize` 变化；带标题代码块的标题条使用 `secondaryFontSize` 与 `secondaryColor`。表头背景色由 `table.headerBackgroundColor` 单独控制。
+标题颜色统一使用 `headingColor`。行内代码与表格不读 `secondaryFontSize`，字号按正文的 0.875 倍缩放，随 `text.fontSize` 变化；代码块使用 `code.fontSize`，引用使用 `quote.fontSize`，两者都是固定 token，修改正文字号或语法主题不会联动修改。带标题代码块的标题条使用 `secondaryFontSize` 与 `secondaryColor`。表头背景色由 `table.headerBackgroundColor` 单独控制。
 
 ### 标题装饰
 
@@ -266,9 +270,11 @@ type HeadingLevel = {
 --fucha-table-header-background-color
 --fucha-border-color
 --fucha-quote-border-radius
+--fucha-quote-font-size
 --fucha-image-border-radius
 --fucha-code-border-radius
 --fucha-code-inline-border-radius
+--fucha-code-font-size
 --fucha-text-font-size
 --fucha-text-secondary-font-size
 --fucha-text-line-height
@@ -307,7 +313,7 @@ type HeadingLevel = {
 
 ## 样式归属与元素盒模型
 
-应用维护一份 `base.css`，覆盖正文默认排版、引用、代码、表格、图片、分割线与微信安全属性；除代码与表格按正文 0.875 倍取字号外，样式只引用 token 变量。正文代码块统一使用 `borderColor` 外框、`code.borderStyle` 边框样式与 `code.borderRadius` 圆角；带标题的代码块使用 `figure.code-block` + `figcaption`，在卡片顶部增加标题条（复用 `code.paddingBlock` / `code.paddingInline`、`text.secondaryColor` / `text.secondaryFontSize` 与等宽字体），标题下用 1px `borderColor` 分隔线，不新增标题条 token；主题用 `pre`、`.code-block` / `.code-block figcaption` 覆盖。正文表格在预览与导出中包一层带 1px `borderColor` 边框与代码块圆角的 `figure.table-scroll`；表格外圈边框由容器承担，只保留内部行列线。只有列数 ≥3 的表格额外加 `table-scroll-wide` 与 `min-width: 600px`，在边框内横向滚动；2 列表格按容器宽度换行，不出现滚动条。滚动条使用原生样式，不提供主题开关。
+应用维护一份 `base.css`，覆盖正文默认排版、引用、代码、表格、图片、分割线与微信安全属性；行内代码与表格按正文 0.875 倍取字号，代码块与引用使用各自字号 token，其余样式只引用 token 变量。正文代码块统一使用 `borderColor` 外框、`code.borderStyle` 边框样式与 `code.borderRadius` 圆角；带标题的代码块使用 `figure.code-block` + `figcaption`，在卡片顶部增加标题条（复用 `code.paddingBlock` / `code.paddingInline`、`text.secondaryColor` / `text.secondaryFontSize` 与等宽字体），标题下用 1px `borderColor` 分隔线，不新增标题条 token；主题用 `pre`、`.code-block` / `.code-block figcaption` 覆盖。正文表格在预览与导出中包一层带 1px `borderColor` 边框与代码块圆角的 `figure.table-scroll`；表格外圈边框由容器承担，只保留内部行列线。只有列数 ≥3 的表格额外加 `table-scroll-wide` 与 `min-width: 600px`，在边框内横向滚动；2 列表格按容器宽度换行，不出现滚动条。滚动条使用原生样式，不提供主题开关。
 
 主题的 `theme.css` 只写差异。加载顺序固定为 `base.css` → 装饰规则 → hljs 语法色 → `theme.css`，同选择器后写覆盖，主题永远有最终决定权。
 
@@ -366,7 +372,7 @@ my-theme.fucha-theme
 }
 ```
 
-- 内置主题与自定义主题共用同一结构；当前内置「清简」（id `default`）、「书卷」（id `serif`）与「丹霞」（id `danxia`），只读，升级时新增主题 id，旧 id 保留，避免历史文章换样。
+- 内置主题与自定义主题共用同一结构；当前内置「雾紫」（id `default`）、「书卷」（id `shujuan`）与「丹霞」（id `danxia`），只读，升级时新增主题 id，旧 id 保留，避免历史文章换样。三套内置主题共用页面内距 40/24/40/24、标题字号序列 24/20/18/16/14/14，并显式写入代码块背景；配色、字体、标题装饰与局部间距按主题保留差异。内置主题的 id 与名称直接取自预设 token，主进程与渲染层共用同一来源。
 - 自定义主题导入后，token 与 CSS 存入本地 SQLite；同一 id 或内置 id 已存在时拒绝导入。导入后的自定义主题可原地编辑，也可另存为或新建。
 - 导出主题时把当前 token 和 CSS 重新打包成同样的 zip；内置主题导出时 token 的 `builtin` 置为 false，导入后成为普通自定义主题。不导出文章内容。
 - 自定义主题只允许 CSS 与 token，不允许注入 HTML 或脚本。

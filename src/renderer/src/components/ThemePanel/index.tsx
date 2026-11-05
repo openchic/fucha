@@ -680,6 +680,20 @@ export const ThemePanel = (props: ThemePanelProps) => {
               <div>
                 <div className="py-1.5 first:pt-0">
                   <NumberControl
+                    label="字号"
+                    resetLabel="引用字号"
+                    value={token.quote.fontSize}
+                    range={THEME_RANGES.quoteFontSize}
+                    unit="px"
+                    modified={token.quote.fontSize !== baseline.quote.fontSize}
+                    onReset={() =>
+                      patch({ quote: { ...token.quote, fontSize: baseline.quote.fontSize } })
+                    }
+                    onChange={(value) => patch({ quote: { ...token.quote, fontSize: value } })}
+                  />
+                </div>
+                <div className="py-1.5">
+                  <NumberControl
                     label="上下内距"
                     value={token.quote.paddingBlock}
                     range={THEME_RANGES.quotePadding}
@@ -925,6 +939,20 @@ export const ThemePanel = (props: ThemePanelProps) => {
                       const next = BORDER_STYLE_OPTIONS.find((option) => option.value === value)
                       if (next) patch({ code: { ...token.code, borderStyle: next.value } })
                     }}
+                  />
+                </div>
+                <div className="py-1.5">
+                  <NumberControl
+                    label="字号"
+                    resetLabel="代码块字号"
+                    value={token.code.fontSize}
+                    range={THEME_RANGES.codeFontSize}
+                    unit="px"
+                    modified={token.code.fontSize !== baseline.code.fontSize}
+                    onReset={() =>
+                      patch({ code: { ...token.code, fontSize: baseline.code.fontSize } })
+                    }
+                    onChange={(value) => patch({ code: { ...token.code, fontSize: value } })}
                   />
                 </div>
                 <div className="py-1.5">
