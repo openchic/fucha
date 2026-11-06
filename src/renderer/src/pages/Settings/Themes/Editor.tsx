@@ -161,7 +161,7 @@ const ThemeEditor = (props: ThemeEditorProps) => {
 
   const header = (
     <div className="flex flex-none flex-col gap-2 px-6 pt-5">
-      <div className="flex w-full items-center gap-1.5 rounded-full border border-line bg-white pl-3 pr-1.5 focus-within:border-primary">
+      <div className="flex w-full items-center gap-1.5 rounded-full border border-transparent bg-panel pl-3 pr-1.5 transition-colors focus-within:border-primary">
         <input
           id={nameInputId}
           type="text"
@@ -184,7 +184,7 @@ const ThemeEditor = (props: ThemeEditorProps) => {
   )
 
   const footer = (
-    <footer className="flex-none border-t border-line px-6 py-3">
+    <footer className="flex-none border-t border-divider px-6 py-3">
       <div className="flex items-center justify-end gap-2">
         <Button variant="secondary" onClick={leaveToList} className="h-8">
           取消
@@ -207,7 +207,7 @@ const ThemeEditor = (props: ThemeEditorProps) => {
 
   return (
     <div className="flex h-full min-h-0 flex-col overflow-hidden">
-      <div className="drag-region relative z-30 flex h-11 flex-none items-center gap-2 border-b border-line px-6">
+      <div className="drag-region relative z-30 flex h-11 flex-none items-center gap-2 border-b border-divider px-6">
         <Button
           variant="back"
           onClick={leaveToList}

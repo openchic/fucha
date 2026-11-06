@@ -106,7 +106,11 @@ export function useArticlePreview(
             : { view: 'loading', stage: 'request' }
         )
       } else if (useSnapshot) {
-        setState({ view: 'loading', stage: 'request', quiet: true })
+        setState((current) =>
+          current.view === 'preview'
+            ? { ...current, refreshing: true, refreshError: undefined }
+            : { view: 'loading', stage: 'request', quiet: true }
+        )
       } else {
         setState({ view: 'loading', stage: 'request' })
       }

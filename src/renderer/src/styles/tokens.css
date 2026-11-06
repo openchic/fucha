@@ -2,9 +2,11 @@
 @theme {
   --color-primary: #5e7b6f;
   --color-raised: #f5f5f7;
+  --color-panel: #f7f8fb;
   --color-ink: #1d1d1f;
   --color-ink-soft: #6e6e73;
   --color-line: #e8e8ed;
+  --color-divider: #f2f4f7;
   --color-danger: #cf3538;
   --text-body: 0.875rem;
   --text-description: 0.75rem;

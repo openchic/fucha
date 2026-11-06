@@ -293,7 +293,7 @@ const ThemeList = () => {
             <>
               <section>
                 <h2 className="mb-2 text-title text-ink">内置主题</h2>
-                <ul className="divide-y divide-line">{builtins.map(renderRow)}</ul>
+                <ul className="divide-y divide-divider">{builtins.map(renderRow)}</ul>
               </section>
 
               <section className="mt-8">
@@ -313,7 +313,7 @@ const ThemeList = () => {
                     )}
                   </div>
                 ) : (
-                  <ul className="divide-y divide-line">{customs.map(renderRow)}</ul>
+                  <ul className="divide-y divide-divider">{customs.map(renderRow)}</ul>
                 )}
               </section>
             </>

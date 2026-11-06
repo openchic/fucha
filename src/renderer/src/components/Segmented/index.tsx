@@ -20,7 +20,7 @@ export const Segmented = <T extends string>(props: SegmentedProps<T>) => {
     options.findIndex((option) => option.value === value)
   )
   return (
-    <div className="relative flex rounded-full bg-raised p-0.5" role="tablist" aria-label={label}>
+    <div className="relative flex rounded-full bg-panel p-0.5" role="tablist" aria-label={label}>
       <span
         aria-hidden="true"
         className="pointer-events-none absolute inset-y-0.5 left-0.5 rounded-full bg-white transition-transform duration-200 ease-out"

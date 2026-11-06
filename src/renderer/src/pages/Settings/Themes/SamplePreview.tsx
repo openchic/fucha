@@ -61,7 +61,7 @@ export const SamplePreview = ({ styleCss, variables }: SamplePreviewProps) => {
       styleCss={styleCss}
       variables={variables}
       html={sampleHtml}
-      className="border-r border-line"
+      className="border-r border-divider"
     />
   )
 }

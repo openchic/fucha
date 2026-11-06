@@ -75,15 +75,13 @@ export const Sidebar = (props: SidebarProps) => {
   }
 
   return (
-    <aside
-      aria-label="最近文章"
-      className="flex w-[264px] flex-none flex-col border-r border-line bg-white">
+    <aside aria-label="最近文章" className="flex w-[264px] flex-none flex-col bg-panel">
       <div className="pt-14 pb-3">
         <div className="px-2">
           <button
             type="button"
             onClick={onNew}
-            className="flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-left text-body text-ink-soft transition-colors hover:bg-raised hover:text-ink">
+            className="flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-left text-body text-ink-soft transition-colors hover:bg-white hover:text-ink">
             <Icon name="plus" className="h-3.5 w-3.5 flex-none" />
             新建
           </button>
@@ -119,8 +117,8 @@ export const Sidebar = (props: SidebarProps) => {
                     onClick={() => onOpen(item)}
                     className={`w-full rounded-lg px-3 py-2.5 pr-12 text-left transition-colors ${
                       isActive
-                        ? 'bg-raised text-ink'
-                        : 'text-ink-soft group-hover:bg-raised group-hover:text-ink'
+                        ? 'bg-white text-ink'
+                        : 'text-ink-soft group-hover:bg-white group-hover:text-ink'
                     }`}>
                     <span className="block truncate text-body">{item.title}</span>
                   </button>
@@ -147,7 +145,7 @@ export const Sidebar = (props: SidebarProps) => {
           onClick={onSettings}
           aria-label="设置"
           title="设置"
-          className="flex h-7 w-7 items-center justify-center rounded-full text-ink-soft transition-colors hover:bg-raised hover:text-ink">
+          className="flex h-7 w-7 items-center justify-center rounded-full text-ink-soft transition-colors hover:bg-white hover:text-ink">
           <Icon name="settings" className="h-4 w-4 flex-none" />
         </button>
       </div>

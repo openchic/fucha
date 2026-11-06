@@ -372,7 +372,7 @@ export const ThemePanel = (props: ThemePanelProps) => {
             role="group"
             aria-label="颜色">
             <section className="flex flex-col gap-4">
-              <h2 className="border-b border-line pb-2 text-body text-ink">基础</h2>
+              <h2 className="border-b border-divider pb-2 text-body text-ink">基础</h2>
               <div className="[&>div]:py-1.5 [&>div:first-child]:pt-0 [&>div:last-child]:pb-0">
                 <ColorControl
                   compact
@@ -412,7 +412,7 @@ export const ThemePanel = (props: ThemePanelProps) => {
               </div>
             </section>
             <section className="flex flex-col gap-4">
-              <h2 className="border-b border-line pb-2 text-body text-ink">背景</h2>
+              <h2 className="border-b border-divider pb-2 text-body text-ink">背景</h2>
               <div className="[&>div]:py-1.5 [&>div:first-child]:pt-0 [&>div:last-child]:pb-0">
                 <ColorControl
                   compact
@@ -470,7 +470,7 @@ export const ThemePanel = (props: ThemePanelProps) => {
               </div>
             </section>
             <section className="flex flex-col gap-4">
-              <h2 className="border-b border-line pb-2 text-body text-ink">线条</h2>
+              <h2 className="border-b border-divider pb-2 text-body text-ink">线条</h2>
               <div className="[&>div]:py-1.5 [&>div:first-child]:pt-0 [&>div:last-child]:pb-0">
                 <ColorControl
                   compact
@@ -508,7 +508,7 @@ export const ThemePanel = (props: ThemePanelProps) => {
             role="group"
             aria-label="排版">
             <section className="flex flex-col gap-4">
-              <h2 className="border-b border-line pb-2 text-body text-ink">正文</h2>
+              <h2 className="border-b border-divider pb-2 text-body text-ink">正文</h2>
               <div>
                 <div className="py-1.5 first:pt-0 last:pb-0">
                   <NumberControl
@@ -570,7 +570,7 @@ export const ThemePanel = (props: ThemePanelProps) => {
             </section>
 
             <section className="flex flex-col gap-4">
-              <div className="flex items-center justify-between gap-3 border-b border-line pb-2">
+              <div className="flex items-center justify-between gap-3 border-b border-divider pb-2">
                 <h2 className="text-body text-ink">标题</h2>
                 <Dropdown
                   label="标题层级"
@@ -676,7 +676,7 @@ export const ThemePanel = (props: ThemePanelProps) => {
             </section>
 
             <section className="flex flex-col gap-4">
-              <h2 className="border-b border-line pb-2 text-body text-ink">引用</h2>
+              <h2 className="border-b border-divider pb-2 text-body text-ink">引用</h2>
               <div>
                 <div className="py-1.5 first:pt-0">
                   <NumberControl
@@ -741,7 +741,7 @@ export const ThemePanel = (props: ThemePanelProps) => {
             </section>
 
             <section className="flex flex-col gap-4">
-              <h2 className="border-b border-line pb-2 text-body text-ink">表格</h2>
+              <h2 className="border-b border-divider pb-2 text-body text-ink">表格</h2>
               <div>
                 <div className="py-1.5 first:pt-0">
                   <NumberControl
@@ -777,7 +777,7 @@ export const ThemePanel = (props: ThemePanelProps) => {
             </section>
 
             <section className="flex flex-col gap-4">
-              <h2 className="border-b border-line pb-2 text-body text-ink">图片</h2>
+              <h2 className="border-b border-divider pb-2 text-body text-ink">图片</h2>
               <div>
                 <div className="py-1.5 first:pt-0">
                   <NumberControl
@@ -826,7 +826,7 @@ export const ThemePanel = (props: ThemePanelProps) => {
             </section>
 
             <section className="flex flex-col gap-4">
-              <h2 className="border-b border-line pb-2 text-body text-ink">分割线</h2>
+              <h2 className="border-b border-divider pb-2 text-body text-ink">分割线</h2>
               <div>
                 <div className="py-1.5 first:pt-0">
                   <NumberControl
@@ -892,7 +892,7 @@ export const ThemePanel = (props: ThemePanelProps) => {
             role="group"
             aria-label="代码">
             <section className="flex flex-col gap-4">
-              <h2 className="border-b border-line pb-2 text-body text-ink">代码块</h2>
+              <h2 className="border-b border-divider pb-2 text-body text-ink">代码块</h2>
               <div>
                 <div className="py-1.5 first:pt-0">
                   <DropdownField
@@ -1017,7 +1017,7 @@ export const ThemePanel = (props: ThemePanelProps) => {
               </div>
             </section>
             <section className="flex flex-col gap-4">
-              <h2 className="border-b border-line pb-2 text-body text-ink">行内代码</h2>
+              <h2 className="border-b border-divider pb-2 text-body text-ink">行内代码</h2>
               <div>
                 <div className="py-1.5 first:pt-0 last:pb-0">
                   <NumberControl
@@ -1050,7 +1050,7 @@ export const ThemePanel = (props: ThemePanelProps) => {
             className="flex flex-col gap-4 [&_.field-label]:text-description [&_.field-value]:text-description"
             role="group"
             aria-label="页面">
-            <h2 className="border-b border-line pb-2 text-body text-ink">内边距</h2>
+            <h2 className="border-b border-divider pb-2 text-body text-ink">内边距</h2>
             <div>
               <div className="py-1.5 first:pt-0">
                 <NumberControl

@@ -35,7 +35,7 @@ const Home = () => {
 
   return (
     <PageBridgeContext.Provider value={{ setPage, refreshHistory: history.refresh }}>
-      <main className="flex h-full overflow-hidden bg-white">
+      <main className="flex h-full overflow-hidden bg-panel">
         <Sidebar
           items={history.items}
           ready={history.ready}
@@ -46,8 +46,10 @@ const Home = () => {
           onDelete={deleteHistory}
           onSettings={openSettings}
         />
-        <div className="flex min-w-0 flex-1 flex-col overflow-hidden bg-white">
-          <Outlet />
+        <div className="flex min-w-0 flex-1 flex-col bg-panel py-2 pr-2">
+          <div className="flex min-w-0 flex-1 flex-col overflow-hidden rounded-2xl bg-white shadow-[0_1px_2px_rgba(29,29,31,0.05)]">
+            <Outlet />
+          </div>
         </div>
       </main>
     </PageBridgeContext.Provider>
