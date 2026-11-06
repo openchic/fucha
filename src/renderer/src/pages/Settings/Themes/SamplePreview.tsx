@@ -7,13 +7,34 @@ const SAMPLE_TITLE = '示例'
 
 const SAMPLE_IMAGE = `data:image/svg+xml,${encodeURIComponent(
   `<svg xmlns="http://www.w3.org/2000/svg" width="640" height="280" viewBox="0 0 640 280">
-    <rect width="640" height="280" fill="#f5ede0"/>
+    <defs>
+      <radialGradient id="sky-glow">
+        <stop stop-color="#e9ad87" stop-opacity=".32"/>
+        <stop offset=".56" stop-color="#edbd99" stop-opacity=".2"/>
+        <stop offset="1" stop-color="#edbd99" stop-opacity="0"/>
+      </radialGradient>
+      <linearGradient id="cloud-glow">
+        <stop stop-color="#e5a47f" stop-opacity="0"/>
+        <stop offset=".54" stop-color="#e5a47f" stop-opacity=".18"/>
+        <stop offset="1" stop-color="#e5a47f" stop-opacity="0"/>
+      </linearGradient>
+      <radialGradient id="water-glow" cx="72%" cy="12%" r="30%">
+        <stop stop-color="#eaddc7"/>
+        <stop offset="1" stop-color="#e9e3d3"/>
+      </radialGradient>
+    </defs>
+    <rect width="640" height="280" fill="#f0e9d9"/>
+    <ellipse cx="462" cy="126" rx="210" ry="99" fill="url(#sky-glow)"/>
+    <g fill="url(#cloud-glow)">
+      <path d="M327 124C348 124 365 115 388 117S419 121 447 115C425 125 407 123 386 122S350 129 327 124Z"/>
+      <path d="M497 137C514 137 523 132 540 133S562 135 577 131C562 139 551 138 538 137S511 141 497 137Z"/>
+    </g>
     <circle cx="474" cy="106" r="38" fill="#d9a380"/>
-    <path d="M0 166 105 98 182 144 255 110 355 166 453 143 543 160 640 132V280H0Z" fill="#a7ada0"/>
-    <path d="M0 185 89 142 150 155 220 132 335 183 431 169 534 180 640 164V280H0Z" fill="#7d8b7e"/>
-    <path d="M0 196Q162 178 323 197T640 190V280H0Z" fill="#d7e0d6"/>
+    <path d="M0 135 63 101 121 143 149 136 192 192V210H0Z M640 136 571 117 521 150 495 145 449 192V210H640Z" fill="#a7ada0"/>
+    <path d="M0 162 48 137 107 165 137 155 174 192V210H0Z M640 163 596 143 553 166 516 159 471 192V210H640Z" fill="#7d8b7e"/>
+    <path d="M0 194Q100 184 192 192H449Q546 184 640 194V280H0Z" fill="url(#water-glow)"/>
     <g fill="none" stroke-linecap="round">
-      <path d="M318 211h99m-214 17h150m95 14h112M79 254h126" stroke="#a7b6a8" stroke-width="2"/>
+      <path d="M318 211h99m-214 17h150m95 14h112M79 254h126" stroke="#b2ae9b" stroke-width="2"/>
       <path d="M373 91q11-8 23 3 8-12 20-10" stroke="#3f4841" stroke-width="3"/>
     </g>
   </svg>`
