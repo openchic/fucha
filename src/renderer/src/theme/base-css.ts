@@ -75,6 +75,22 @@ b {
   font-weight: 700;
 }
 
+h1 strong,
+h1 b,
+h2 strong,
+h2 b,
+h3 strong,
+h3 b,
+h4 strong,
+h4 b,
+h5 strong,
+h5 b,
+h6 strong,
+h6 b {
+  color: inherit;
+  font-weight: inherit;
+}
+
 em,
 i {
   color: var(--fucha-text-color);
@@ -273,6 +289,16 @@ figcaption {
   font-size: var(--fucha-text-secondary-font-size);
   line-height: 1.6;
   text-align: center;
+}
+
+figure > img:has(+ figcaption),
+figure > a:has(+ figcaption) > img:last-child {
+  margin-bottom: 0;
+}
+
+figure > img + figcaption,
+figure > a:has(> img:last-child) + figcaption {
+  margin-top: 8px;
 }
 
 hr {

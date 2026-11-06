@@ -315,6 +315,8 @@ type HeadingLevel = {
 
 应用维护一份 `base.css`，覆盖正文默认排版、引用、代码、表格、图片、分割线与微信安全属性；行内代码与表格按正文 0.875 倍取字号，代码块与引用使用各自字号 token，其余样式只引用 token 变量。正文代码块统一使用 `borderColor` 外框、`code.borderStyle` 边框样式与 `code.borderRadius` 圆角；带标题的代码块使用 `figure.code-block` + `figcaption`，在卡片顶部增加标题条（复用 `code.paddingBlock` / `code.paddingInline`、`text.secondaryColor` / `text.secondaryFontSize` 与等宽字体），标题下用 1px `borderColor` 分隔线，不新增标题条 token；主题用 `pre`、`.code-block` / `.code-block figcaption` 覆盖。正文表格在预览与导出中包一层带 1px `borderColor` 边框与代码块圆角的 `figure.table-scroll`；表格外圈边框由容器承担，只保留内部行列线。只有列数 ≥3 的表格额外加 `table-scroll-wide` 与 `min-width: 600px`，在边框内横向滚动；2 列表格按容器宽度换行，不出现滚动条。滚动条使用原生样式，不提供主题开关。
 
+标题中的 `strong` 和 `b` 继承标题字重和颜色。图注紧跟图片或带链接的图片时，两者相隔 8px，`image.marginBottom` 用于图注下方。
+
 主题的 `theme.css` 只写差异。加载顺序固定为 `base.css` → 装饰规则 → hljs 语法色 → `theme.css`，同选择器后写覆盖，主题永远有最终决定权。
 
 逐元素 margin/padding/border 不进入 token，写在 theme.css：
@@ -325,7 +327,7 @@ type HeadingLevel = {
 | 仅 padding + border | `th`、`td`（table-cell 的 margin 不生效）                                                           |
 | 不开放盒模型        | `a`、`strong`、`em`、`b`、`i`、`u`、`s`、行内 `code`、`sup`、`sub`、`svg`                           |
 
-例外：代码块外边框样式单列为 `code.borderStyle`，因为需要在配置页提供开关；其余逐元素边框仍写在 theme.css。
+代码块外边框样式单列为 `code.borderStyle`，由配置页的边框选项控制。书卷预设将它设为 `none`，用浅纸色 `#faf7f2` 底区分代码块与正文。
 
 `img` 左右外边距固定为 `auto`，theme.css 控制上下外边距。
 
@@ -376,7 +378,7 @@ my-theme.fucha-theme
 }
 ```
 
-- 内置主题与自定义主题共用同一结构；当前内置「雾紫」（id `default`）、「书卷」（id `shujuan`）与「丹霞」（id `danxia`），只读，升级时新增主题 id，旧 id 保留，避免历史文章换样。三套内置主题共用页面内距 40/24/40/24、标题字号序列 24/20/18/16/14/14，并显式写入代码块背景；配色、字族（书卷通过 `&` 根规则使用衬线）、标题装饰与局部间距按主题保留差异。内置主题按主题分文件放在 `src/renderer/src/theme/presets/`（`default.ts`、`shujuan.ts`、`danxia.ts`，`index.ts` 汇总）；主进程做冲突校验所需的保留 id/名称放在 `src/shared/builtin-themes.ts`，由 harness 校验两边一致。
+- 内置主题与自定义主题共用同一结构。当前内置「雾紫」（id `default`）、「书卷」（id `shujuan`）与「丹霞」（id `danxia`），均为只读。升级时新增主题 id，并保留旧 id，避免历史文章换样。三套主题均显式写入代码块背景。雾紫与丹霞的页面内距为 40/24/40/24，标题字号为 24/20/18/16/14/14。书卷的页面内距为 32/24/40/24，标题字号为 20/20/18/16/14/13，六级标题字重均为 600。公众号文章标题由平台单独设置，所以书卷正文 H1 与 H2 同样式。书卷通过 `&` 根规则使用衬线字族。内置主题按主题分文件放在 `src/renderer/src/theme/presets/`（`default.ts`、`shujuan.ts`、`danxia.ts`，`index.ts` 汇总）。主进程做冲突校验所需的保留 id 和名称放在 `src/shared/builtin-themes.ts`，由 harness 校验两边一致。
 - 自定义主题导入后，token 与 CSS 存入本地 SQLite；同一 id 或内置 id 已存在时拒绝导入。导入后的自定义主题可原地编辑，也可另存为或新建。
 - 导出主题时把当前 token 和 CSS 重新打包成同样的 zip；内置主题导出时 token 的 `builtin` 置为 false，导入后成为普通自定义主题。不导出文章内容。
 - 自定义主题只允许 CSS 与 token，不允许注入 HTML 或脚本。

@@ -80,7 +80,11 @@ export const PhonePreview = (props: PhonePreviewProps) => {
       aria-label={ariaLabel}
       className={`relative flex h-full min-h-0 min-w-0 flex-1 flex-col bg-white ${className ?? ''}`}>
       <div className="absolute inset-x-0 top-0 z-10 flex h-11 items-center gap-3 px-6 pt-3">
-        {title && <h2 className="min-w-0 truncate text-body text-ink">{title}</h2>}
+        {title && (
+          <h2 title={title} className="min-w-0 truncate text-body text-ink">
+            {title}
+          </h2>
+        )}
         <div className="ml-auto flex-none">
           <Dropdown
             label="预览设备"

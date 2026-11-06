@@ -335,20 +335,22 @@ function testTheme(): void {
     danxia.token.text.lineHeight === 1.8 && danxia.token.text.letterSpacing === 0.02
   )
   check(
-    '1.1 内置主题对齐雾紫排版规范',
-    BUILTIN_THEMES.every(
-      ({ token }) =>
-        token.page.paddingTop === 40 &&
+    '1.1 内置主题的页面内距和标题字号符合预设',
+    BUILTIN_THEMES.every(({ token }) => {
+      const isShujuan = token.id === 'shujuan'
+      return (
+        token.page.paddingTop === (isShujuan ? 32 : 40) &&
         token.page.paddingRight === 24 &&
         token.page.paddingBottom === 40 &&
         token.page.paddingLeft === 24 &&
-        token.h1.fontSize === 24 &&
+        token.h1.fontSize === (isShujuan ? 20 : 24) &&
         token.h2.fontSize === 20 &&
         token.h3.fontSize === 18 &&
         token.h4.fontSize === 16 &&
         token.h5.fontSize === 14 &&
-        token.h6.fontSize === 14
-    )
+        token.h6.fontSize === (isShujuan ? 13 : 14)
+      )
+    })
   )
   check(
     '1.1 内置主题显式设置代码块背景',

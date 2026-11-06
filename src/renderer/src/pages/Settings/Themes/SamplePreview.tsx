@@ -1,48 +1,65 @@
 import { useMemo } from 'react'
 import { PhonePreview } from '../../../components'
+import { normalizeArticleDom } from '../../../pipeline/normalize'
 import { highlightArticleHtml } from '../../../theme/highlight'
 
+const SAMPLE_TITLE = '示例'
+
 const SAMPLE_IMAGE = `data:image/svg+xml,${encodeURIComponent(
-  `<svg xmlns="http://www.w3.org/2000/svg" width="640" height="360"><rect width="640" height="360" fill="#f3f4f6"/><g fill="none" stroke="#c7cbd1" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"><rect x="240" y="100" width="160" height="160" rx="20"/><circle cx="352" cy="144" r="14"/><path d="M248 232l44-48 32 32 22-22 46 38"/></g></svg>`
+  `<svg xmlns="http://www.w3.org/2000/svg" width="640" height="280" viewBox="0 0 640 280">
+    <rect width="640" height="280" fill="#f5ede0"/>
+    <circle cx="474" cy="106" r="38" fill="#d9a380"/>
+    <path d="M0 166 105 98 182 144 255 110 355 166 453 143 543 160 640 132V280H0Z" fill="#a7ada0"/>
+    <path d="M0 185 89 142 150 155 220 132 335 183 431 169 534 180 640 164V280H0Z" fill="#7d8b7e"/>
+    <path d="M0 196Q162 178 323 197T640 190V280H0Z" fill="#d7e0d6"/>
+    <g fill="none" stroke-linecap="round">
+      <path d="M318 211h99m-214 17h150m95 14h112M79 254h126" stroke="#a7b6a8" stroke-width="2"/>
+      <path d="M373 91q11-8 23 3 8-12 20-10" stroke="#3f4841" stroke-width="3"/>
+    </g>
+  </svg>`
 )}`
 
+/** 王勃《滕王阁序》节选，分节标题和读序札记为示例编排 */
 const SAMPLE_ARTICLE = `
-<h1>把长文读得舒服</h1>
-<p>这是一段用于预览主题的正文。字号、行高、字距、段落间距和颜色都会随右侧配置实时变化，方便在保存前确认阅读节奏。</p>
-<h2>为什么排版值得调整</h2>
-<p>同一篇文章在不同主题下会有不同的语气。较紧的段落适合信息密度高的技术长文，较松的段落更适合需要慢读的叙事文章。</p>
-<ul>
-  <li>正文层级清楚，长文更容易扫读；</li>
-  <li>标题和引用有稳定的小面积强调；</li>
-  <li>代码、表格与图片保持可辨认的边界。</li>
-</ul>
-<blockquote><p>排版不替读者理解内容，但会决定读者愿不愿意读下去。</p></blockquote>
-<h3>引用与列表</h3>
-<p>引用使用主题色边条，列表保留清晰的缩进和行距。下面的代码块与表格用于检查等宽字体、背景和边框。</p>
-<p>行内代码写作 <code>const theme</code>，上下标如 H<sub>2</sub>O 与 x<sup>2</sup>。</p>
-<pre><code class="language-typescript">const theme = createTheme({
-  primary: '#5e7b6f',
-  lineHeight: 1.75,
-})</code></pre>
-<table>
-  <thead><tr><th>项目</th><th>用途</th><th>状态</th></tr></thead>
-  <tbody>
-    <tr><td>字号</td><td>正文阅读节奏</td><td>可调</td></tr>
-    <tr><td>行高</td><td>段落密度</td><td>可调</td></tr>
-    <tr><td>圆角</td><td>块级元素边界</td><td>可调</td></tr>
-  </tbody>
-</table>
-<h4>图片与分隔线</h4>
-<p>图片的上下间距由主题 token 控制，分割线采用当前的主题色。</p>
+<h1>滕王阁序</h1>
+<p>唐 · 王勃（节选）</p>
+<h2>洪都胜地</h2>
+<p>豫章故郡，洪都新府。星分翼轸，地接衡庐。襟三江而带五湖，控蛮荆而引瓯越。物华天宝，龙光射牛斗之墟；人杰地灵，徐孺下陈蕃之榻。</p>
+<h2>秋日登阁</h2>
+<p>时维九月，序属三秋。潦水尽而寒潭清，烟光凝而暮山紫。俨骖騑于上路，访风景于崇阿。临帝子之长洲，得天人之旧馆。层峦耸翠，上出重霄；飞阁流丹，下临无地。鹤汀凫渚，穷岛屿之萦回；桂殿兰宫，即冈峦之体势。</p>
+<h3>俯瞰江天</h3>
+<p>披绣闼，俯雕甍。山原旷其盈视，川泽纡其骇瞩。闾阎扑地，钟鸣鼎食之家；舸舰弥津，青雀黄龙之舳。云销雨霁，彩彻区明。</p>
+<blockquote><p>落霞与孤鹜<sup>1</sup>齐飞，秋水共长天一色。</p></blockquote>
+<p>渔舟唱晚，响穷彭蠡之滨；雁阵惊寒，声断衡阳之浦。</p>
 <figure>
-  <img src="${SAMPLE_IMAGE}" alt="示例插图" />
-  <figcaption>图注：示例插图，用于检查图片边距与图注文字样式。</figcaption>
+  <img src="${SAMPLE_IMAGE}" alt="暮山、落霞与飞鸟相映，秋江向远处延伸" />
+  <figcaption>图 1 · 秋水长天</figcaption>
 </figure>
 <hr />
-<h5>更小的标题</h5>
-<p>这一行用于确认 h5 与正文之间的层次关系。</p>
-<h6>最小标题</h6>
-<p>示例到此结束，保存后回到文章即可看到同一主题在真实内容上的效果。</p>
+<h2>读序札记</h2>
+<h3>字词简注</h3>
+<table>
+  <thead><tr><th>字词</th><th>读音</th><th>句中含义</th></tr></thead>
+  <tbody>
+    <tr><td>潦水</td><td>lǎo shuǐ</td><td>雨后积水</td></tr>
+    <tr><td>绣闼</td><td>xiù tà</td><td>装饰华美的门</td></tr>
+    <tr><td>雕甍</td><td>diāo méng</td><td>雕饰华美的屋脊</td></tr>
+  </tbody>
+</table>
+<h4>景物的次序</h4>
+<ul>
+  <li>先写潭水、暮山和楼阁，交代登临所见。</li>
+  <li>再写落霞、孤鹜和秋水，视线从楼阁推向江天。</li>
+  <li>末尾由渔歌和雁声收束，把远景落到听觉上。</li>
+</ul>
+<h5>摘句对读</h5>
+<p>将上下句分别记作 A<sub>1</sub> 和 A<sub>2</sub>，录入 <code>couplet</code>，便于并排对读。</p>
+<pre><code class="language-typescript">const couplet = {
+  a1: '落霞与孤鹜齐飞',
+  a2: '秋水共长天一色',
+}</code></pre>
+<h6>注 1 · 孤鹜</h6>
+<p>鹜读 wù。孤鹜指独飞的野鸭。</p>
 `
 
 type SamplePreviewProps = {
@@ -52,11 +69,15 @@ type SamplePreviewProps = {
 
 /** 主题配置页左侧：固定示例文章，使用当前草稿实时渲染 */
 export const SamplePreview = ({ styleCss, variables }: SamplePreviewProps) => {
-  const sampleHtml = useMemo(() => highlightArticleHtml(SAMPLE_ARTICLE), [])
+  const sampleHtml = useMemo(() => {
+    const doc = new DOMParser().parseFromString(SAMPLE_ARTICLE, 'text/html')
+    normalizeArticleDom(doc, SAMPLE_TITLE)
+    return highlightArticleHtml(doc.body.innerHTML)
+  }, [])
 
   return (
     <PhonePreview
-      title="示例文章"
+      title={SAMPLE_TITLE}
       ariaLabel="主题预览"
       styleCss={styleCss}
       variables={variables}

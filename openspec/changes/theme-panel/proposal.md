@@ -8,9 +8,11 @@ M1 的主题是只读内置预设，用户只能整体切换，不能基于现�
 
 - ThemeToken v1：h1–h6 移到顶层，每级有 `fontSize / fontWeight / lineHeight / textAlign / decoration / marginTop / marginBottom`；字段名对齐 CSS 属性（`quote.backgroundColor`、`borderColor`、`headingColor`、`table.headerBackgroundColor`、`table.padding`、`image.marginTop/marginBottom`、`code.inlineBackgroundColor`、`divider.borderTopStyle`、`divider.borderTopColor`、`divider.marginTop/marginBottom`）。
 - 内置主题改为「token 默认值 + theme.css」，提供 `default`、`shujuan` 与 `danxia` 三套；内置主题只读，升级视觉时新增 id，旧 id 保留。
+- 公众号文章标题单独设置，书卷正文的一级和二级标题采用相同样式。六级标题统一字重，用字号和间距区分其余层级。收紧页首留白，正文分割线改用细实线。
+- 标题内的粗体沿用标题字重和颜色。带图注的图片将段后留白放在图注下方，让图注贴近图片。
 - 新增应用级 `base.css`（正文排版、引用、代码、表格、图片、分割线；行内代码与表格字号按正文 0.875 倍，代码块与引用字号独立可调，其余只引用 token 变量）与每主题 `theme.css`；预览与导出共用同一份 CSS，导出时解析 `var()` 后再 juice 内联。
 - 新增主题 CSS 契约与 fail-closed 校验：只允许元素/类/后代选择器与微信安全属性，禁止伪类、`@` 规则、`!important`、外部资源与契约外变量，错误带行号。
-- 新增设置页与主题管理：`/settings` 布局左侧设置导航，右侧主题列表与配置页；配置页左侧固定示例文章预览、右侧 token 控件。
+- 新增设置页与主题管理。`/settings` 左侧是设置导航，右侧是主题列表与配置页。配置页以「示例」为预览标题，用《滕王阁序》节选与读序札记展示样式，右侧提供 token 控件。
 - 新增自定义主题原地保存：`updateTheme` 更新 token/css，所有引用文章同步换样；另存为生成新主题并记录来源，新建从默认 token 起、无来源。
 - 内置主题只读，只能另存为；文章页主题下拉只负责选择与打开管理，历史栏右下角设置图标同入口。
 - 新增应用级 `base.css`（正文排版、引用、代码、表格、图片、分割线；行内代码与表格字号按正文 0.875 倍，代码块与引用字号独立可调，其余只引用 token 变量）与每主题 `theme.css`；预览与导出共用同一份 CSS，导出时解析 `var()` 后再 juice 内联。
@@ -21,7 +23,7 @@ M1 的主题是只读内置预设，用户只能整体切换，不能基于现�
 - 颜色精确输入与对比度提示：点击色块打开取色弹层（`@uiw/react-color` 的 Sketch，关闭 alpha），Hex/RGB 字段可输入或粘贴；正文色/次级文字色与相关底色的对比度低于 4.5:1 时行内提示但不阻止保存；说明通过 `aria-describedby` 关联输入。
 - 块底色与表头背景色拆开：新增 `table.headerBackgroundColor`，颜色 tab 单独配置。
 - 引用与行内代码背景色拆开：颜色 tab 的「块底色」拆为「引用背景色」与「行内代码背景色」；引用背景存于 `quote.backgroundColor`，行内代码背景独立存储为 `code.inlineBackgroundColor`。
-- 边框色与分割线色拆开：新增 `divider.borderTopColor`，颜色 tab 单独配置。
+- 新增 `divider.borderTopColor`，在颜色 tab 单独配置分割线色。书卷的表格使用浅暖灰边框，代码块用浅纸色底并去掉外框。
 - 新增自定义主题管理：设置页列表支持导入、导出、删除，改名在配置页随保存提交；主题名称全局唯一，重名的新建、导入与改名被拒绝；被文章引用的主题拒绝删除。
 - 新增 `.fucha-theme` 主题包（`theme.json` + `theme.css`）导入导出；导入校验 token、CSS、zip 结构与文件完整性，id 冲突或内置 id 拒绝。
 - 本地存储 schema v8 不含新增字段：`themes` 已有 `css`、`token_version`、`source_theme_id`；自定义主题可更新 token/css，另存为与新建创建新行。
