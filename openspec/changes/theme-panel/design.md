@@ -27,7 +27,7 @@
 
 **配置页用固定示例文章预览。** 配置页左侧用内置示例文章实时展示草稿效果，右侧是 token 控件；不读取当前文章、不做跨页同步。保存后返回文章时 Preview 重新挂载并加载已落库主题，避免在设置页和文章页之间维护两份预览状态。
 
-**token + theme.css 两层。** 把所有元素盒模型都 token 化会让接口膨胀，且很多控件在部分主题上无效；token 只保留约 20 个跨主题稳定字段，逐元素 margin/padding/border 放 theme.css。应用维护 base.css，主题只写差异。
+**token + theme.css 两层。** 把所有元素盒模型都 token 化会让接口膨胀，且很多控件在部分主题上无效；token 只保留约 20 个跨主题稳定字段，逐元素 margin/padding/border 放 theme.css。应用维护 base.css，主题只写差异；字族、页面底色等根级表现用单独成条的 `&` 规则写在 theme.css，避免枚举正文标签。
 
 **变量路径与具体值路径共用同一份 CSS。** 预览把 token 写成 `.article-body` 上的 CSS 变量并注入 base + theme；导出把同一份 CSS 的 `var(--fucha-*)` 替换成具体值，再交给 juice。juice 不解析变量，因此导出前必须清零 `var()`。
 
@@ -35,7 +35,7 @@
 
 **标题六级同形并直接挂 token 顶层。** 旧模型 h1–h3 共用排版、h4–h6 回落正文，用户要求六级都能各自调整；外层 `heading` 包装不再提供额外语义，去掉。
 
-**内置主题版本化。** 内置主题不写入数据库；升级视觉时新增 id，旧 id 保留，避免历史文章换样。当前提供 `default`、`shujuan` 与 `danxia`，`shujuan` 用 theme.css 引入系统衬线标题、细引用边条，`danxia` 只靠 token 表达暖橙主色、灰底与标题竖条。
+**内置主题版本化。** 内置主题不写入数据库；升级视觉时新增 id，旧 id 保留，避免历史文章换样。当前提供 `default`、`shujuan` 与 `danxia`，`shujuan` 用 theme.css 的 `&` 根规则选择衬线字族，并收细引用边条、收紧图注字距，`danxia` 只靠 token 表达暖橙主色、灰底与标题竖条。
 
 **主题包用 stored zip，不引第三方库。** 包内只有两个文本文件，压缩收益为零；主进程直接写/读 zip，读取支持 stored 与 deflate，拒绝加密、zip64、路径穿越与超出大小上限的条目。导出时不压缩；导入时只接受 `theme.json` 与 `theme.css` 两个文件。
 

@@ -1,5 +1,5 @@
 // 临时验证入口（主进程侧）：真跑 Electron 运行时，验证抓取分类、图片下载与 fucha:// 协议。
-import type { Article, ThemeToken } from '../src/shared/types'
+import type { Article } from '../src/shared/types'
 import type { StoredImageInput } from '../src/shared/store-types'
 import { promises as fs } from 'fs'
 import { createServer } from 'http'
@@ -35,9 +35,12 @@ import {
 } from '../src/main/store'
 import { buildThemePackage, parseThemePackage } from '../src/main/theme-package'
 import { createZip, readZip } from '../src/main/zip'
-import defaultTheme from '../src/shared/theme-presets/default.json'
+import { BUILTIN_THEMES, DEFAULT_THEME } from '../src/renderer/src/theme/presets'
+import { BUILTIN_THEME_CONTRACT } from '../src/shared/builtin-themes'
 import { looksLikeCaptcha, matchProfile } from '../src/shared/profiles'
 import { validateThemeToken } from '../src/shared/theme'
+
+const defaultTheme = DEFAULT_THEME.token
 
 registerFuchaProtocol()
 
@@ -456,6 +459,15 @@ async function main(): Promise<void> {
     )
   )
   check(
+    '2.3 主进程内置主题契约与预设一致',
+    BUILTIN_THEMES.length === BUILTIN_THEME_CONTRACT.length &&
+      BUILTIN_THEMES.every(
+        ({ token }, index) =>
+          BUILTIN_THEME_CONTRACT[index]?.id === token.id &&
+          BUILTIN_THEME_CONTRACT[index]?.name === token.name
+      )
+  )
+  check(
     '2.3 内置主题 id 不能被自定义主题占用',
     throws(() => createTheme({ token: { ...customTheme, id: 'default' }, css: '' }))
   )
@@ -627,9 +639,7 @@ async function main(): Promise<void> {
       parsedPackage.tokenVersion === 1 &&
       parsedPackage.token.builtin === false
   )
-  const builtinPackage = parseThemePackage(
-    buildThemePackage({ token: defaultTheme as unknown as ThemeToken, css: '' })
-  )
+  const builtinPackage = parseThemePackage(buildThemePackage({ token: defaultTheme, css: '' }))
   check('2.8 内置主题导出后变为自定义主题', builtinPackage.token.builtin === false)
 
   const packageParts = readZip(packageBuffer)

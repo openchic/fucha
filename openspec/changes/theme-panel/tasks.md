@@ -117,6 +117,10 @@
 - [x] 3.99 代码块字号统一 13px：三套内置主题 `code.fontSize` 统一为 13；引用字号保持 14；验证：真实窗口代码块 13px、harness 通过
 - [x] 3.100 代码块字号范围收窄：`code.fontSize` 范围由 10–20 改为 10–16，step 0.25 不变；验证：17px 被校验拒绝，控件上限为 16
 - [x] 3.101 代码块字号步长调整：`code.fontSize` step 由 0.25 改为 0.5；验证：控件步进为 0.5，harness 通过
+- [x] 3.102 字族不进入 token：theme.css 新增单独成条的 `&` 根选择器契约（不能与其他选择器组合），预览写入 `.article-body`、导出解析变量后合并到外层 section；书卷用 `&` 设置衬线字族（Songti SC / Noto Serif CJK SC / Source Han Serif SC / SimSun），标题与正文靠继承生效，图注字距 0.08em→0.04em，代码块保持等宽；验证：harness 断言根规则进入预览与导出、`& h1` 被拒，真实窗口字族正确
+- [x] 3.103 导出根规则转义：外层 section 的 style 属性拼接前转义 `&` 与引号，避免双引号字体栈截断属性或注入；harness 覆盖合法双引号与属性注入；验证：harness 通过
+- [x] 3.104 根规则健壮性：多段 `&` 声明补齐分号分隔，`&` 与其他选择器组合统一报「只能单独使用」；`pre` 自身设置等宽字族，避免无 `code` 子节点在衬线主题下变衬线；验证：harness 覆盖多段根规则进入预览/导出、`& h1` 报错文案、纯 `pre` 导出等宽
+- [x] 3.105 预设主题集中：每套主题一个文件放在 `src/renderer/src/theme/presets/`（`default.ts` / `shujuan.ts` / `danxia.ts`，token 与各自的 theme.css 同文件），`index.ts` 只做 `BUILTIN_THEMES` / `DEFAULT_THEME` 汇总与校验（取代 3.91 的 shared 放置），token 用 `satisfies ThemeToken` 编译期校验；主进程无法引用渲染层，保留 id/名称契约单独放 `src/shared/builtin-themes.ts`，harness 断言预设与契约的 id、名称、顺序一致；验证：typecheck、主/渲染 harness 通过
 
 ## 4. 主题包
 

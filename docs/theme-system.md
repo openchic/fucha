@@ -247,7 +247,7 @@ type HeadingLevel = {
 | `divider.marginTop`           | 18px                                    | 0–40                             | 分割线上外边距                                    |
 | `divider.marginBottom`        | 18px                                    | 0–40                             | 分割线下外边距                                    |
 
-标题颜色统一使用 `headingColor`。行内代码与表格不读 `secondaryFontSize`，字号按正文的 0.875 倍缩放，随 `text.fontSize` 变化；代码块使用 `code.fontSize`，引用使用 `quote.fontSize`，两者都是固定 token，修改正文字号或语法主题不会联动修改。带标题代码块的标题条使用 `secondaryFontSize` 与 `secondaryColor`。表头背景色由 `table.headerBackgroundColor` 单独控制。
+字族、页面底色等根级表现属于 theme.css 的 `&` 根规则，不进入 token。标题颜色统一使用 `headingColor`。行内代码与表格不读 `secondaryFontSize`，字号按正文的 0.875 倍缩放，随 `text.fontSize` 变化；代码块使用 `code.fontSize`，引用使用 `quote.fontSize`，两者都是固定 token，修改正文字号或语法主题不会联动修改。带标题代码块的标题条使用 `secondaryFontSize` 与 `secondaryColor`。表头背景色由 `table.headerBackgroundColor` 单独控制。
 
 ### 标题装饰
 
@@ -331,16 +331,20 @@ type HeadingLevel = {
 
 ## Theme CSS 契约
 
-`theme.css` 只能使用元素、类与后代选择器：
+`theme.css` 只能使用元素、类与后代选择器；另可单独使用 `&` 指向文章根节点：
 
 ```css
+& { font-family: 'Songti SC', serif; }
 h2 { ... }
 pre code { ... }
 .hljs-keyword { ... }
 ```
 
+`&` 必须单独成条，不能与元素或类组合；预览作用于 `.article-body`，导出时解析 token 变量并合并到最外层 `section` 的 style。字族、页面底色等根级样式写在这里，不要枚举正文标签。
+
 禁止：
 
+- `&` 与其他选择器组合：`& h1`
 - 伪类与伪元素：`:hover`、`::before`、`:first-child`
 - `@` 规则：`@media`、`@import`、`@font-face`、`@keyframes`、`@layer`
 - `!important`
@@ -372,7 +376,7 @@ my-theme.fucha-theme
 }
 ```
 
-- 内置主题与自定义主题共用同一结构；当前内置「雾紫」（id `default`）、「书卷」（id `shujuan`）与「丹霞」（id `danxia`），只读，升级时新增主题 id，旧 id 保留，避免历史文章换样。三套内置主题共用页面内距 40/24/40/24、标题字号序列 24/20/18/16/14/14，并显式写入代码块背景；配色、字体、标题装饰与局部间距按主题保留差异。内置主题的 id 与名称直接取自预设 token，主进程与渲染层共用同一来源。
+- 内置主题与自定义主题共用同一结构；当前内置「雾紫」（id `default`）、「书卷」（id `shujuan`）与「丹霞」（id `danxia`），只读，升级时新增主题 id，旧 id 保留，避免历史文章换样。三套内置主题共用页面内距 40/24/40/24、标题字号序列 24/20/18/16/14/14，并显式写入代码块背景；配色、字族（书卷通过 `&` 根规则使用衬线）、标题装饰与局部间距按主题保留差异。内置主题按主题分文件放在 `src/renderer/src/theme/presets/`（`default.ts`、`shujuan.ts`、`danxia.ts`，`index.ts` 汇总）；主进程做冲突校验所需的保留 id/名称放在 `src/shared/builtin-themes.ts`，由 harness 校验两边一致。
 - 自定义主题导入后，token 与 CSS 存入本地 SQLite；同一 id 或内置 id 已存在时拒绝导入。导入后的自定义主题可原地编辑，也可另存为或新建。
 - 导出主题时把当前 token 和 CSS 重新打包成同样的 zip；内置主题导出时 token 的 `builtin` 置为 false，导入后成为普通自定义主题。不导出文章内容。
 - 自定义主题只允许 CSS 与 token，不允许注入 HTML 或脚本。

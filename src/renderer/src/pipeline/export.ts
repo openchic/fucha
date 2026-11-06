@@ -1,7 +1,7 @@
 import type { Article, ThemeDefinition } from '@shared/types'
 import { SAFE_DISPLAY_VALUES, WECHAT_STYLE_PROPERTIES } from '@shared/theme-css'
 import juice from 'juice'
-import { buildExportCss, exportRootStyle } from '../theme/apply'
+import { buildExportCss, buildExportRootStyle } from '../theme/apply'
 import { highlightArticleHtml } from '../theme/highlight'
 import { normalizeArticleDom } from './normalize'
 
@@ -12,6 +12,15 @@ function prepareExportBody(article: Article): string {
     anchor.replaceWith(...Array.from(anchor.childNodes))
   })
   return doc.body.innerHTML
+}
+
+/** 根 style 含主题 CSS，拼入 HTML 属性前必须转义，避免引号截断属性 */
+function escapeStyleAttribute(value: string): string {
+  return value
+    .replace(/&/g, '&amp;')
+    .replace(/"/g, '&quot;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
 }
 
 function filterWechatStyles(html: string): string {
@@ -63,7 +72,7 @@ export function buildExportHtml(article: Article, theme: ThemeDefinition): strin
     resolveCSSVariables: false,
   })
   const cleaned = filterWechatStyles(inlined)
-  return `<section style="${exportRootStyle(theme.token)}">${cleaned}</section>`
+  return `<section style="${escapeStyleAttribute(buildExportRootStyle(theme))}">${cleaned}</section>`
 }
 
 /** 剪贴板纯文本兜底：按块级边界保留可读换行 */

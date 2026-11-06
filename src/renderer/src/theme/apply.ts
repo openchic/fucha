@@ -1,6 +1,11 @@
 import type { ThemeDefinition, ThemeToken } from '@shared/types'
 import { HEADING_KEYS } from '@shared/theme'
-import { resolveThemeVariables, scopeCss } from '@shared/theme-css'
+import {
+  resolveThemeVariables,
+  scopeCss,
+  themeRootDeclarations,
+  withoutThemeRootRules,
+} from '@shared/theme-css'
 import { BASE_CSS } from './base-css'
 import { highlightThemeBackground, highlightThemeCss } from './highlight'
 
@@ -105,21 +110,27 @@ function scopedThemeCss(theme: ThemeDefinition): string {
   const themeCss = [
     decorationCss(theme.token),
     highlightThemeCss(theme.token.code.hljsTheme),
-    theme.css,
+    withoutThemeRootRules(theme.css),
   ]
     .filter(Boolean)
     .join('\n\n')
   return themeCss ? scopeCss(themeCss, '.article-body') : ''
 }
 
-/** 预览：token 变量 + base.css + 装饰 + 语法色 + theme.css，全部限定在 .article-body */
+/** `&` 根规则追加到根节点，保持与 base 同选择器、后写覆盖 */
+function rootDeclarationsOf(theme: ThemeDefinition): string {
+  const declarations = themeRootDeclarations(theme.css)
+  return declarations ? `\n${declarations}` : ''
+}
+
+/** 预览：token 变量 + 根规则 + base.css + 装饰 + 语法色 + theme.css，全部限定在 .article-body */
 export function buildPreviewCss(theme: ThemeDefinition): string {
   const variables = Object.entries(tokenVariables(theme.token))
     .map(([name, value]) => `  --fucha-${name}: ${value};`)
     .join('\n')
 
   return [
-    `.article-body {\n${variables}\n${previewCanvas()}\n}`,
+    `.article-body {\n${variables}\n${previewCanvas()}${rootDeclarationsOf(theme)}\n}`,
     SCOPED_BASE_CSS,
     scopedThemeCss(theme),
   ]
@@ -127,9 +138,13 @@ export function buildPreviewCss(theme: ThemeDefinition): string {
     .join('\n\n')
 }
 
-/** 预览静态样式：画布、base、装饰与语法色；token 变量由预览容器内联，拖动时只改变量 */
+/** 预览静态样式：画布、根规则、base、装饰与语法色；token 变量由预览容器内联，拖动时只改变量 */
 export function buildPreviewStyle(theme: ThemeDefinition): string {
-  return [`.article-body {\n${previewCanvas()}\n}`, SCOPED_BASE_CSS, scopedThemeCss(theme)]
+  return [
+    `.article-body {\n${previewCanvas()}${rootDeclarationsOf(theme)}\n}`,
+    SCOPED_BASE_CSS,
+    scopedThemeCss(theme),
+  ]
     .filter(Boolean)
     .join('\n\n')
 }
@@ -144,15 +159,23 @@ export function previewStyleVariables(token: ThemeToken): Record<string, string>
 /** 导出：同一份 CSS 去掉作用域并把变量解析成具体值，juice 不解析 var() */
 export function buildExportCss(theme: ThemeDefinition): string {
   const token = theme.token
-  const css = [BASE_CSS, decorationCss(token), highlightThemeCss(token.code.hljsTheme), theme.css]
+  const css = [
+    BASE_CSS,
+    decorationCss(token),
+    highlightThemeCss(token.code.hljsTheme),
+    withoutThemeRootRules(theme.css),
+  ]
     .filter(Boolean)
     .join('\n\n')
   return resolveThemeVariables(css, tokenVariables(token))
 }
 
 /** 导出外层 section 的基础样式；与预览 .article-body 的字体基线同源 */
-export function exportRootStyle(token: ThemeToken): string {
+export function exportRootStyle(token: ThemeToken, rootDeclarations = ''): string {
   const values = tokenVariables(token)
+  const resolvedRoot = rootDeclarations
+    ? resolveThemeVariables(rootDeclarations, values).replace(/;\s*$/, '')
+    : ''
   return [
     `font-family: ${ARTICLE_FONT_FAMILY}`,
     `font-size: ${values['text-font-size']}`,
@@ -163,5 +186,13 @@ export function exportRootStyle(token: ThemeToken): string {
     'box-sizing: border-box',
     'word-break: break-word',
     'text-align: left',
-  ].join('; ')
+    resolvedRoot,
+  ]
+    .filter(Boolean)
+    .join('; ')
+}
+
+/** 导出外层样式：token 基线 + theme.css 的 `&` 根规则 */
+export function buildExportRootStyle(theme: ThemeDefinition): string {
+  return exportRootStyle(theme.token, themeRootDeclarations(theme.css))
 }

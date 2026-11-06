@@ -138,6 +138,7 @@ pre {
   margin: 0 0 var(--fucha-text-margin-bottom);
   padding: var(--fucha-code-padding-block) var(--fucha-code-padding-inline);
   color: var(--fucha-text-color);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: var(--fucha-code-font-size);
   line-height: var(--fucha-code-line-height);
   background-color: var(--fucha-code-background-color);

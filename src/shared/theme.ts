@@ -1,26 +1,13 @@
 import type { HeadingDecoration, HeadingToken, ThemeToken } from './types'
-import { BUILTIN_THEME_TOKENS } from './theme-presets'
 
 export const THEME_TOKEN_VERSION = 1
 
-const builtinIds = BUILTIN_THEME_TOKENS.map(({ id }) => id.trim())
-const builtinNames = BUILTIN_THEME_TOKENS.map(({ name }) => name.trim())
-if (new Set(builtinIds).size !== builtinIds.length) throw new Error('内置主题 id 重复')
-if (new Set(builtinNames.map((name) => name.toLowerCase())).size !== builtinNames.length) {
-  throw new Error('内置主题名称重复')
-}
-
-/** 内置主题 id；主进程据此拒绝同 id 的自定义主题，避免解析歧义 */
-export const BUILTIN_THEME_IDS: readonly string[] = builtinIds
+/** 内置主题 id 与名称；主进程据此拒绝同 id/重名的自定义主题，契约与渲染层预设由 harness 校验一致 */
+export { BUILTIN_THEME_IDS, BUILTIN_THEME_NAMES } from './builtin-themes'
 
 /** 代码语法主题白名单；值必须与 renderer theme/highlight.ts 的 THEME_CSS 对齐 */
 export const HLJS_THEME_VALUES = ['github', 'atom-one-light', 'xcode'] as const
 export const CODE_BORDER_STYLE_VALUES = ['solid', 'dashed', 'none'] as const
-
-/** 内置主题名称；主进程据此拒绝重名的自定义主题 */
-export const BUILTIN_THEME_NAMES: Record<string, string> = Object.fromEntries(
-  BUILTIN_THEME_TOKENS.map(({ id, name }) => [id.trim(), name.trim()])
-)
 
 export type NumericRange = {
   min: number

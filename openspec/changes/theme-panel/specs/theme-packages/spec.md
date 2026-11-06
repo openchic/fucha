@@ -32,6 +32,11 @@
 - **WHEN** `theme.css` 含伪类、`@` 规则、`!important`、外部资源或契约外变量
 - **THEN** 导入失败并报告出错行号与原因，存储不新增主题
 
+#### Scenario: 根节点规则
+
+- **WHEN** `theme.css` 单独使用 `&` 写入根节点声明
+- **THEN** 导入通过，规则作用于预览根与导出外层 section
+
 #### Scenario: id 冲突
 
 - **WHEN** 导入主题 id 已存在于自定义主题或内置主题

@@ -8,13 +8,20 @@ import { buildExportHtml, exportHtmlToText } from '../src/renderer/src/pipeline/
 import {
   exportRootStyle,
   buildExportCss,
+  buildExportRootStyle,
   buildPreviewCss,
   tokenVariables,
 } from '../src/renderer/src/theme/apply'
 import { highlightArticleHtml, highlightThemeCss } from '../src/renderer/src/theme/highlight'
 import { BUILTIN_THEMES, DEFAULT_THEME } from '../src/renderer/src/theme/presets'
+import { BUILTIN_THEME_CONTRACT } from '../src/shared/builtin-themes'
 import { THEME_RANGES, validateThemeToken } from '../src/renderer/src/theme/tokens'
-import { resolveThemeVariables, scopeCss, validateThemeCss } from '../src/shared/theme-css'
+import {
+  resolveThemeVariables,
+  scopeCss,
+  themeRootDeclarations,
+  validateThemeCss,
+} from '../src/shared/theme-css'
 
 const results: string[] = []
 function check(name: string, pass: boolean, detail = ''): void {
@@ -449,12 +456,31 @@ function testTheme(): void {
   check('1.1 书卷次级文字色满足 AA', shujuan.token.text.secondaryColor === '#7a6f64')
   const shujuanPreview = buildPreviewCss(shujuan)
   check(
+    '1.1 书卷衬线字族由 theme.css 根规则进入预览与导出',
+    shujuan.css.includes('& {') &&
+      shujuanPreview.includes("font-family: 'Songti SC'") &&
+      !shujuanPreview.includes('.article-body &') &&
+      buildExportRootStyle(shujuan).includes("'SimSun'") &&
+      !buildExportRootStyle(shujuan).includes('var(')
+  )
+  check(
     '1.1 第二套内置主题带入自己的 theme.css',
-    shujuanPreview.includes('Songti SC') && shujuanPreview.includes('.article-body h1')
+    shujuanPreview.includes('.article-body blockquote') &&
+      shujuanPreview.includes('border-left-width: 2px') &&
+      shujuanPreview.includes('letter-spacing: 0.04em')
   )
   check(
     '1.1 内置主题 token 全部通过校验',
     BUILTIN_THEMES.every((theme) => validateThemeToken(theme.token).id === theme.token.id)
+  )
+  check(
+    '1.1 内置主题与主进程契约一致',
+    BUILTIN_THEMES.length === BUILTIN_THEME_CONTRACT.length &&
+      BUILTIN_THEMES.every(
+        ({ token }, index) =>
+          BUILTIN_THEME_CONTRACT[index]?.id === token.id &&
+          BUILTIN_THEME_CONTRACT[index]?.name === token.name
+      )
   )
 
   const cssRejections: { name: string; css: string; expected: string }[] = [
@@ -480,6 +506,80 @@ function testTheme(): void {
     check(`1.1 主题 CSS 拒绝${item.name}`, message.includes(item.expected), message)
   }
   check('1.1 合法主题 CSS 通过', validateThemeCss(shujuan.css) === shujuan.css)
+  check('1.1 theme.css 支持 & 根规则', validateThemeCss('& { font-family: serif; }') !== '')
+  let rootSelectorError = ''
+  try {
+    validateThemeCss('& h1 { color: #000; }')
+  } catch (error) {
+    rootSelectorError = String(error)
+  }
+  check('1.1 & 不允许与其他选择器组合', rootSelectorError.includes('只能单独使用'))
+
+  const multiRootTheme = {
+    token: shujuan.token,
+    css: validateThemeCss('& { color: red }\n& { background-color: blue }'),
+  }
+  check(
+    '1.1 多段根规则补齐声明分隔',
+    themeRootDeclarations(multiRootTheme.css) === 'color: red;\nbackground-color: blue;'
+  )
+  check(
+    '1.1 多段根规则进入预览与导出',
+    buildPreviewCss(multiRootTheme).includes('color: red;\nbackground-color: blue;') &&
+      buildExportRootStyle(multiRootTheme).includes('color: red;\nbackground-color: blue')
+  )
+  check(
+    '1.1 纯 pre 代码块保持等宽',
+    /(?:^|\n)pre \{([\s\S]*?)\}/
+      .exec(buildExportCss(DEFAULT_THEME))?.[1]
+      ?.includes('ui-monospace') === true
+  )
+
+  const quotedTheme = {
+    token: shujuan.token,
+    css: validateThemeCss('& { font-family: "Songti SC", serif; }'),
+  }
+  const quotedExport = buildExportHtml(
+    {
+      title: '根规则转义',
+      sourceUrl: 'https://example.com/escape',
+      html: '<p>正文</p>',
+      images: [],
+    },
+    quotedTheme
+  )
+  const quotedSection = new DOMParser()
+    .parseFromString(quotedExport, 'text/html')
+    .querySelector('section')
+  check(
+    '1.1 根规则双引号在导出中转义',
+    quotedExport.includes('&quot;Songti SC&quot;') &&
+      quotedSection?.getAttribute('style')?.includes('"Songti SC"') === true
+  )
+
+  const injectedTheme = {
+    token: shujuan.token,
+    css: validateThemeCss('& { font-family: "x" onmouseover="alert(1)"; }'),
+  }
+  const injectedSection = new DOMParser()
+    .parseFromString(
+      buildExportHtml(
+        {
+          title: '根规则注入',
+          sourceUrl: 'https://example.com/inject',
+          html: '<p>正文</p>',
+          images: [],
+        },
+        injectedTheme
+      ),
+      'text/html'
+    )
+    .querySelector('section')
+  check(
+    '1.1 根规则不能逃逸 style 属性',
+    !injectedSection?.hasAttribute('onmouseover') &&
+      injectedSection?.getAttribute('style')?.includes('onmouseover') === true
+  )
 
   let lineMessage = ''
   try {

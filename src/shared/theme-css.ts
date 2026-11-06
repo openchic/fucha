@@ -206,6 +206,10 @@ export function parseCssRules(css: string, validateSelectors = false): CssRule[]
     }
     for (const part of selector.split(',')) {
       const candidate = part.trim()
+      if (candidate.includes('&')) {
+        if (selector.trim() !== '&') fail(source, index, '`&` 只能单独使用')
+        continue
+      }
       if (!candidate || !SELECTOR_PATTERN.test(candidate)) {
         fail(source, index, `选择器「${candidate || '空'}」不合法`)
       }
@@ -299,9 +303,27 @@ export function validateThemeCss(css: string): string {
   return css
 }
 
-/** 预览路径：给每条规则加上 .article-body 作用域 */
+/** `&` 是文章根节点选择器；这里取出它的声明，供预览与导出外层节点使用 */
+export function themeRootDeclarations(css: string): string {
+  return parseCssRules(css)
+    .filter((rule) => rule.selector.trim() === '&')
+    .map((rule) => rule.declarations.trim())
+    .filter((declarations) => declarations && declarations !== ';')
+    .map((declarations) => (declarations.endsWith(';') ? declarations : `${declarations};`))
+    .join('\n')
+}
+
+/** 去掉 `&` 根规则后的 theme.css；作用域化与 juice 只处理普通选择器 */
+export function withoutThemeRootRules(css: string): string {
+  return parseCssRules(css)
+    .filter((rule) => rule.selector.trim() !== '&')
+    .map((rule) => `${rule.selector} {${rule.declarations}}`)
+    .join('\n\n')
+}
+
+/** 预览路径：给每条规则加上 .article-body 作用域；`&` 规则由调用方写到根节点 */
 export function scopeCss(css: string, scope: string): string {
-  const rules = parseCssRules(css)
+  const rules = parseCssRules(css).filter((rule) => rule.selector.trim() !== '&')
   return rules
     .map((rule) => {
       const selector = rule.selector
