@@ -64,7 +64,7 @@
 #### Scenario: 内置主题的文件名分隔线默认色
 
 - **WHEN** 用户用内置主题预览或导出带文件名的代码块
-- **THEN** 分隔线 SHALL 使用预设单独设置的 `code.captionDivider.borderBottomColor`。雾紫为 `#eceef4`，书卷为 `#f1ece4`，苔青为 `#dde7df`
+- **THEN** 分隔线 SHALL 使用预设单独设置的 `code.captionDivider.borderBottomColor`。雾紫为 `#eceef4`，书卷为 `#f1ece4`，苔青为 `#d3e0d6`
 
 #### Scenario: 单字段重置
 
@@ -109,7 +109,7 @@
 #### Scenario: 苔青预设的手机阅读排版
 
 - **WHEN** 用户使用苔青（id `danxia`）预览或导出文章
-- **THEN** 正文 SHALL 使用无衬线字族、14px 字号、1.8 行高和两侧各 18px 内距。正文 H1 与 H2 SHALL 由 token 设置为左对齐、20px、700 字重和 `#8fae96` 竖条，背景透明。H3 至 H6 SHALL 使用统一的 16px 字号、600 字重、1.5 行高、左对齐且无装饰，以及 18px 上边距和 8px 下边距。引用、代码块、行内代码与表头 SHALL 同用 `#f0f5f1` 背景。引用 SHALL 使用 `quote.decoration: none`，通过底色和内距区分。代码块无外框。表格数据单元格保留白底，外框和格线 SHALL 使用边框色 `#d4e0d6`。正文分割线 SHALL 使用 `#dde7df` 的 1px 实线
+- **THEN** 正文 SHALL 使用无衬线字族、14px 字号、1.8 行高和两侧各 18px 内距。正文 H1 与 H2 SHALL 由 token 设置为左对齐、20px、700 字重和 `#8fae96` 竖条，背景透明。H3 至 H6 SHALL 使用统一的 16px 字号、600 字重、1.5 行高、左对齐且无装饰，以及 18px 上边距和 8px 下边距。引用、代码块、行内代码与表头 SHALL 同用 `#f1f5f2` 浅苔背景。引用 SHALL 使用 `quote.decoration: none`，通过底色和内距区分。代码块无外框。表格数据单元格保留白底，外框和格线 SHALL 使用边框色 `#d4e0d6`。次级文字 SHALL 使用 `#59695f`，正文分割线与文件名分隔线 SHALL 使用 `#d3e0d6` 的 1px 实线
 
 #### Scenario: 书卷预设的标题与分割线
 

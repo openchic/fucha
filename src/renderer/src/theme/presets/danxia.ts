@@ -77,7 +77,7 @@ const token = {
     marginBottom: 8,
   },
   quote: {
-    backgroundColor: '#f0f5f1',
+    backgroundColor: '#f1f5f2',
     fontSize: 14,
     decoration: 'none',
     paddingBlock: 14,
@@ -86,9 +86,9 @@ const token = {
   },
   code: {
     hljsTheme: 'github',
-    backgroundColor: '#f0f5f1',
+    backgroundColor: '#f1f5f2',
     fontSize: 13,
-    inlineBackgroundColor: '#f0f5f1',
+    inlineBackgroundColor: '#f1f5f2',
     lineHeight: 1.6,
     paddingBlock: 16,
     paddingInline: 16,
@@ -97,11 +97,11 @@ const token = {
     borderStyle: 'none',
     captionDivider: {
       borderBottomStyle: 'solid',
-      borderBottomColor: '#dde7df',
+      borderBottomColor: '#d3e0d6',
     },
   },
   table: {
-    headerBackgroundColor: '#f0f5f1',
+    headerBackgroundColor: '#f1f5f2',
     paddingBlock: 8,
     paddingInline: 8,
   },
@@ -112,7 +112,7 @@ const token = {
   },
   divider: {
     borderTopStyle: 'solid',
-    borderTopColor: '#dde7df',
+    borderTopColor: '#d3e0d6',
     marginTop: 20,
     marginBottom: 20,
   },

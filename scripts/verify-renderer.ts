@@ -842,17 +842,20 @@ function testHighlightAndExport(): void {
   )
   const taiqingHeading = taiqingExport.querySelector('h2')
   check(
-    '3.1 苔青导出使用透明标题与主题线色',
+    '3.1 苔青导出使用浅苔底色与主题线色',
     taiqingHeading?.style.borderLeftColor === 'rgb(143, 174, 150)' &&
       !taiqingHeading.style.backgroundColor &&
       !taiqingHeading.style.paddingTop &&
       taiqingExport.querySelector('blockquote')?.style.borderLeftStyle === 'none' &&
-      taiqingExport.querySelector('blockquote')?.style.backgroundColor === 'rgb(240, 245, 241)' &&
+      taiqingExport.querySelector('blockquote')?.style.backgroundColor === 'rgb(241, 245, 242)' &&
+      taiqingExport.querySelector('.code-block')?.style.backgroundColor === 'rgb(241, 245, 242)' &&
+      taiqingExport.querySelector('th')?.style.backgroundColor === 'rgb(241, 245, 242)' &&
+      taiqingExport.querySelector('.code-block figcaption')?.style.color === 'rgb(89, 105, 95)' &&
       taiqingExport.querySelector('figure.table-scroll')?.style.borderTopColor ===
         'rgb(212, 224, 214)' &&
       taiqingExport.querySelector('.code-block figcaption')?.style.borderBottomColor ===
-        'rgb(221, 231, 223)' &&
-      taiqingExport.querySelector('hr')?.style.borderTopColor === 'rgb(221, 231, 223)'
+        'rgb(211, 224, 214)' &&
+      taiqingExport.querySelector('hr')?.style.borderTopColor === 'rgb(211, 224, 214)'
   )
 
   const titledExport = buildExportHtml({ ...article, html: titledCodeHtml }, DEFAULT_THEME)
