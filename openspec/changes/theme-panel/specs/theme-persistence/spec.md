@@ -72,8 +72,13 @@
 
 #### Scenario: 内置 id 保护
 
-- **WHEN** 保存、更新或导入 id 为 `default`、`shujuan` 或 `danxia` 的自定义主题
+- **WHEN** 保存、更新或导入 id 为 `default`、`shujuan` 或 `qingci` 的自定义主题
 - **THEN** 操作被拒绝
+
+#### Scenario: 旧内置 id 迁移
+
+- **WHEN** 数据库仍以 `danxia` 引用青瓷主题
+- **THEN** 启动迁移把文章 `theme_id`、主题 `source_theme_id` 与 `theme.active` 统一为 `qingci`，文章外观不变
 
 #### Scenario: 存储降级
 

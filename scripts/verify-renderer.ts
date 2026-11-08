@@ -344,18 +344,21 @@ function testTheme(): void {
       )
     })
   )
-  const taiqing = BUILTIN_THEMES.find((theme) => theme.token.id === 'danxia')!
+  const qingci = BUILTIN_THEMES.find((theme) => theme.token.id === 'qingci')!
   check(
-    '1.1 苔青沿用 danxia 标识，仅在正文 H1 和 H2 使用苔绿色竖条',
-    taiqing.token.name === '苔青' &&
-      taiqing.token.primary === '#8fae96' &&
-      taiqing.token.h1.decoration === 'bar' &&
-      taiqing.token.h2.decoration === 'bar' &&
-      taiqing.token.h3.decoration === 'none'
+    '1.1 青瓷使用 qingci 标识，仅在正文 H1 和 H2 使用苔绿色竖条',
+    qingci.token.name === '青瓷' &&
+      qingci.token.primary === '#8fae96' &&
+      qingci.token.text.color === '#2f2f2f' &&
+      qingci.token.headingColor === '#262626' &&
+      qingci.token.text.secondaryColor === '#666666' &&
+      qingci.token.h1.decoration === 'bar' &&
+      qingci.token.h2.decoration === 'bar' &&
+      qingci.token.h3.decoration === 'none'
   )
   check(
-    '1.1 苔青正文行高与字距对齐雾紫',
-    taiqing.token.text.lineHeight === 1.8 && taiqing.token.text.letterSpacing === 0.02
+    '1.1 青瓷正文行高与字距对齐雾紫',
+    qingci.token.text.lineHeight === 1.8 && qingci.token.text.letterSpacing === 0.02
   )
   check(
     '1.1 内置主题的页面内距和标题字号符合预设',
@@ -502,7 +505,12 @@ function testTheme(): void {
     shujuan.token.text.fontSize === 14 && shujuan.token.text.secondaryFontSize === 12
   )
   check('1.1 书卷主题色为柔化暖棕', shujuan.token.primary === '#ad6849')
-  check('1.1 书卷次级文字色满足 AA', shujuan.token.text.secondaryColor === '#7a6f64')
+  check(
+    '1.1 书卷文字色偏墨且保持暖棕',
+    shujuan.token.text.color === '#221e1b' &&
+      shujuan.token.headingColor === '#1e1a18' &&
+      shujuan.token.text.secondaryColor === '#5f564e'
+  )
   const shujuanPreview = buildPreviewCss(shujuan)
   check(
     '1.1 书卷衬线字族由 theme.css 根规则进入预览与导出',
@@ -835,27 +843,28 @@ function testHighlightAndExport(): void {
 
   const titledCodeHtml =
     '<figure class="code-block"><figcaption>app/page.tsx</figcaption><pre><code class="language-ts">const a = 1</code></pre></figure>'
-  const taiqing = BUILTIN_THEMES.find((theme) => theme.token.id === 'danxia')!
-  const taiqingExport = new DOMParser().parseFromString(
-    buildExportHtml({ ...article, html: article.html + titledCodeHtml }, taiqing),
+  const qingci = BUILTIN_THEMES.find((theme) => theme.token.id === 'qingci')!
+  const qingciExport = new DOMParser().parseFromString(
+    buildExportHtml({ ...article, html: article.html + titledCodeHtml }, qingci),
     'text/html'
   )
-  const taiqingHeading = taiqingExport.querySelector('h2')
+  const qingciHeading = qingciExport.querySelector('h2')
   check(
-    '3.1 苔青导出使用浅苔底色与主题线色',
-    taiqingHeading?.style.borderLeftColor === 'rgb(143, 174, 150)' &&
-      !taiqingHeading.style.backgroundColor &&
-      !taiqingHeading.style.paddingTop &&
-      taiqingExport.querySelector('blockquote')?.style.borderLeftStyle === 'none' &&
-      taiqingExport.querySelector('blockquote')?.style.backgroundColor === 'rgb(241, 245, 242)' &&
-      taiqingExport.querySelector('.code-block')?.style.backgroundColor === 'rgb(241, 245, 242)' &&
-      taiqingExport.querySelector('th')?.style.backgroundColor === 'rgb(241, 245, 242)' &&
-      taiqingExport.querySelector('.code-block figcaption')?.style.color === 'rgb(89, 105, 95)' &&
-      taiqingExport.querySelector('figure.table-scroll')?.style.borderTopColor ===
+    '3.1 青瓷导出使用浅苔底色与主题线色',
+    qingciHeading?.style.borderLeftColor === 'rgb(143, 174, 150)' &&
+      qingciHeading?.style.color === 'rgb(38, 38, 38)' &&
+      !qingciHeading.style.backgroundColor &&
+      !qingciHeading.style.paddingTop &&
+      qingciExport.querySelector('blockquote')?.style.borderLeftStyle === 'none' &&
+      qingciExport.querySelector('blockquote')?.style.backgroundColor === 'rgb(241, 245, 242)' &&
+      qingciExport.querySelector('.code-block')?.style.backgroundColor === 'rgb(241, 245, 242)' &&
+      qingciExport.querySelector('th')?.style.backgroundColor === 'rgb(241, 245, 242)' &&
+      qingciExport.querySelector('.code-block figcaption')?.style.color === 'rgb(102, 102, 102)' &&
+      qingciExport.querySelector('figure.table-scroll')?.style.borderTopColor ===
         'rgb(212, 224, 214)' &&
-      taiqingExport.querySelector('.code-block figcaption')?.style.borderBottomColor ===
+      qingciExport.querySelector('.code-block figcaption')?.style.borderBottomColor ===
         'rgb(211, 224, 214)' &&
-      taiqingExport.querySelector('hr')?.style.borderTopColor === 'rgb(211, 224, 214)'
+      qingciExport.querySelector('hr')?.style.borderTopColor === 'rgb(211, 224, 214)'
   )
 
   const titledExport = buildExportHtml({ ...article, html: titledCodeHtml }, DEFAULT_THEME)

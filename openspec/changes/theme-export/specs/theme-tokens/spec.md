@@ -45,7 +45,7 @@
 
 ### Requirement: 内置预设可用
 
-系统 SHALL 内置多套主题，每套由 token 默认值与 theme.css 组成，共用同一 token 接口。`default` 面向技术长文，`shujuan` 使用衬线字族和暖色调，`danxia` 显示为「苔青」，通过 token 设置苔绿色标题竖条。内置主题只读，发布后的视觉升级通过新增 id 保留旧版本。应用首次使用 SHALL 无需任何配置即以 `default` 渲染。
+系统 SHALL 内置多套主题，每套由 token 默认值与 theme.css 组成，共用同一 token 接口。`default` 面向技术长文，`shujuan` 使用衬线字族和暖色调，`qingci` 显示为「青瓷」，通过 token 设置苔绿色标题竖条。内置主题只读，发布后的视觉升级通过新增 id 保留旧版本。应用首次使用 SHALL 无需任何配置即以 `default` 渲染。
 
 #### Scenario: 零配置默认主题
 

@@ -1,8 +1,8 @@
 import type { ThemeDefinition, ThemeToken } from '@shared/types'
 
 const token = {
-  id: 'danxia',
-  name: '苔青',
+  id: 'qingci',
+  name: '青瓷',
   builtin: true,
   text: {
     fontSize: 14,
@@ -10,12 +10,12 @@ const token = {
     lineHeight: 1.8,
     letterSpacing: 0.02,
     marginBottom: 12,
-    color: '#38443c',
-    secondaryColor: '#59695f',
+    color: '#2f2f2f',
+    secondaryColor: '#666666',
   },
   primary: '#8fae96',
   borderColor: '#d4e0d6',
-  headingColor: '#26392e',
+  headingColor: '#262626',
   page: {
     paddingTop: 40,
     paddingRight: 18,
@@ -118,4 +118,4 @@ const token = {
   },
 } satisfies ThemeToken
 
-export const danxiaPreset: ThemeDefinition = { token, css: '' }
+export const qingciPreset: ThemeDefinition = { token, css: '' }

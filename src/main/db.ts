@@ -3,7 +3,7 @@ import { mkdirSync } from 'fs'
 import { dirname, join } from 'path'
 import { app } from 'electron'
 
-export const LOCAL_STORE_SCHEMA_VERSION = 8
+export const LOCAL_STORE_SCHEMA_VERSION = 9
 
 export type LocalStoreStatus = {
   available: boolean
@@ -105,6 +105,12 @@ UPDATE themes SET source_theme_id = 'default' WHERE source_theme_id = 'xueqing';
 UPDATE preferences SET value = '"default"' WHERE key = 'theme.active' AND value = '"xueqing"';
 `
 
+const V9_SCHEMA = `
+UPDATE articles SET theme_id = 'qingci' WHERE theme_id = 'danxia';
+UPDATE themes SET source_theme_id = 'qingci' WHERE source_theme_id = 'danxia';
+UPDATE preferences SET value = '"qingci"' WHERE key = 'theme.active' AND value = '"danxia"';
+`
+
 type Migration = {
   version: number
   sql: string
@@ -119,6 +125,7 @@ const MIGRATIONS: Migration[] = [
   { version: 6, sql: V6_SCHEMA },
   { version: 7, sql: V7_SCHEMA },
   { version: 8, sql: V8_SCHEMA },
+  { version: 9, sql: V9_SCHEMA },
 ]
 
 let database: DatabaseSync | null = null

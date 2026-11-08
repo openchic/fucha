@@ -329,7 +329,7 @@ type PanelTab = (typeof TABS)[number]['value']
 /** 编辑或新建主题草稿：只改 token，实时反映到预览 */
 export const ThemePanel = (props: ThemePanelProps) => {
   const { theme, baseline, title, header, footer, onTokenChange } = props
-  const [tab, setTab] = useState<PanelTab>('typography')
+  const [tab, setTab] = useState<PanelTab>('colors')
   const [level, setLevel] = useState<HeadingKey>('h1')
 
   const token = theme.token

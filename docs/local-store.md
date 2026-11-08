@@ -8,7 +8,7 @@
 - 图片字节仍存现有目录 `userData/article-cache/<hash>/`，不写入数据库。
 - 文章 `hash` 取 `SHA-256(finalUrl)` 前 32 位，与图片缓存目录同名。
 - 数据库读写只在主进程；渲染进程经 preload 暴露的领域方法使用存储，不直接执行 SQL。历史栏用 `listArticles` 读摘要，点击后用 `getArticle(hash)` 打开快照并 `touchArticle`；应用默认进入 Home 布局的 `/`（New 输入页），打开历史切换到 `/preview`，左侧历史栏常驻。
-- v1 是初始 schema，当前 schema 为 v8；迁移只处理本文件定义的旧版本。
+- v1 是初始 schema，当前 schema 为 v9；迁移只处理本文件定义的旧版本。
 
 ## 驱动选择
 
@@ -91,8 +91,8 @@
 ## 版本与迁移
 
 - 版本号存 SQLite 内置的 `PRAGMA user_version`，不建 `schema_meta` 表。
-- 首次打开时按顺序执行 v1–v8 迁移，并把 `user_version` 设置为 8。
-- v2 为 `articles` 增加 `theme_id` 与 `articles_theme_idx`；v3 将默认主题 id 从 `technical` 统一为 `default`，已有文章与 `theme.active` 偏好一并更新；v4 为 `themes` 增加 `css`、`token_version` 与 `source_theme_id`；v5 用 `articles_updated_idx` 替换旧的按访问活动排序索引；v6 把 `articles_updated_idx` 扩成 `(updated_at DESC, created_at DESC)`，新增 `themes_sort_idx` 与唯一 `themes_name_idx`，删除无查询消费者的 `articles_final_url_idx`、`article_images_url_idx`；v7 把书卷主题 id 从 `serif` 统一为 `shujuan`，默认主题保持 `default`；v8 清理中间态 `xueqing`，统一回默认主题 `default`。
+- 首次打开时按顺序执行 v1–v9 迁移，并把 `user_version` 设置为 9。
+- v2 为 `articles` 增加 `theme_id` 与 `articles_theme_idx`；v3 将默认主题 id 从 `technical` 统一为 `default`，已有文章与 `theme.active` 偏好一并更新；v4 为 `themes` 增加 `css`、`token_version` 与 `source_theme_id`；v5 用 `articles_updated_idx` 替换旧的按访问活动排序索引；v6 把 `articles_updated_idx` 扩成 `(updated_at DESC, created_at DESC)`，新增 `themes_sort_idx` 与唯一 `themes_name_idx`，删除无查询消费者的 `articles_final_url_idx`、`article_images_url_idx`；v7 把书卷主题 id 从 `serif` 统一为 `shujuan`，默认主题保持 `default`；v8 清理中间态 `xueqing`，统一回默认主题 `default`；v9 把内置主题 id 从 `danxia` 统一为 `qingci`，同步文章 `theme_id`、`themes.source_theme_id` 与 `theme.active` 偏好。
 - 连接设置 `journal_mode = WAL`、`synchronous = NORMAL`、`foreign_keys = ON`、`busy_timeout = 5000`；迁移完成后执行 `PRAGMA optimize`。
 - 后续迁移按版本号顺序执行，每次迁移与版本号更新放在同一事务。
 - `user_version` 高于代码支持的版本时判定存储不可用，不执行迁移，避免旧代码改坏新库。
@@ -135,7 +135,7 @@
 | 版本回退     | `user_version` 高于代码期望时直接降级                                         | 防止旧代码对新库执行错误迁移                           |
 | 时间格式     | ISO 8601 UTC 字符串                                                           | 排序直接可用，跨进程可读                               |
 
-## 当前建表草案（v8）
+## 当前建表草案（v9）
 
 ```sql
 PRAGMA journal_mode = WAL;
@@ -193,7 +193,7 @@ CREATE INDEX articles_theme_idx ON articles(theme_id);
 CREATE INDEX themes_sort_idx ON themes(sort, created_at);
 CREATE UNIQUE INDEX themes_name_idx ON themes(name COLLATE NOCASE);
 
-PRAGMA user_version = 8;
+PRAGMA user_version = 9;
 ```
 
 ## 不在本期

@@ -250,7 +250,7 @@ async function main(): Promise<void> {
       .catch(() => false)
   )
   const versionRow = getDb().prepare('PRAGMA user_version').get() as { user_version: number }
-  check('1.2 迁移到最新 schema', versionRow.user_version === 8, String(versionRow.user_version))
+  check('1.2 迁移到最新 schema', versionRow.user_version === 9, String(versionRow.user_version))
   const articleIndexes = getDb().prepare("PRAGMA index_list('articles')").all() as {
     name: string
   }[]
@@ -372,9 +372,45 @@ async function main(): Promise<void> {
   )
   deleteArticle(cleanupHash)
 
+  const qingciHash = 'cccccccccccccccccccccccccccccccc'
+  getDb()
+    .prepare(
+      `INSERT INTO articles
+         (hash, source_url, final_url, theme_id, title, html, created_at, updated_at, last_visited_at, visit_count)
+       VALUES (?, ?, ?, 'danxia', '旧青瓷', '<p>正文</p>', ?, ?, ?, 1)`
+    )
+    .run(
+      qingciHash,
+      'https://example.com/legacy-qingci',
+      'https://example.com/legacy-qingci',
+      legacyTime,
+      legacyTime,
+      legacyTime
+    )
+  getDb()
+    .prepare(
+      `INSERT INTO themes
+         (id, name, token, css, token_version, source_theme_id, sort, created_at, updated_at)
+       VALUES ('legacy-source', '旧来源', ?, '', 1, 'danxia', 0, ?, ?)`
+    )
+    .run(JSON.stringify(defaultTheme), legacyTime, legacyTime)
+  setPreference('theme.active', 'danxia')
+  closeLocalStore()
+  const v8Db = new DatabaseSync(storePath)
+  v8Db.exec('PRAGMA user_version = 8')
+  v8Db.close()
+  check('1.2 v8 库主题 id 迁移', initLocalStore(storePath).available)
+  check(
+    '1.2 青瓷 id 映射到 qingci',
+    getArticle(qingciHash)?.themeId === 'qingci' && getPreference('theme.active') === 'qingci'
+  )
+  check('1.2 主题来源同步迁移', getTheme('legacy-source')?.sourceThemeId === 'qingci')
+  deleteArticle(qingciHash)
+  deleteTheme('legacy-source')
+
   const higherPath = join(storeDir, 'higher.db')
   const higher = new DatabaseSync(higherPath)
-  higher.exec('PRAGMA user_version = 9')
+  higher.exec('PRAGMA user_version = 10')
   higher.close()
   check('1.1 版本高于代码时降级', initLocalStore(higherPath).available === false)
   initLocalStore(storePath)
