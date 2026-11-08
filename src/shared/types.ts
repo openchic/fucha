@@ -102,6 +102,7 @@ export type ThemeToken = {
   quote: {
     backgroundColor: string // 引用块背景色
     fontSize: number // px
+    decoration: 'none' | 'bar'
     paddingBlock: number // px
     paddingInline: number // px
     borderRadius: number // px
@@ -117,6 +118,10 @@ export type ThemeToken = {
     borderRadius: number // px，代码块圆角
     inlineBorderRadius: number // px，行内代码圆角
     borderStyle: 'solid' | 'dashed' | 'none' // 代码块外边框样式
+    captionDivider: {
+      borderBottomStyle: 'solid' | 'dashed' | 'none'
+      borderBottomColor?: string // 缺省跟随主题边框色
+    }
   }
   table: {
     headerBackgroundColor: string // 表头背景色

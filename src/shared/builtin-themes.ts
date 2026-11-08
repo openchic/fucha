@@ -5,7 +5,7 @@
 export const BUILTIN_THEME_CONTRACT: ReadonlyArray<{ id: string; name: string }> = [
   { id: 'default', name: '雾紫' },
   { id: 'shujuan', name: '书卷' },
-  { id: 'danxia', name: '丹霞' },
+  { id: 'danxia', name: '苔青' },
 ]
 
 const builtinIds = BUILTIN_THEME_CONTRACT.map(({ id }) => id.trim())

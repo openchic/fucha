@@ -391,6 +391,11 @@ async function main(): Promise<void> {
     id: 'custom-test',
     name: '自定义主题',
     builtin: false,
+    quote: { ...defaultTheme.quote, decoration: 'none' },
+    code: {
+      ...defaultTheme.code,
+      captionDivider: { borderBottomStyle: 'dashed', borderBottomColor: '#56789a' },
+    },
   })
   const customCss = 'h2 {\n  letter-spacing: 0.05em;\n}'
   const createdTheme = createTheme({
@@ -405,7 +410,11 @@ async function main(): Promise<void> {
   )
   check(
     '2.3 读取 theme.css 与 token 版本',
-    getTheme('custom-test')?.css === customCss && getTheme('custom-test')?.tokenVersion === 1
+    getTheme('custom-test')?.css === customCss &&
+      getTheme('custom-test')?.tokenVersion === 1 &&
+      getTheme('custom-test')?.token.quote.decoration === 'none' &&
+      getTheme('custom-test')?.token.code.captionDivider.borderBottomStyle === 'dashed' &&
+      getTheme('custom-test')?.token.code.captionDivider.borderBottomColor === '#56789a'
   )
   check(
     '2.3 同一 id 不能覆盖快照',
@@ -637,7 +646,10 @@ async function main(): Promise<void> {
     parsedPackage.token.id === 'custom-test' &&
       parsedPackage.css === customCss &&
       parsedPackage.tokenVersion === 1 &&
-      parsedPackage.token.builtin === false
+      parsedPackage.token.builtin === false &&
+      parsedPackage.token.quote.decoration === 'none' &&
+      parsedPackage.token.code.captionDivider.borderBottomStyle === 'dashed' &&
+      parsedPackage.token.code.captionDivider.borderBottomColor === '#56789a'
   )
   const builtinPackage = parseThemePackage(buildThemePackage({ token: defaultTheme, css: '' }))
   check('2.8 内置主题导出后变为自定义主题', builtinPackage.token.builtin === false)

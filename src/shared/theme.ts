@@ -52,6 +52,7 @@ export type HeadingKey = (typeof HEADING_KEYS)[number]
 
 const HEADING_ALIGN = ['left', 'center'] as const
 const HEADING_DECORATION = ['none', 'bar', 'underline', 'bracket'] as const
+const QUOTE_DECORATION = ['none', 'bar'] as const
 const DIVIDER_BORDER_TOP_STYLE = ['solid', 'dashed', 'none'] as const
 
 function fail(path: string, reason: string): never {
@@ -141,6 +142,10 @@ export function validateThemeToken(input: unknown): ThemeToken {
   const text = readGroup(root.text, 'theme.text')
   const quote = readGroup(root.quote, 'theme.quote')
   const code = readGroup(root.code, 'theme.code')
+  const captionDivider =
+    code.captionDivider === undefined
+      ? {}
+      : readGroup(code.captionDivider, 'theme.code.captionDivider')
   const table = readGroup(root.table, 'theme.table')
   const image = readGroup(root.image, 'theme.image')
   const divider = readGroup(root.divider, 'theme.divider')
@@ -205,6 +210,11 @@ export function validateThemeToken(input: unknown): ThemeToken {
     quote: {
       backgroundColor: requiredColor(quote.backgroundColor, 'theme.quote.backgroundColor'),
       fontSize: requiredNumber(quote.fontSize, 'theme.quote.fontSize', THEME_RANGES.quoteFontSize),
+      decoration: requiredEnum(
+        quote.decoration === undefined ? 'bar' : quote.decoration,
+        'theme.quote.decoration',
+        QUOTE_DECORATION
+      ),
       paddingBlock: requiredNumber(
         quote.paddingBlock,
         'theme.quote.paddingBlock',
@@ -259,6 +269,19 @@ export function validateThemeToken(input: unknown): ThemeToken {
         'theme.code.borderStyle',
         CODE_BORDER_STYLE_VALUES
       ),
+      captionDivider: {
+        borderBottomStyle: requiredEnum(
+          captionDivider.borderBottomStyle === undefined
+            ? 'solid'
+            : captionDivider.borderBottomStyle,
+          'theme.code.captionDivider.borderBottomStyle',
+          CODE_BORDER_STYLE_VALUES
+        ),
+        borderBottomColor: optionalColor(
+          captionDivider.borderBottomColor,
+          'theme.code.captionDivider.borderBottomColor'
+        ),
+      },
     },
     table: {
       headerBackgroundColor: requiredColor(

@@ -17,7 +17,7 @@ function collapseQuoteTail(doc: Document): void {
   })
 }
 
-/** 表格包一层横向滚动容器；仅 3 列及以上在窄屏内滚动，2 列表格按容器换行 */
+/** 表格使用局部滚动容器；三列及以上额外标记，以保留单元格的最小可读宽度 */
 function wrapTables(doc: Document): void {
   doc.querySelectorAll('table').forEach((table) => {
     if (table.parentElement?.classList.contains('table-scroll')) return

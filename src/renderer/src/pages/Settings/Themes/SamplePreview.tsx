@@ -75,10 +75,13 @@ const SAMPLE_ARTICLE = `
 </ul>
 <h5>摘句对读</h5>
 <p>将上下句分别记作 A<sub>1</sub> 和 A<sub>2</sub>，录入 <code>couplet</code>，便于并排对读。</p>
+<figure class="code-block">
+<figcaption>couplet.ts</figcaption>
 <pre><code class="language-typescript">const couplet = {
   a1: '落霞与孤鹜齐飞',
   a2: '秋水共长天一色',
 }</code></pre>
+</figure>
 <h6>注 1 · 孤鹜</h6>
 <p>鹜读 wù。孤鹜指独飞的野鸭。</p>
 `

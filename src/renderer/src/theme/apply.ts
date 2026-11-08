@@ -21,6 +21,7 @@ export function tokenVariables(token: ThemeToken): Record<string, string> {
   const values: Record<string, string> = {
     primary: token.primary,
     'quote-background-color': token.quote.backgroundColor,
+    'quote-border-left-style': token.quote.decoration === 'bar' ? 'solid' : 'none',
     'table-header-background-color': token.table.headerBackgroundColor,
     'border-color': token.borderColor,
     'quote-border-radius': `${token.quote.borderRadius}px`,
@@ -45,6 +46,9 @@ export function tokenVariables(token: ThemeToken): Record<string, string> {
     'code-background-color':
       token.code.backgroundColor ?? highlightThemeBackground(token.code.hljsTheme),
     'code-border-style': token.code.borderStyle,
+    'code-caption-border-bottom-style': token.code.captionDivider.borderBottomStyle,
+    'code-caption-border-bottom-color':
+      token.code.captionDivider.borderBottomColor ?? token.borderColor,
     'code-inline-background-color': token.code.inlineBackgroundColor,
     'table-padding-block': `${token.table.paddingBlock}px`,
     'table-padding-inline': `${token.table.paddingInline}px`,

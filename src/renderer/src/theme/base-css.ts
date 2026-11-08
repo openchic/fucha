@@ -134,7 +134,7 @@ blockquote {
   font-size: var(--fucha-quote-font-size);
   line-height: var(--fucha-text-line-height);
   background-color: var(--fucha-quote-background-color);
-  border-left: 3px solid var(--fucha-primary);
+  border-left: 3px var(--fucha-quote-border-left-style) var(--fucha-primary);
   border-radius: var(--fucha-quote-border-radius);
 }
 
@@ -183,7 +183,7 @@ figure.code-block {
   border-radius: var(--fucha-code-border-radius);
 }
 
-figure.code-block figcaption {
+.code-block figcaption {
   margin: 0;
   padding: var(--fucha-code-padding-block) var(--fucha-code-padding-inline);
   color: var(--fucha-text-secondary-color);
@@ -191,7 +191,8 @@ figure.code-block figcaption {
   font-size: var(--fucha-text-secondary-font-size);
   line-height: 1.6;
   text-align: left;
-  border-bottom: 1px solid var(--fucha-border-color);
+  border-bottom: 1px var(--fucha-code-caption-border-bottom-style)
+    var(--fucha-code-caption-border-bottom-color);
 }
 
 figure.code-block pre {
@@ -230,8 +231,9 @@ figure.table-scroll table {
   width: 100%;
 }
 
-figure.table-scroll-wide table {
-  min-width: 600px;
+figure.table-scroll-wide th,
+figure.table-scroll-wide td {
+  min-width: 5em;
 }
 
 figure.table-scroll thead > tr:first-child > *,

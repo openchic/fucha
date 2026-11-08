@@ -293,6 +293,28 @@ function testTheme(): void {
     '1.1 引用字号默认等于正文',
     BUILTIN_THEMES.every((theme) => theme.token.quote.fontSize === theme.token.text.fontSize)
   )
+  const legacyQuoteToken = validateThemeToken({
+    ...validated,
+    quote: { ...validated.quote, decoration: undefined },
+  })
+  check('1.1 旧主题缺少引用装饰时沿用左条', legacyQuoteToken.quote.decoration === 'bar')
+  let rejectedQuoteDecoration = ''
+  try {
+    validateThemeToken({ ...validated, quote: { ...validated.quote, decoration: 'underline' } })
+  } catch (error) {
+    rejectedQuoteDecoration = String(error)
+  }
+  check('1.1 引用拒绝标题专用装饰', rejectedQuoteDecoration.includes('theme.quote.decoration'))
+  const legacyCaptionToken = validateThemeToken({
+    ...validated,
+    code: { ...validated.code, captionDivider: undefined },
+  })
+  check(
+    '1.1 旧主题文件名分隔线默认使用边框色实线',
+    legacyCaptionToken.code.captionDivider.borderBottomStyle === 'solid' &&
+      tokenVariables(legacyCaptionToken)['code-caption-border-bottom-color'] ===
+        validated.borderColor
+  )
   check(
     '1.1 代码块字号统一为 13px',
     BUILTIN_THEMES.every((theme) => theme.token.code.fontSize === 13)
@@ -322,33 +344,58 @@ function testTheme(): void {
       )
     })
   )
-  const danxia = BUILTIN_THEMES.find((theme) => theme.token.id === 'danxia')!
+  const taiqing = BUILTIN_THEMES.find((theme) => theme.token.id === 'danxia')!
   check(
-    '1.1 丹霞使用暖橙主色与标题竖条',
-    danxia.token.name === '丹霞' &&
-      danxia.token.primary === '#fa5700' &&
-      danxia.token.h1.decoration === 'bar' &&
-      danxia.token.h2.decoration === 'bar'
+    '1.1 苔青沿用 danxia 标识，仅在正文 H1 和 H2 使用苔绿色竖条',
+    taiqing.token.name === '苔青' &&
+      taiqing.token.primary === '#8fae96' &&
+      taiqing.token.h1.decoration === 'bar' &&
+      taiqing.token.h2.decoration === 'bar' &&
+      taiqing.token.h3.decoration === 'none'
   )
   check(
-    '1.1 丹霞正文行高与字距对齐雾紫',
-    danxia.token.text.lineHeight === 1.8 && danxia.token.text.letterSpacing === 0.02
+    '1.1 苔青正文行高与字距对齐雾紫',
+    taiqing.token.text.lineHeight === 1.8 && taiqing.token.text.letterSpacing === 0.02
   )
   check(
     '1.1 内置主题的页面内距和标题字号符合预设',
     BUILTIN_THEMES.every(({ token }) => {
       const isShujuan = token.id === 'shujuan'
+      const inlinePadding = isShujuan ? 24 : 18
       return (
         token.page.paddingTop === (isShujuan ? 32 : 40) &&
-        token.page.paddingRight === 24 &&
+        token.page.paddingRight === inlinePadding &&
         token.page.paddingBottom === 40 &&
-        token.page.paddingLeft === 24 &&
-        token.h1.fontSize === (isShujuan ? 20 : 24) &&
+        token.page.paddingLeft === inlinePadding &&
+        token.h1.fontSize === 20 &&
         token.h2.fontSize === 20 &&
-        token.h3.fontSize === 18 &&
+        token.h3.fontSize === 16 &&
         token.h4.fontSize === 16 &&
-        token.h5.fontSize === 14 &&
-        token.h6.fontSize === (isShujuan ? 13 : 14)
+        token.h5.fontSize === 16 &&
+        token.h6.fontSize === 16
+      )
+    })
+  )
+  check(
+    '1.1 内置主题保持两层标题：h1 与 h2 同款，h3 至 h6 同款',
+    BUILTIN_THEMES.every(({ token }) => {
+      const sameHeading = (left: typeof token.h1, right: typeof token.h1): boolean =>
+        (
+          [
+            'fontSize',
+            'fontWeight',
+            'lineHeight',
+            'textAlign',
+            'decoration',
+            'marginTop',
+            'marginBottom',
+          ] as const
+        ).every((key) => left[key] === right[key])
+      return (
+        sameHeading(token.h1, token.h2) &&
+        sameHeading(token.h3, token.h4) &&
+        sameHeading(token.h3, token.h5) &&
+        sameHeading(token.h3, token.h6)
       )
     })
   )
@@ -765,10 +812,19 @@ function testHighlightAndExport(): void {
   check('3.1 外链降级为文本', !/href="https?:/.test(html) && html.includes('外链'))
   check('3.1 微信不支持的属性已剔除', !/(position:|float:|display:\s*(grid|flex))/.test(html))
   check('3.1 代码块保留横向滚动', /<pre[^>]*style="[^"]*overflow-x: auto/.test(html))
+  const exportDoc = new DOMParser().parseFromString(html, 'text/html')
+  const exportedQuote = exportDoc.querySelector('blockquote')
   check(
-    '5.6 无标题代码块外框导出',
-    /<pre[^>]*style="[^"]*border-width/.test(html) &&
-      /<pre[^>]*style="[^"]*border-radius/.test(html)
+    '3.1 左条引用导出为主色实线',
+    exportedQuote?.style.borderLeftStyle === 'solid' &&
+      exportedQuote.style.borderLeftColor === 'rgb(168, 185, 240)'
+  )
+  const exportedCode = exportDoc.querySelector('pre')
+  check(
+    '5.6 雾紫无标题代码块导出保留底色和圆角且无外框',
+    !!exportedCode?.style.backgroundColor &&
+      exportedCode.style.borderRadius === '4px' &&
+      exportedCode.style.borderStyle === 'none'
   )
   check('3.1 高亮样式已内联', /hljs-keyword/.test(html))
   check(
@@ -777,23 +833,63 @@ function testHighlightAndExport(): void {
   )
   check('3.3 纯文本兜底不含来源行', !exportHtmlToText(html).includes('原文：'))
 
-  const titledExport = buildExportHtml(
-    {
-      ...article,
-      html: '<figure class="code-block"><figcaption>app/page.tsx</figcaption><pre><code class="language-ts">const a = 1</code></pre></figure>',
-    },
-    DEFAULT_THEME
+  const titledCodeHtml =
+    '<figure class="code-block"><figcaption>app/page.tsx</figcaption><pre><code class="language-ts">const a = 1</code></pre></figure>'
+  const taiqing = BUILTIN_THEMES.find((theme) => theme.token.id === 'danxia')!
+  const taiqingExport = new DOMParser().parseFromString(
+    buildExportHtml({ ...article, html: article.html + titledCodeHtml }, taiqing),
+    'text/html'
   )
+  const taiqingHeading = taiqingExport.querySelector('h2')
+  check(
+    '3.1 苔青导出使用透明标题与主题线色',
+    taiqingHeading?.style.borderLeftColor === 'rgb(143, 174, 150)' &&
+      !taiqingHeading.style.backgroundColor &&
+      !taiqingHeading.style.paddingTop &&
+      taiqingExport.querySelector('blockquote')?.style.borderLeftStyle === 'none' &&
+      taiqingExport.querySelector('blockquote')?.style.backgroundColor === 'rgb(240, 245, 241)' &&
+      taiqingExport.querySelector('figure.table-scroll')?.style.borderTopColor ===
+        'rgb(212, 224, 214)' &&
+      taiqingExport.querySelector('.code-block figcaption')?.style.borderBottomColor ===
+        'rgb(221, 231, 223)' &&
+      taiqingExport.querySelector('hr')?.style.borderTopColor === 'rgb(221, 231, 223)'
+  )
+
+  const titledExport = buildExportHtml({ ...article, html: titledCodeHtml }, DEFAULT_THEME)
   const figureAttrs = /<figure([^>]*)>/.exec(titledExport)?.[1] ?? ''
-  const captionAttrs = /<figcaption([^>]*)>/.exec(titledExport)?.[1] ?? ''
+  const caption = new DOMParser()
+    .parseFromString(titledExport, 'text/html')
+    .querySelector('figcaption')
   check(
     '5.4 代码标题卡片导出样式已内联',
     figureAttrs.includes('border-radius') &&
-      figureAttrs.includes('border-width') &&
-      captionAttrs.includes('border-bottom') &&
-      captionAttrs.includes('font-family') &&
+      figureAttrs.includes('border-style: none') &&
+      caption?.style.borderBottomColor === 'rgb(236, 238, 244)' &&
+      caption.style.borderBottomWidth === '1px' &&
+      !!caption.style.fontFamily &&
       /<pre[^>]*style="[^"]*(?:border-radius|border-bottom-left-radius)/.test(titledExport)
   )
+
+  for (const style of ['dashed', 'none'] as const) {
+    const token = {
+      ...DEFAULT_THEME.token,
+      code: {
+        ...DEFAULT_THEME.token.code,
+        borderStyle: 'solid' as const,
+        captionDivider: { borderBottomStyle: style, borderBottomColor: '#56789a' },
+      },
+    }
+    const customized = new DOMParser().parseFromString(
+      buildExportHtml({ ...article, html: titledCodeHtml }, { ...DEFAULT_THEME, token }),
+      'text/html'
+    )
+    check(
+      `5.4 文件名分隔线导出 ${style} 与外框独立`,
+      customized.querySelector('figure')?.style.borderTopStyle === 'solid' &&
+        customized.querySelector('figcaption')?.style.borderBottomStyle === style &&
+        customized.querySelector('figcaption')?.style.borderBottomColor === 'rgb(86, 120, 154)'
+    )
+  }
 }
 
 function testDomParity(): void {
@@ -819,10 +915,11 @@ function testDomParity(): void {
     previewTail?.style.marginBottom === '0px' && exportTail?.style.marginBottom === '0px'
   )
 
+  const wideHeaders = Array.from({ length: 6 }, (_, index) => `<th>列${index + 1}</th>`).join('')
   const tableArticle: Article = {
     title: '表格滚动',
     sourceUrl: 'https://example.com/table',
-    html: '<p>正文</p><table><thead><tr><th>列一</th><th>列二</th><th>列三</th></tr></thead><tbody><tr><td>甲</td><td>乙</td><td>丙</td></tr></tbody></table>',
+    html: `<p>正文</p><table><thead><tr><th>字词</th><th>读音</th><th>句中含义</th></tr></thead><tbody><tr><td>潦水</td><td>lǎo shuǐ</td><td>雨后积水</td></tr></tbody></table><table><thead><tr>${wideHeaders}</tr></thead></table>`,
     images: [],
   }
   const tablePreview = renderPreviewHtml(tableArticle)
@@ -833,12 +930,43 @@ function testDomParity(): void {
       /<figure class="table-scroll table-scroll-wide"/.test(tableExported)
   )
   check(
-    '6.1 宽表最小宽度与滚动导出',
-    /min-width: 600px/.test(tableExported) &&
+    '6.1 单元格最小宽度与滚动导出',
+    /<th[^>]*style="[^"]*min-width: 5em/.test(tableExported) &&
+      !/<table[^>]*style="[^"]*min-width/.test(tableExported) &&
       /overflow-x: auto/.test(tableExported) &&
       /<figure class="table-scroll[^"]*"[^>]*style="[^"]*border/.test(tableExported) &&
       /<th[^>]*style="[^"]*(?:border-top: none|border-top-width: 0)/.test(tableExported)
   )
+
+  const tablePreviewRoot = document.createElement('div')
+  tablePreviewRoot.className = 'article-body'
+  tablePreviewRoot.style.cssText = 'width: 360px; box-sizing: border-box'
+  tablePreviewRoot.innerHTML = tablePreview
+  const tableExportRoot = document.createElement('div')
+  tableExportRoot.style.width = '360px'
+  tableExportRoot.innerHTML = tableExported
+  const tableStyle = document.createElement('style')
+  tableStyle.textContent = buildPreviewCss(DEFAULT_THEME)
+  document.head.append(tableStyle)
+  document.body.append(tablePreviewRoot, tableExportRoot)
+  for (const [label, root] of [
+    ['预览', tablePreviewRoot],
+    ['导出', tableExportRoot],
+  ] as const) {
+    const [shortTable, wideTable] = root.querySelectorAll('figure.table-scroll')
+    check(
+      `6.4 360px ${label}中三列短表完整显示、六列表局部滚动`,
+      !!shortTable &&
+        !!wideTable &&
+        shortTable.clientWidth > 0 &&
+        shortTable.scrollWidth === shortTable.clientWidth &&
+        wideTable.scrollWidth > wideTable.clientWidth &&
+        root.scrollWidth === root.clientWidth
+    )
+  }
+  tablePreviewRoot.remove()
+  tableExportRoot.remove()
+  tableStyle.remove()
 
   const narrowArticle: Article = {
     title: '窄表',
@@ -853,7 +981,7 @@ function testDomParity(): void {
     /<figure class="table-scroll">/.test(narrowPreview) &&
       /<figure class="table-scroll"/.test(narrowExported) &&
       !/table-scroll-wide/.test(narrowExported) &&
-      !/min-width: 600px/.test(narrowExported)
+      !/min-width:/.test(narrowExported)
   )
 }
 

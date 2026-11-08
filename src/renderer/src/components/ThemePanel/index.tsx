@@ -139,6 +139,7 @@ type ColorControlProps = {
   warning?: string
   value?: string
   fallbackValue?: string
+  fallbackAction?: { label: string; onSelect: () => void }
   modified?: boolean
   onReset?: () => void
   resetLabel?: string
@@ -153,6 +154,7 @@ const ColorControl = (props: ColorControlProps) => {
     warning,
     value,
     fallbackValue = '#ffffff',
+    fallbackAction,
     modified = false,
     onReset,
     resetLabel,
@@ -236,6 +238,17 @@ const ColorControl = (props: ColorControlProps) => {
           disableAlpha
           style={{ background: 'transparent', boxShadow: 'none', borderRadius: 0 }}
         />
+        {fallbackAction && (
+          <button
+            type="button"
+            onClick={() => {
+              fallbackAction.onSelect()
+              setPickerOpen(false)
+            }}
+            className="mt-2 w-full cursor-pointer rounded-md px-2 py-1.5 text-description text-ink hover:bg-raised">
+            {fallbackAction.label}
+          </button>
+        )}
       </Popover>
     </div>
   )
@@ -281,9 +294,13 @@ const FONT_WEIGHT_OPTIONS: { value: string; label: string; hint: string }[] = [
   { value: '700', label: '粗体', hint: '700' },
 ]
 
-const DECORATION_OPTIONS: { value: HeadingDecoration; label: string }[] = [
+const QUOTE_DECORATION_OPTIONS = [
   { value: 'none', label: '无' },
   { value: 'bar', label: '左条' },
+] as const
+
+const DECORATION_OPTIONS: { value: HeadingDecoration; label: string }[] = [
+  ...QUOTE_DECORATION_OPTIONS,
   { value: 'underline', label: '下划线' },
   { value: 'bracket', label: '括号' },
 ]
@@ -318,6 +335,8 @@ export const ThemePanel = (props: ThemePanelProps) => {
   const token = theme.token
   const heading = token[level]
   const headingBase = baseline[level]
+  const captionDivider = token.code.captionDivider
+  const savedCaptionDivider = baseline.code.captionDivider
   const textContrastBackgrounds = [
     { label: '白底', color: '#ffffff' },
     { label: '引用背景色', color: token.quote.backgroundColor },
@@ -342,6 +361,10 @@ export const ThemePanel = (props: ThemePanelProps) => {
     const next = { ...token }
     next[level] = { ...next[level], ...partial }
     onTokenChange(next)
+  }
+
+  const patchCaptionDivider = (partial: Partial<ThemeToken['code']['captionDivider']>): void => {
+    patch({ code: { ...token.code, captionDivider: { ...captionDivider, ...partial } } })
   }
 
   return (
@@ -722,7 +745,7 @@ export const ThemePanel = (props: ThemePanelProps) => {
                     onChange={(value) => patch({ quote: { ...token.quote, paddingInline: value } })}
                   />
                 </div>
-                <div className="py-1.5 last:pb-0">
+                <div className="py-1.5">
                   <NumberControl
                     label="圆角"
                     value={token.quote.borderRadius}
@@ -735,6 +758,22 @@ export const ThemePanel = (props: ThemePanelProps) => {
                       })
                     }
                     onChange={(value) => patch({ quote: { ...token.quote, borderRadius: value } })}
+                  />
+                </div>
+                <div className="py-1.5 last:pb-0">
+                  <DropdownField
+                    label="装饰"
+                    value={token.quote.decoration}
+                    options={[...QUOTE_DECORATION_OPTIONS]}
+                    modified={token.quote.decoration !== baseline.quote.decoration}
+                    resetLabel="引用装饰"
+                    onReset={() =>
+                      patch({ quote: { ...token.quote, decoration: baseline.quote.decoration } })
+                    }
+                    onChange={(value) => {
+                      const next = QUOTE_DECORATION_OPTIONS.find((option) => option.value === value)
+                      if (next) patch({ quote: { ...token.quote, decoration: next.value } })
+                    }}
                   />
                 </div>
               </div>
@@ -1012,6 +1051,57 @@ export const ThemePanel = (props: ThemePanelProps) => {
                       patch({ code: { ...token.code, borderRadius: baseline.code.borderRadius } })
                     }
                     onChange={(value) => patch({ code: { ...token.code, borderRadius: value } })}
+                  />
+                </div>
+              </div>
+            </section>
+            <section className="flex flex-col gap-4">
+              <h2 className="border-b border-divider pb-2 text-body text-ink">文件名分隔线</h2>
+              <div>
+                <div className="py-1.5 first:pt-0">
+                  <DropdownField
+                    label="样式"
+                    value={captionDivider.borderBottomStyle}
+                    options={[...BORDER_STYLE_OPTIONS]}
+                    modified={
+                      captionDivider.borderBottomStyle !== savedCaptionDivider.borderBottomStyle
+                    }
+                    onReset={() =>
+                      patchCaptionDivider({
+                        borderBottomStyle: savedCaptionDivider.borderBottomStyle,
+                      })
+                    }
+                    resetLabel="文件名分隔线样式"
+                    onChange={(value) => {
+                      const next = BORDER_STYLE_OPTIONS.find((option) => option.value === value)
+                      if (next) patchCaptionDivider({ borderBottomStyle: next.value })
+                    }}
+                  />
+                </div>
+                <div className="py-1.5 last:pb-0">
+                  <ColorControl
+                    label="颜色"
+                    compact
+                    value={captionDivider.borderBottomColor}
+                    fallbackValue={token.borderColor}
+                    fallbackAction={
+                      captionDivider.borderBottomColor
+                        ? {
+                            label: '跟随边框色',
+                            onSelect: () => patchCaptionDivider({ borderBottomColor: undefined }),
+                          }
+                        : undefined
+                    }
+                    modified={
+                      captionDivider.borderBottomColor !== savedCaptionDivider.borderBottomColor
+                    }
+                    onReset={() =>
+                      patchCaptionDivider({
+                        borderBottomColor: savedCaptionDivider.borderBottomColor,
+                      })
+                    }
+                    resetLabel="文件名分隔线颜色"
+                    onChange={(value) => patchCaptionDivider({ borderBottomColor: value })}
                   />
                 </div>
               </div>

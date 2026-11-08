@@ -96,22 +96,22 @@ type HeadingLevel = {
     "secondaryColor": "#6b7280"
   },
   "primary": "#a8b9f0",
-  "borderColor": "#d9e0ef",
+  "borderColor": "#e3e6f0",
   "headingColor": "#333333",
   "page": {
     "paddingTop": 40,
-    "paddingRight": 24,
+    "paddingRight": 18,
     "paddingBottom": 40,
-    "paddingLeft": 24
+    "paddingLeft": 18
   },
   "h1": {
-    "fontSize": 24,
+    "fontSize": 20,
     "fontWeight": 700,
     "lineHeight": 1.4,
     "textAlign": "left",
     "decoration": "none",
-    "marginTop": 28,
-    "marginBottom": 14
+    "marginTop": 24,
+    "marginBottom": 10
   },
   "h2": {
     "fontSize": 20,
@@ -123,62 +123,67 @@ type HeadingLevel = {
     "marginBottom": 10
   },
   "h3": {
-    "fontSize": 18,
-    "fontWeight": 700,
-    "lineHeight": 1.4,
+    "fontSize": 16,
+    "fontWeight": 600,
+    "lineHeight": 1.5,
     "textAlign": "left",
     "decoration": "none",
-    "marginTop": 20,
+    "marginTop": 18,
     "marginBottom": 8
   },
   "h4": {
     "fontSize": 16,
-    "fontWeight": 700,
+    "fontWeight": 600,
     "lineHeight": 1.5,
     "textAlign": "left",
     "decoration": "none",
-    "marginTop": 16,
+    "marginTop": 18,
     "marginBottom": 8
   },
   "h5": {
-    "fontSize": 14,
-    "fontWeight": 700,
+    "fontSize": 16,
+    "fontWeight": 600,
     "lineHeight": 1.5,
     "textAlign": "left",
     "decoration": "none",
-    "marginTop": 14,
+    "marginTop": 18,
     "marginBottom": 8
   },
   "h6": {
-    "fontSize": 14,
-    "fontWeight": 700,
+    "fontSize": 16,
+    "fontWeight": 600,
     "lineHeight": 1.5,
     "textAlign": "left",
     "decoration": "none",
-    "marginTop": 14,
+    "marginTop": 18,
     "marginBottom": 8
   },
   "quote": {
     "backgroundColor": "#f7f8fe",
     "fontSize": 14,
+    "decoration": "bar",
     "paddingBlock": 14,
     "paddingInline": 14,
     "borderRadius": 4
   },
   "code": {
     "hljsTheme": "github",
-    "backgroundColor": "#f7f8fe",
+    "backgroundColor": "#f6f7fa",
     "fontSize": 13,
-    "inlineBackgroundColor": "#f7f8fe",
+    "inlineBackgroundColor": "#f3f4f8",
     "lineHeight": 1.6,
     "paddingBlock": 14,
     "paddingInline": 14,
     "borderRadius": 4,
     "inlineBorderRadius": 4,
-    "borderStyle": "solid"
+    "borderStyle": "none",
+    "captionDivider": {
+      "borderBottomStyle": "solid",
+      "borderBottomColor": "#eceef4"
+    }
   },
   "table": {
-    "headerBackgroundColor": "#f7f8fe",
+    "headerBackgroundColor": "#f7f8fb",
     "paddingBlock": 8,
     "paddingInline": 8
   },
@@ -198,54 +203,57 @@ type HeadingLevel = {
 
 ### 字段与范围
 
-| 字段                          | 默认                                    | 范围 / 值                        | 说明                                              |
-| ----------------------------- | --------------------------------------- | -------------------------------- | ------------------------------------------------- |
-| `text.fontSize`               | 14px                                    | 12–20                            | 正文、列表、h4–h6 的回落字号                      |
-| `text.secondaryFontSize`      | 12px                                    | 12–20                            | 图注、上下标                                      |
-| `text.lineHeight`             | 1.8                                     | 1–3                              | 正文、列表、引用行高                              |
-| `text.letterSpacing`          | 0.02em                                  | 0–0.3                            | 正文基础字距                                      |
-| `text.marginBottom`           | 14px                                    | 0–40                             | 段落、列表、引用、代码块、表格、figure 的段后间距 |
-| `text.color`                  | #333333                                 | 颜色                             | 正文文字颜色                                      |
-| `headingColor`                | #333333                                 | 颜色                             | 标题文字颜色                                      |
-| `text.secondaryColor`         | #6b7280                                 | 颜色                             | 次级文字色，当前用于图注                          |
-| `primary`                     | #a8b9f0                                 | 颜色                             | 标题装饰与引用左边条                              |
-| `borderColor`                 | #d9e0ef                                 | 颜色                             | 表格与代码块边框                                  |
-| `h1–h3.fontSize`              | 24 / 20 / 18                            | 12–40                            | 标题字号                                          |
-| `h4–h6.fontSize`              | 16 / 14 / 14                            | 12–40                            | 标题字号                                          |
-| 各级 `fontWeight`             | 700                                     | 100–700, step 100                | 标题字重                                          |
-| 各级 `lineHeight`             | 1.4 / 1.4 / 1.4 / 1.5 / 1.5 / 1.5       | 1–3                              | 标题行高倍数                                      |
-| 各级 `textAlign`              | left                                    | left / center                    | 标题对齐                                          |
-| 各级 `decoration`             | none / none / none / none / none / none | none / bar / underline / bracket | 标题装饰                                          |
-| 各级 `marginTop`              | 28 / 24 / 20 / 16 / 14 / 14             | 0–40                             | 标题上外边距                                      |
-| 各级 `marginBottom`           | 14 / 10 / 8 / 8 / 8 / 8                 | 0–40                             | 标题下外边距                                      |
-| `quote.backgroundColor`       | #f7f8fe                                 | 颜色                             | 引用块背景色                                      |
-| `quote.fontSize`              | 14px                                    | 12–20                            | 引用文字字号；初始等于正文，之后独立              |
-| `quote.paddingBlock`          | 14px                                    | 0–40                             | 引用块上下内边距                                  |
-| `quote.paddingInline`         | 14px                                    | 0–40                             | 引用块左右内边距                                  |
-| `quote.borderRadius`          | 4px                                     | 0–20                             | 引用块圆角                                        |
-| `code.hljsTheme`              | github                                  | github / atom-one-light / xcode  | highlight.js 语法色主题，未知值拒绝               |
-| `code.fontSize`               | 13px                                    | 10–16, step 0.5                  | 代码块文字字号；三套内置主题统一 13px，之后独立   |
-| `code.lineHeight`             | 1.6                                     | 1–3                              | 代码块行高                                        |
-| `code.paddingBlock`           | 14px                                    | 0–40                             | 代码块上下内边距                                  |
-| `code.paddingInline`          | 14px                                    | 0–40                             | 代码块左右内边距                                  |
-| `code.inlineBackgroundColor`  | #f7f8fe                                 | 颜色                             | 行内代码背景色                                    |
-| `code.borderRadius`           | 4px                                     | 0–20                             | 代码块圆角                                        |
-| `code.inlineBorderRadius`     | 4px                                     | 0–20                             | 行内代码圆角                                      |
-| `code.borderStyle`            | solid                                   | solid / dashed / none            | 代码块外边框                                      |
-| `table.headerBackgroundColor` | #f7f8fe                                 | 颜色                             | 表头背景色                                        |
-| `table.paddingBlock`          | 8px                                     | 0–40                             | th / td 上下内边距                                |
-| `table.paddingInline`         | 8px                                     | 0–40                             | th / td 左右内边距                                |
-| `image.marginTop`             | 14px                                    | 0–40                             | 图片上外边距                                      |
-| `image.marginBottom`          | 14px                                    | 0–40                             | 图片下外边距                                      |
-| `image.borderRadius`          | 4px                                     | 0–20                             | 图片圆角                                          |
-| `page.paddingTop`             | 40px                                    | 0–80                             | 页面内容上内边距                                  |
-| `page.paddingRight`           | 24px                                    | 0–80                             | 页面内容右内边距                                  |
-| `page.paddingBottom`          | 40px                                    | 0–80                             | 页面内容下内边距                                  |
-| `page.paddingLeft`            | 24px                                    | 0–80                             | 页面内容左内边距                                  |
-| `divider.borderTopStyle`      | solid                                   | solid / dashed / none            | 分割线样式                                        |
-| `divider.borderTopColor`      | #ccd4e6                                 | 颜色                             | 分割线颜色                                        |
-| `divider.marginTop`           | 18px                                    | 0–40                             | 分割线上外边距                                    |
-| `divider.marginBottom`        | 18px                                    | 0–40                             | 分割线下外边距                                    |
+| 字段                                    | 默认                                    | 范围 / 值                        | 说明                                              |
+| --------------------------------------- | --------------------------------------- | -------------------------------- | ------------------------------------------------- |
+| `text.fontSize`                         | 14px                                    | 12–20                            | 正文、列表字号；行内代码与表格按 0.875 倍缩放     |
+| `text.secondaryFontSize`                | 12px                                    | 12–20                            | 图注、上下标                                      |
+| `text.lineHeight`                       | 1.8                                     | 1–3                              | 正文、列表、引用行高                              |
+| `text.letterSpacing`                    | 0.02em                                  | 0–0.3                            | 正文基础字距                                      |
+| `text.marginBottom`                     | 14px                                    | 0–40                             | 段落、列表、引用、代码块、表格、figure 的段后间距 |
+| `text.color`                            | #333333                                 | 颜色                             | 正文文字颜色                                      |
+| `headingColor`                          | #333333                                 | 颜色                             | 标题文字颜色                                      |
+| `text.secondaryColor`                   | #6b7280                                 | 颜色                             | 次级文字色，当前用于图注                          |
+| `primary`                               | #a8b9f0                                 | 颜色                             | 标题装饰与引用左边条                              |
+| `borderColor`                           | #e3e6f0                                 | 颜色                             | 表格与代码块边框                                  |
+| `h1–h3.fontSize`                        | 20 / 20 / 16                            | 12–40                            | 标题字号                                          |
+| `h4–h6.fontSize`                        | 16 / 16 / 16                            | 12–40                            | 标题字号                                          |
+| 各级 `fontWeight`                       | 700 / 700 / 600 / 600 / 600 / 600       | 100–700, step 100                | 标题字重                                          |
+| 各级 `lineHeight`                       | 1.4 / 1.4 / 1.5 / 1.5 / 1.5 / 1.5       | 1–3                              | 标题行高倍数                                      |
+| 各级 `textAlign`                        | left                                    | left / center                    | 标题对齐                                          |
+| 各级 `decoration`                       | none / none / none / none / none / none | none / bar / underline / bracket | 标题装饰                                          |
+| 各级 `marginTop`                        | 24 / 24 / 18 / 18 / 18 / 18             | 0–40                             | 标题上外边距                                      |
+| 各级 `marginBottom`                     | 10 / 10 / 8 / 8 / 8 / 8                 | 0–40                             | 标题下外边距                                      |
+| `quote.backgroundColor`                 | #f7f8fe                                 | 颜色                             | 引用块背景色                                      |
+| `quote.fontSize`                        | 14px                                    | 12–20                            | 引用文字字号；初始等于正文，之后独立              |
+| `quote.decoration`                      | bar                                     | none / bar                       | 引用装饰（无 / 左条）                             |
+| `quote.paddingBlock`                    | 14px                                    | 0–40                             | 引用块上下内边距                                  |
+| `quote.paddingInline`                   | 14px                                    | 0–40                             | 引用块左右内边距                                  |
+| `quote.borderRadius`                    | 4px                                     | 0–20                             | 引用块圆角                                        |
+| `code.hljsTheme`                        | github                                  | github / atom-one-light / xcode  | highlight.js 语法色主题，未知值拒绝               |
+| `code.fontSize`                         | 13px                                    | 10–16, step 0.5                  | 代码块文字字号；三套内置主题统一 13px，之后独立   |
+| `code.lineHeight`                       | 1.6                                     | 1–3                              | 代码块行高                                        |
+| `code.paddingBlock`                     | 14px                                    | 0–40                             | 代码块上下内边距                                  |
+| `code.paddingInline`                    | 14px                                    | 0–40                             | 代码块左右内边距                                  |
+| `code.inlineBackgroundColor`            | #f3f4f8                                 | 颜色                             | 行内代码背景色                                    |
+| `code.borderRadius`                     | 4px                                     | 0–20                             | 代码块圆角                                        |
+| `code.inlineBorderRadius`               | 4px                                     | 0–20                             | 行内代码圆角                                      |
+| `code.borderStyle`                      | none                                    | solid / dashed / none            | 代码块外边框                                      |
+| `code.captionDivider.borderBottomStyle` | solid                                   | solid / dashed / none            | 文件名下方分隔线的线型                            |
+| `code.captionDivider.borderBottomColor` | #eceef4                                 | 颜色或缺省                       | 文件名分隔线颜色，缺省跟随 `borderColor`          |
+| `table.headerBackgroundColor`           | #f7f8fb                                 | 颜色                             | 表头背景色                                        |
+| `table.paddingBlock`                    | 8px                                     | 0–40                             | th / td 上下内边距                                |
+| `table.paddingInline`                   | 8px                                     | 0–40                             | th / td 左右内边距                                |
+| `image.marginTop`                       | 14px                                    | 0–40                             | 图片上外边距                                      |
+| `image.marginBottom`                    | 14px                                    | 0–40                             | 图片下外边距                                      |
+| `image.borderRadius`                    | 4px                                     | 0–20                             | 图片圆角                                          |
+| `page.paddingTop`                       | 40px                                    | 0–80                             | 页面内容上内边距                                  |
+| `page.paddingRight`                     | 18px                                    | 0–80                             | 页面内容右内边距                                  |
+| `page.paddingBottom`                    | 40px                                    | 0–80                             | 页面内容下内边距                                  |
+| `page.paddingLeft`                      | 18px                                    | 0–80                             | 页面内容左内边距                                  |
+| `divider.borderTopStyle`                | solid                                   | solid / dashed / none            | 分割线样式                                        |
+| `divider.borderTopColor`                | #ccd4e6                                 | 颜色                             | 分割线颜色                                        |
+| `divider.marginTop`                     | 18px                                    | 0–40                             | 分割线上外边距                                    |
+| `divider.marginBottom`                  | 18px                                    | 0–40                             | 分割线下外边距                                    |
 
 字族、页面底色等根级表现属于 theme.css 的 `&` 根规则，不进入 token。标题颜色统一使用 `headingColor`。行内代码与表格不读 `secondaryFontSize`，字号按正文的 0.875 倍缩放，随 `text.fontSize` 变化；代码块使用 `code.fontSize`，引用使用 `quote.fontSize`，两者都是固定 token，修改正文字号或语法主题不会联动修改。带标题代码块的标题条使用 `secondaryFontSize` 与 `secondaryColor`。表头背景色由 `table.headerBackgroundColor` 单独控制。
 
@@ -258,7 +266,7 @@ type HeadingLevel = {
 | `underline` | `border-bottom: 2px solid primary`，`padding-bottom: 6px` |
 | `bracket`   | 左右各 `2px solid primary`，`padding: 0 10px`             |
 
-装饰只用真实边框，不用伪元素；微信会剥离伪元素。
+装饰使用真实边框。引用的 `quote.decoration` 选 `bar` 时使用主色左条，选 `none` 时隐藏左条。旧主题缺少该字段时按 `bar` 读取。
 
 ### CSS 变量契约
 
@@ -267,6 +275,7 @@ type HeadingLevel = {
 ```text
 --fucha-primary
 --fucha-quote-background-color
+--fucha-quote-border-left-style
 --fucha-table-header-background-color
 --fucha-border-color
 --fucha-quote-border-radius
@@ -295,6 +304,8 @@ type HeadingLevel = {
 --fucha-code-padding-inline
 --fucha-code-background-color
 --fucha-code-inline-background-color
+--fucha-code-caption-border-bottom-style
+--fucha-code-caption-border-bottom-color
 --fucha-table-padding-block
 --fucha-table-padding-inline
 --fucha-image-margin-top
@@ -313,7 +324,7 @@ type HeadingLevel = {
 
 ## 样式归属与元素盒模型
 
-应用维护一份 `base.css`，覆盖正文默认排版、引用、代码、表格、图片、分割线与微信安全属性；行内代码与表格按正文 0.875 倍取字号，代码块与引用使用各自字号 token，其余样式只引用 token 变量。正文代码块统一使用 `borderColor` 外框、`code.borderStyle` 边框样式与 `code.borderRadius` 圆角；带标题的代码块使用 `figure.code-block` + `figcaption`，在卡片顶部增加标题条（复用 `code.paddingBlock` / `code.paddingInline`、`text.secondaryColor` / `text.secondaryFontSize` 与等宽字体），标题下用 1px `borderColor` 分隔线，不新增标题条 token；主题用 `pre`、`.code-block` / `.code-block figcaption` 覆盖。正文表格在预览与导出中包一层带 1px `borderColor` 边框与代码块圆角的 `figure.table-scroll`；表格外圈边框由容器承担，只保留内部行列线。只有列数 ≥3 的表格额外加 `table-scroll-wide` 与 `min-width: 600px`，在边框内横向滚动；2 列表格按容器宽度换行，不出现滚动条。滚动条使用原生样式，不提供主题开关。
+应用维护一份 `base.css`，覆盖正文默认排版、引用、代码、表格、图片、分割线与微信安全属性；行内代码与表格按正文 0.875 倍取字号，代码块与引用使用各自字号 token，其余样式只引用 token 变量。正文代码块统一使用 `borderColor` 外框、`code.borderStyle` 边框样式与 `code.borderRadius` 圆角；带标题的代码块使用 `figure.code-block` + `figcaption`，在卡片顶部增加标题条（复用 `code.paddingBlock` / `code.paddingInline`、`text.secondaryColor` / `text.secondaryFontSize` 与等宽字体），标题下的 1px 分隔线由 `code.captionDivider` 控制，可用实线、虚线或隐藏。颜色缺省跟随 `borderColor`，旧主题缺少该组时继续用边框色实线。主题用 `pre`、`.code-block` / `.code-block figcaption` 覆盖。正文表格在预览与导出中由 `figure.table-scroll` 承担 1px `borderColor` 外框与代码块圆角。表格铺满容器，三列及以上的表格额外标记 `table-scroll-wide`，单元格至少 `5em` 宽。容器放不下表格时，在边框内显示原生横向滚动条。
 
 标题中的 `strong` 和 `b` 继承标题字重和颜色。图注紧跟图片或带链接的图片时，两者相隔 8px，`image.marginBottom` 用于图注下方。
 
@@ -378,7 +389,7 @@ my-theme.fucha-theme
 }
 ```
 
-- 内置主题与自定义主题共用同一结构。当前内置「雾紫」（id `default`）、「书卷」（id `shujuan`）与「丹霞」（id `danxia`），均为只读。升级时新增主题 id，并保留旧 id，避免历史文章换样。三套主题均显式写入代码块背景。雾紫与丹霞的页面内距为 40/24/40/24，标题字号为 24/20/18/16/14/14。书卷的页面内距为 32/24/40/24，标题字号为 20/20/18/16/14/13，六级标题字重均为 600。公众号文章标题由平台单独设置，所以书卷正文 H1 与 H2 同样式。书卷通过 `&` 根规则使用衬线字族。内置主题按主题分文件放在 `src/renderer/src/theme/presets/`（`default.ts`、`shujuan.ts`、`danxia.ts`，`index.ts` 汇总）。主进程做冲突校验所需的保留 id 和名称放在 `src/shared/builtin-themes.ts`，由 harness 校验两边一致。
+- 内置主题与自定义主题共用同一结构。当前内置「雾紫」（id `default`）、「书卷」（id `shujuan`）与「苔青」（id `danxia`），均为只读。发布后的视觉升级通过新增 id 保留旧版本。三套主题均显式写入代码块背景。雾紫与苔青的页面内距为 40/18/40/18，书卷为 32/24/40/24。三套主题的标题分两层：正文 H1 与 H2 同样式，H3 至 H6 统一为 16px 子标题样式。雾紫与苔青的 H1、H2 使用 700 字重，其余标题用 600；书卷六级标题均用 600。苔青的 H1、H2 通过 token 使用 `#8fae96` 竖条，引用、代码块、行内代码与表头共享 `#f0f5f1` 底色。书卷通过 `&` 根规则使用衬线字族。内置主题按主题分文件放在 `src/renderer/src/theme/presets/`（`default.ts`、`shujuan.ts`、`danxia.ts`，`index.ts` 汇总）。主进程做冲突校验所需的保留 id 和名称放在 `src/shared/builtin-themes.ts`，由 harness 校验两边一致。
 - 自定义主题导入后，token 与 CSS 存入本地 SQLite；同一 id 或内置 id 已存在时拒绝导入。导入后的自定义主题可原地编辑，也可另存为或新建。
 - 导出主题时把当前 token 和 CSS 重新打包成同样的 zip；内置主题导出时 token 的 `builtin` 置为 false，导入后成为普通自定义主题。不导出文章内容。
 - 自定义主题只允许 CSS 与 token，不允许注入 HTML 或脚本。
