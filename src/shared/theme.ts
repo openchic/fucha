@@ -180,6 +180,7 @@ export function validateThemeToken(input: unknown): ThemeToken {
     borderColor: requiredColor(root.borderColor, 'theme.borderColor'),
     headingColor: requiredColor(root.headingColor, 'theme.headingColor'),
     page: {
+      backgroundColor: optionalColor(page.backgroundColor, 'theme.page.backgroundColor'),
       paddingTop: requiredNumber(
         page.paddingTop,
         'theme.page.paddingTop',

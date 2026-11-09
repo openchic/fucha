@@ -44,6 +44,10 @@
 
 **导出外层加 section 承载基础排版。** 微信正文会继承客户端字体与颜色，导出 CSS 若不显式给出基础字体、字号、行高、字距和颜色，预览与微信两端会分叉。导出产物在 juice 与属性过滤后用 section 包裹，section 的 inline style 与预览 `.article-body` 同源；文章元素规则仍负责各自的排版。
 
+**SVG 样式导出提升为表现属性。** 微信会剥离 SVG 元素的 `style`；sanitize 与导出阶段把安全的 `fill`、`stroke`、`stroke-dasharray`、`font-*` 等声明提升为同名表现属性，旧快照在导出时再处理一次且不改写原快照。导出还会把只含实色 rect 的 mask 烘成标签底色矩形并移除 mask，给只有 viewBox 的 SVG 补宽高；嵌入字体被微信剥离时回退系统字体，但标签位置、遮罩和线条保持。矩形不再回退黑底，虚线与文字保留。
+
+**页面背景走 token，导出按设置写外层。** 预览把 `page.backgroundColor` 写成 `.article-body` 的背景并保证至少铺满阅读区；导出只在字段存在时给外层 section 写 `background-color`，未设置时保持透明以跟随微信深色模式。theme.css 的 `& { background-color }` 仍然后写覆盖。
+
 **正文外链在导出时降级为文本。** 微信正文不保留可点击外链；导出前移除所有 `a` 标签但保留其子节点，避免正文里出现无效链接。来源只在预览信息带展示，不写入导出产物。
 
 **hljs 主题只保留语法色。** github 主题的结构规则与背景会和 `pre`/`code` 的 token 样式冲突，因此只保留颜色、字重与斜体规则；代码块背景取 `code.backgroundColor`，未设置时用语法主题背景。主题 CSS 固化为 TS 常量，保证 Vite 与 esbuild 验证包都能使用。

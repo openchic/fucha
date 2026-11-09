@@ -4,13 +4,18 @@ import juice from 'juice'
 import { buildExportCss, buildExportRootStyle } from '../theme/apply'
 import { highlightArticleHtml } from '../theme/highlight'
 import { normalizeArticleDom } from './normalize'
+import { promoteSvgPresentationStyles } from './sanitize'
+import { bakeSvgMasksForExport, ensureSvgSizeAttributes } from './svg'
 
-function prepareExportBody(article: Article): string {
+function prepareExportBody(article: Article, pageBackground?: string): string {
   const doc = new DOMParser().parseFromString(highlightArticleHtml(article.html), 'text/html')
   normalizeArticleDom(doc, article.title)
   doc.querySelectorAll('a').forEach((anchor) => {
     anchor.replaceWith(...Array.from(anchor.childNodes))
   })
+  promoteSvgPresentationStyles(doc)
+  bakeSvgMasksForExport(doc, pageBackground ?? '#ffffff')
+  ensureSvgSizeAttributes(doc)
   return doc.body.innerHTML
 }
 
@@ -57,7 +62,7 @@ function filterWechatStyles(html: string): string {
  * 图片仍保留原始地址，由主进程 exportHtml 换成 base64。
  */
 export function buildExportHtml(article: Article, theme: ThemeDefinition): string {
-  const prepared = prepareExportBody(article)
+  const prepared = prepareExportBody(article, theme.token.page.backgroundColor)
   const css = buildExportCss(theme)
   const inlined = juice.inlineContent(prepared, css, {
     applyAttributesTableElements: false,

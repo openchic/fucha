@@ -88,6 +88,7 @@ export type ThemeToken = {
   borderColor: string // 表格边框
   headingColor: string // 标题文字色
   page: {
+    backgroundColor?: string // 缺省透明，不写入导出
     paddingTop: number // px
     paddingRight: number // px
     paddingBottom: number // px

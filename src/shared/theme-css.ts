@@ -150,6 +150,7 @@ export const THEME_CSS_VARIABLES = new Set([
   'divider-border-top-style',
   'divider-margin-top',
   'divider-margin-bottom',
+  'page-background-color',
   'page-padding-top',
   'page-padding-right',
   'page-padding-bottom',

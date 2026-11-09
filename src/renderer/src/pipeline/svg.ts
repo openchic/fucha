@@ -499,6 +499,138 @@ export function inlineSvgStyles(root: ParentNode): void {
   }
 }
 
+const SVG_BLACK_FILLS = new Set([
+  '#000',
+  '#000000',
+  'black',
+  'rgb(0,0,0)',
+  'rgb(0, 0, 0)',
+  'rgba(0,0,0,1)',
+  'rgba(0, 0, 0, 1)',
+])
+
+function svgNumber(element: Element, name: string): number | null {
+  const raw = element.getAttribute(name)
+  if (raw === null || raw.trim() === '') return null
+  const value = Number(raw)
+  return Number.isFinite(value) ? value : null
+}
+
+function isSolidBlackRect(element: Element): element is SVGRectElement {
+  if (element.namespaceURI !== SVG_NAMESPACE || element.localName !== 'rect') return false
+  if (element.hasAttribute('transform')) return false
+  const opacity = element.getAttribute('fill-opacity')
+  if (opacity !== null && Number(opacity) !== 1) return false
+  const fill = (element.getAttribute('fill') ?? '').trim().toLowerCase()
+  return SVG_BLACK_FILLS.has(fill)
+}
+
+function normalizeMaskReference(value: string | null): string | null {
+  if (!value) return null
+  const match = value.trim().match(/^url\(\s*['"]?#([^'")]+)['"]?\s*\)$/i)
+  return match?.[1] ?? null
+}
+
+function svgBackgroundColor(svg: Element, fallback: string): string {
+  for (const child of Array.from(svg.children)) {
+    if (child.namespaceURI !== SVG_NAMESPACE || child.localName !== 'rect') continue
+    const fill = child.getAttribute('fill')?.trim()
+    if (!fill || fill === 'none' || fill === 'transparent') continue
+    if ((svgNumber(child, 'width') ?? 0) > 0 && (svgNumber(child, 'height') ?? 0) > 0) return fill
+  }
+  return fallback
+}
+
+function rectContainsText(rect: Element, text: Element): boolean {
+  const x = svgNumber(text, 'x')
+  const y = svgNumber(text, 'y')
+  const rx = svgNumber(rect, 'x')
+  const ry = svgNumber(rect, 'y')
+  const width = svgNumber(rect, 'width')
+  const height = svgNumber(rect, 'height')
+  if (x === null || y === null || rx === null || ry === null || width === null || height === null) {
+    return false
+  }
+  return x >= rx && x <= rx + width && y >= ry - 4 && y <= ry + height + 8
+}
+
+/**
+ * 微信保存会丢失 SVG mask。把「实色 rect mask」烘成显式底色矩形：
+ * 在对应标签文字前插入一块底色，盖住穿过的箭头/生命线，再移除 mask。
+ * 只处理只含 rect、无 transform、黑色镂空的简单 mask；其他 mask 保持原样。
+ */
+export function bakeSvgMasksForExport(root: ParentNode, fallbackBackground = '#ffffff'): void {
+  for (const svg of Array.from(root.querySelectorAll('svg'))) {
+    const masks = Array.from(svg.querySelectorAll('mask'))
+    if (masks.length === 0) continue
+    const background = svgBackgroundColor(svg, fallbackBackground)
+    const texts = Array.from(svg.querySelectorAll('text'))
+
+    for (const mask of masks) {
+      const id = mask.getAttribute('id')
+      if (!id) continue
+      const children = Array.from(mask.querySelectorAll('*'))
+      if (children.some((child) => child.localName !== 'rect' || child.hasAttribute('transform'))) {
+        continue
+      }
+      const holes = children.filter(isSolidBlackRect)
+      if (holes.length === 0) continue
+
+      const used = Array.from(svg.querySelectorAll('*')).filter(
+        (element) => normalizeMaskReference(element.getAttribute('mask')) === id
+      )
+      if (used.length === 0) continue
+      const lastUsed = used[used.length - 1]
+
+      for (const hole of holes) {
+        const x = svgNumber(hole, 'x')
+        const y = svgNumber(hole, 'y')
+        const width = svgNumber(hole, 'width')
+        const height = svgNumber(hole, 'height')
+        if (x === null || y === null || width === null || height === null) continue
+
+        const document = svg.ownerDocument
+        if (!document) continue
+        const cover = document.createElementNS(SVG_NAMESPACE, 'rect')
+        cover.setAttribute('x', String(x))
+        cover.setAttribute('y', String(y))
+        cover.setAttribute('width', String(width))
+        cover.setAttribute('height', String(height))
+        cover.setAttribute('fill', background)
+        const radius = hole.getAttribute('rx')
+        if (radius) cover.setAttribute('rx', radius)
+
+        const label = texts.find((text) => rectContainsText(hole, text))
+        const parent = label?.parentElement ?? lastUsed?.parentElement
+        if (!parent) continue
+        parent.insertBefore(cover, label ?? lastUsed.nextSibling)
+      }
+
+      for (const element of used) element.removeAttribute('mask')
+      mask.remove()
+    }
+  }
+}
+
+/** 只有 viewBox 的 SVG 在微信里可能被裁；补上从 viewBox 推导的宽高 */
+export function ensureSvgSizeAttributes(root: ParentNode): void {
+  for (const svg of Array.from(root.querySelectorAll('svg'))) {
+    if (svg.hasAttribute('width') && svg.hasAttribute('height')) continue
+    const viewBox = svg.getAttribute('viewBox')
+    if (!viewBox) continue
+    const values = viewBox
+      .trim()
+      .split(/[\s,]+/)
+      .map(Number)
+    if (values.length !== 4) continue
+    const width = values[2]
+    const height = values[3]
+    if (!Number.isFinite(width) || !Number.isFinite(height) || width <= 0 || height <= 0) continue
+    if (!svg.hasAttribute('width')) svg.setAttribute('width', String(width))
+    if (!svg.hasAttribute('height')) svg.setAttribute('height', String(height))
+  }
+}
+
 /** Preserve plain SVG headings as vector text before removing their foreignObject wrappers. */
 export function preserveSvgHeadings(root: ParentNode): void {
   const doc = root instanceof Document ? root : root.ownerDocument

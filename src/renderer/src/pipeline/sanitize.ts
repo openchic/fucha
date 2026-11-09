@@ -212,6 +212,31 @@ function keepOnlySafeTextOffset(element: Element, attribute: 'dx' | 'dy'): void 
   }
 }
 
+const SVG_PRESENTATION_ATTRIBUTES = new Set(
+  [...SVG_STYLE_PROPERTIES].filter((property) => property !== 'mix-blend-mode')
+)
+
+/** 微信会剥离 SVG 的 style；把安全声明提升成同名的表现属性 */
+function promoteSvgElementPresentationStyles(element: Element): void {
+  const style = element.getAttribute('style')
+  if (style === null) return
+  const remaining: string[] = []
+  for (const declaration of style.split(';')) {
+    const separator = declaration.indexOf(':')
+    if (separator < 0) continue
+    const property = declaration.slice(0, separator).trim().toLowerCase()
+    const value = declaration.slice(separator + 1).trim()
+    if (!property || !value) continue
+    if (SVG_PRESENTATION_ATTRIBUTES.has(property)) {
+      element.setAttribute(property, value)
+    } else if (SVG_STYLE_PROPERTIES.has(property)) {
+      remaining.push(`${property}: ${value}`)
+    }
+  }
+  if (remaining.length > 0) element.setAttribute('style', remaining.join('; '))
+  else element.removeAttribute('style')
+}
+
 function keepOnlySafeStyle(element: Element): void {
   const style = element.getAttribute('style')
   if (style === null) return
@@ -230,6 +255,15 @@ function keepOnlySafeStyle(element: Element): void {
   }
 }
 
+/** 导出旧快照时再提升一次，修复提取时已存入 style 的 SVG */
+export function promoteSvgPresentationStyles(root: ParentNode): void {
+  for (const element of Array.from(root.querySelectorAll('svg, svg *'))) {
+    if (element.namespaceURI !== SVG_NAMESPACE) continue
+    keepOnlySafeStyle(element)
+    promoteSvgElementPresentationStyles(element)
+  }
+}
+
 DOMPurify.addHook('afterSanitizeAttributes', (node) => {
   if (!(node instanceof Element)) return
   if (node.namespaceURI !== SVG_NAMESPACE) {
@@ -240,6 +274,7 @@ DOMPurify.addHook('afterSanitizeAttributes', (node) => {
   }
   node.removeAttribute('class')
   keepOnlySafeStyle(node)
+  promoteSvgElementPresentationStyles(node)
   for (const attribute of SVG_URL_ATTRS) keepOnlyLocalPaintReferences(node, attribute)
   keepOnlySafeTextOffset(node, 'dx')
   keepOnlySafeTextOffset(node, 'dy')

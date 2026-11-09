@@ -168,7 +168,7 @@ interface ImageAsset {
 
 主题系统以 `docs/theme-system.md` 为准，本节只保留边界：
 
-- token 是稳定接口：正文、颜色、圆角、quote/code/table/image/divider，以及顶层 h1–h6；每级标题有字号、字重、行高、对齐、装饰与上下边距。字段名对齐 CSS 属性名。
+- token 是稳定接口：正文、颜色、圆角、quote/code/table/image/divider、页面背景与四边距，以及顶层 h1–h6；每级标题有字号、字重、行高、对齐、装饰与上下边距。字段名对齐 CSS 属性名。
 - 内置主题「雾紫」（`default`）、「书卷」（`shujuan`）与「青瓷」（`qingci`）各自带 token 默认值与 `theme.css`，均为只读。发布后的视觉升级通过新增 id 保留旧版本。
 - 应用维护 `base.css`，元素规则只引用 token 变量；主题 CSS 只写差异。加载顺序为 base.css → 装饰规则 → hljs 语法色 → theme.css。
 - 文章只保存 `theme_id`；内置主题只读，自定义主题可在设置页原地编辑并同步所有引用文章，另存为与新建生成新主题；文章页只负责选择主题。

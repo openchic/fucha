@@ -337,8 +337,10 @@ export const ThemePanel = (props: ThemePanelProps) => {
   const headingBase = baseline[level]
   const captionDivider = token.code.captionDivider
   const savedCaptionDivider = baseline.code.captionDivider
+  const pageBackground = token.page.backgroundColor
   const textContrastBackgrounds = [
     { label: '白底', color: '#ffffff' },
+    ...(pageBackground ? [{ label: '页面背景', color: pageBackground }] : []),
     { label: '引用背景色', color: token.quote.backgroundColor },
     { label: '行内代码背景色', color: token.code.inlineBackgroundColor },
     { label: '表头背景色', color: token.table.headerBackgroundColor },
@@ -347,6 +349,7 @@ export const ThemePanel = (props: ThemePanelProps) => {
   const headingContrastWarning = contrastWarning(token.headingColor, textContrastBackgrounds)
   const secondaryContrastWarning = contrastWarning(token.text.secondaryColor, [
     { label: '白底', color: '#ffffff' },
+    ...(pageBackground ? [{ label: '页面背景', color: pageBackground }] : []),
   ])
 
   const patch = (partial: Partial<ThemeToken>): void => {
@@ -1140,6 +1143,24 @@ export const ThemePanel = (props: ThemePanelProps) => {
             className="flex flex-col gap-4 [&_.field-label]:text-description [&_.field-value]:text-description"
             role="group"
             aria-label="页面">
+            <h2 className="border-b border-divider pb-2 text-body text-ink">背景</h2>
+            <div>
+              <div className="py-1.5 first:pt-0 last:pb-0">
+                <ColorControl
+                  label="页面背景"
+                  value={token.page.backgroundColor}
+                  fallbackValue="#ffffff"
+                  modified={token.page.backgroundColor !== baseline.page.backgroundColor}
+                  onReset={() =>
+                    patch({
+                      page: { ...token.page, backgroundColor: baseline.page.backgroundColor },
+                    })
+                  }
+                  resetLabel="页面背景"
+                  onChange={(value) => patch({ page: { ...token.page, backgroundColor: value } })}
+                />
+              </div>
+            </div>
             <h2 className="border-b border-divider pb-2 text-body text-ink">内边距</h2>
             <div>
               <div className="py-1.5 first:pt-0">

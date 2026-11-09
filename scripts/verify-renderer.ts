@@ -80,9 +80,23 @@ function testInlineSvg(): void {
   check('3.4 保留 SVG 文本与无障碍信息', /<text/i.test(clean) && clean.includes('流程图'))
   check(
     '3.4 只保留安全的 presentation 样式',
-    clean.includes('opacity') && !/background/i.test(clean)
+    clean.includes('opacity="0.9"') && !/background/i.test(clean)
   )
-  check('3.4 移除源码 style 与 class', !/<style/i.test(clean) && !/class="diagram-bg"/.test(clean))
+  check(
+    '3.4 移除源码 style 与 class',
+    !/<style/i.test(clean) && !/style=/i.test(clean) && !/class="diagram-bg"/.test(clean)
+  )
+  const svgDoc = new DOMParser().parseFromString(clean, 'text/html')
+  const svgRect = svgDoc.querySelector('svg rect')
+  const svgText = svgDoc.querySelector('svg text')
+  check(
+    '3.4 SVG 样式提升为表现属性',
+    svgRect?.getAttribute('stroke') === '#dfe4de' &&
+      svgRect.getAttribute('opacity') === '0.9' &&
+      svgText?.getAttribute('fill') === '#fff' &&
+      svgText.getAttribute('font-weight') === '600',
+    `${svgRect?.outerHTML ?? 'missing'} | ${svgText?.outerHTML ?? 'missing'}`
+  )
   check(
     '3.4 移除脚本、事件、外链资源与 foreignObject',
     !/<script/i.test(clean) &&
@@ -101,12 +115,17 @@ function testInlineSvg(): void {
     'https://example.com/svg'
   )
   check('3.4 正文提取保留内嵌 SVG', /<svg/i.test(article.html))
+  const articleDoc = new DOMParser().parseFromString(article.html, 'text/html')
+  const articleRect = articleDoc.querySelector('svg rect')
+  const articleRectFill = (articleRect?.getAttribute('fill') ?? '').replace(/["']/g, '')
   check(
-    '3.4 内部样式已内联到图形',
-    /fill:\s*url\([^)]*flowGradient[^)]*\)/i.test(article.html) &&
-      /style="[^"]*opacity:\s*0\.9/i.test(article.html)
+    '3.4 内部样式提升为表现属性',
+    articleRectFill === 'url(#flowGradient)' &&
+      articleRect?.getAttribute('opacity') === '0.9' &&
+      !/style=/i.test(article.html),
+    articleRect?.outerHTML ?? 'missing'
   )
-  check('3.4 页面级样式同样内联', article.html.includes('fill: rgb(74, 111, 243)'))
+  check('3.4 页面级样式同样提升为表现属性', article.html.includes('fill="rgb(74, 111, 243)"'))
   check(
     '3.4 危险 CSS 未进入正文',
     !/@import/i.test(article.html) &&
@@ -117,7 +136,44 @@ function testInlineSvg(): void {
   )
   const preview = renderPreviewHtml(article, 'svg-preview', [])
   check('3.4 预览保留内嵌 SVG', /<svg/i.test(preview) && /<path/i.test(preview))
-  check('3.4 预览保留内联颜色', /fill:\s*url\([^)]*flowGradient[^)]*\)/i.test(preview))
+  check('3.4 预览保留内联颜色', /fill="url\(#flowGradient\)"/i.test(preview))
+  const legacySvgArticle = {
+    ...article,
+    html: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 10 10" width="10" height="10"><rect width="10" height="10" style="fill:#123456;stroke:#000;stroke-dasharray:4 2"></rect><text x="5" y="5" style="fill:#fff;font-weight:600">旧</text></svg>',
+  }
+  const legacyExport = new DOMParser().parseFromString(
+    buildExportHtml(legacySvgArticle, DEFAULT_THEME),
+    'text/html'
+  )
+  const legacyRect = legacyExport.querySelector('svg rect')
+  check(
+    '3.4 导出提升旧快照的 SVG 样式',
+    legacyRect?.getAttribute('fill') === '#123456' &&
+      legacyRect.getAttribute('stroke-dasharray') === '4 2' &&
+      legacyExport.querySelector('svg [style]') === null
+  )
+  const maskedSvgArticle = {
+    ...article,
+    html: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><mask id="m"><rect width="100" height="100" fill="white"></rect><rect x="20" y="20" width="40" height="10" fill="black"></rect></mask></defs><path d="M0 25H100" fill="none" stroke="#333" stroke-width="1" mask="url(#m)"></path><text x="40" y="27" text-anchor="middle" font-size="8" fill="#333">标签</text></svg>',
+  }
+  const maskedExport = new DOMParser().parseFromString(
+    buildExportHtml(maskedSvgArticle, DEFAULT_THEME),
+    'text/html'
+  )
+  const maskedSvg = maskedExport.querySelector('svg')
+  const maskedText = maskedExport.querySelector('svg text')
+  const maskedCover = maskedText?.previousElementSibling
+  check(
+    '3.4 导出烘平 SVG mask 并补尺寸',
+    maskedSvg?.getAttribute('width') === '100' &&
+      maskedSvg.getAttribute('height') === '100' &&
+      !maskedSvg.querySelector('mask') &&
+      maskedExport.querySelector('svg path')?.hasAttribute('mask') === false &&
+      maskedCover?.localName === 'rect' &&
+      maskedCover.getAttribute('fill') === '#ffffff' &&
+      maskedCover.getAttribute('x') === '20' &&
+      maskedCover.getAttribute('y') === '20'
+  )
 }
 
 function testSvgHeadingLine(): void {
@@ -314,6 +370,65 @@ function testTheme(): void {
     legacyCaptionToken.code.captionDivider.borderBottomStyle === 'solid' &&
       tokenVariables(legacyCaptionToken)['code-caption-border-bottom-color'] ===
         validated.borderColor
+  )
+  const pageBackgroundToken = validateThemeToken({
+    ...validated,
+    page: { ...validated.page, backgroundColor: '#faf7f2' },
+  })
+  check('1.1 页面背景色通过校验', pageBackgroundToken.page.backgroundColor === '#faf7f2')
+  let rejectedPageBackground = ''
+  try {
+    validateThemeToken({
+      ...validated,
+      page: { ...validated.page, backgroundColor: 'rgba(0, 0, 0, 0.5)' },
+    })
+  } catch (error) {
+    rejectedPageBackground = String(error)
+  }
+  check(
+    '1.1 页面背景拒绝非 hex 颜色',
+    rejectedPageBackground.includes('theme.page.backgroundColor')
+  )
+  const legacyPageBackground = validateThemeToken({
+    ...validated,
+    page: { ...validated.page, backgroundColor: undefined },
+  })
+  check(
+    '1.1 旧主题缺少页面背景时按透明读取',
+    legacyPageBackground.page.backgroundColor === undefined
+  )
+  const pageBackgroundTheme = {
+    ...DEFAULT_THEME,
+    token: {
+      ...DEFAULT_THEME.token,
+      page: { ...DEFAULT_THEME.token.page, backgroundColor: '#faf7f2' },
+    },
+  }
+  const pageBackgroundPreview = buildPreviewCss(pageBackgroundTheme)
+  check(
+    '1.1 预览应用页面背景',
+    pageBackgroundPreview.includes('--fucha-page-background-color: #faf7f2;') &&
+      pageBackgroundPreview.includes('background-color: var(--fucha-page-background-color);') &&
+      pageBackgroundPreview.includes('min-height: 100%;')
+  )
+  check(
+    '1.1 未设置页面背景时预览透明且导出不写背景',
+    buildPreviewCss(DEFAULT_THEME).includes('--fucha-page-background-color: transparent;') &&
+      !buildExportRootStyle(DEFAULT_THEME).includes('background-color')
+  )
+  check(
+    '1.1 设置页面背景时导出写入外层',
+    buildExportRootStyle(pageBackgroundTheme).includes('background-color: #faf7f2')
+  )
+  const pageBackgroundOverride = buildExportRootStyle({
+    ...pageBackgroundTheme,
+    css: '& { background-color: #123456; }',
+  })
+  check(
+    '1.1 页面背景可被 & 覆盖',
+    pageBackgroundOverride.indexOf('background-color: #faf7f2') >= 0 &&
+      pageBackgroundOverride.lastIndexOf('background-color: #123456') >
+        pageBackgroundOverride.indexOf('background-color: #faf7f2')
   )
   check(
     '1.1 代码块字号统一为 13px',

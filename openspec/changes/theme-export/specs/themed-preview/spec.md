@@ -13,6 +13,39 @@
 - **WHEN** 预览态加载完成
 - **THEN** 正文以当前主题的字体、颜色、块级样式呈现
 
+### Requirement: SVG 样式导出
+
+内嵌 SVG 的样式 SHALL NOT 只依赖元素的 `style` 属性；导出 SHALL 把安全的 `fill`、`fill-opacity`、`stroke`、`stroke-width`、`stroke-dasharray`、`font-*`、`text-anchor` 等声明提升为同名表现属性。旧文章快照若仍以 `style` 保存，导出时 SHALL 再提升一次，且不改写原快照。导出 SHALL 把只含实色 rect 的 mask 烘成标签底色矩形并移除 mask；只有 `viewBox` 的 SVG SHALL 补 `width`/`height`。嵌入字体被微信剥离时文字 SHALL 回退到系统字体，但位置、遮罩与线条 SHALL 保持。微信剥离 SVG `style` 后，矩形、描边、虚线与文字 SHALL 保持可见。
+
+#### Scenario: 微信剥离 SVG style
+
+- **WHEN** 导出含内嵌 SVG 的文章并在微信编辑器中粘贴
+- **THEN** 图形按表现属性显示，不出现默认黑块、描边缺失或文字错色
+
+#### Scenario: 标签遮罩导出
+
+- **WHEN** SVG 用实色 rect mask 遮挡标签后的箭头或生命线
+- **THEN** 导出烘成标签底色矩形并移除 mask，箭头和生命线不再穿过文字，SVG 补上宽高
+
+#### Scenario: 旧快照导出
+
+- **WHEN** 文章快照中的 SVG 仍使用 `style`
+- **THEN** 导出时提升为表现属性，原快照保持不变
+
+### Requirement: 页面背景
+
+页面背景 SHALL 由 `page.backgroundColor` 控制。设置时预览 SHALL 把背景作用在 `.article-body` 并至少铺满手机阅读区；导出 SHALL 仅在该字段设置时写入外层 section 的 `background-color`。未设置时预览透明、导出不写背景，保留宿主深色模式。theme.css 的 `& { background-color }` SHALL 仍可覆盖。
+
+#### Scenario: 设置页面背景
+
+- **WHEN** 主题设置 `page.backgroundColor`
+- **THEN** 预览正文区显示该背景并铺满阅读区，导出写入同一背景色
+
+#### Scenario: 未设置页面背景
+
+- **WHEN** 主题省略 `page.backgroundColor`
+- **THEN** 预览透明，导出不写 `background-color`
+
 ### Requirement: 切换即时生效
 
 切换主题 SHALL 即时生效于预览，不重新解析文档、不重置图片与滚动状态。主题选择控件 SHALL 位于文章信息带的元信息行右侧操作区（与刷新、复制同一行），显示当前主题名与下拉箭头；列表为内置主题与自定义主题，底部提供编辑与管理动作。

@@ -427,6 +427,7 @@ async function main(): Promise<void> {
     id: 'custom-test',
     name: '自定义主题',
     builtin: false,
+    page: { ...defaultTheme.page, backgroundColor: '#faf7f2' },
     quote: { ...defaultTheme.quote, decoration: 'none' },
     code: {
       ...defaultTheme.code,
@@ -448,6 +449,7 @@ async function main(): Promise<void> {
     '2.3 读取 theme.css 与 token 版本',
     getTheme('custom-test')?.css === customCss &&
       getTheme('custom-test')?.tokenVersion === 1 &&
+      getTheme('custom-test')?.token.page.backgroundColor === '#faf7f2' &&
       getTheme('custom-test')?.token.quote.decoration === 'none' &&
       getTheme('custom-test')?.token.code.captionDivider.borderBottomStyle === 'dashed' &&
       getTheme('custom-test')?.token.code.captionDivider.borderBottomColor === '#56789a'
@@ -683,6 +685,7 @@ async function main(): Promise<void> {
       parsedPackage.css === customCss &&
       parsedPackage.tokenVersion === 1 &&
       parsedPackage.token.builtin === false &&
+      parsedPackage.token.page.backgroundColor === '#faf7f2' &&
       parsedPackage.token.quote.decoration === 'none' &&
       parsedPackage.token.code.captionDivider.borderBottomStyle === 'dashed' &&
       parsedPackage.token.code.captionDivider.borderBottomColor === '#56789a'

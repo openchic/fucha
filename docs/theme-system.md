@@ -201,6 +201,8 @@ type HeadingLevel = {
 }
 ```
 
+`page.backgroundColor` 为可选字段，示例默认省略；缺省表示透明/跟随页面。
+
 ### 字段与范围
 
 | 字段                                    | 默认                                    | 范围 / 值                        | 说明                                              |
@@ -246,6 +248,7 @@ type HeadingLevel = {
 | `image.marginTop`                       | 14px                                    | 0–40                             | 图片上外边距                                      |
 | `image.marginBottom`                    | 14px                                    | 0–40                             | 图片下外边距                                      |
 | `image.borderRadius`                    | 4px                                     | 0–20                             | 图片圆角                                          |
+| `page.backgroundColor`                  | 未设置                                  | 颜色或缺省                       | 页面背景色；缺省透明，导出不写背景                |
 | `page.paddingTop`                       | 40px                                    | 0–80                             | 页面内容上内边距                                  |
 | `page.paddingRight`                     | 18px                                    | 0–80                             | 页面内容右内边距                                  |
 | `page.paddingBottom`                    | 40px                                    | 0–80                             | 页面内容下内边距                                  |
@@ -255,7 +258,7 @@ type HeadingLevel = {
 | `divider.marginTop`                     | 18px                                    | 0–40                             | 分割线上外边距                                    |
 | `divider.marginBottom`                  | 18px                                    | 0–40                             | 分割线下外边距                                    |
 
-字族、页面底色等根级表现属于 theme.css 的 `&` 根规则，不进入 token。标题颜色统一使用 `headingColor`。行内代码与表格不读 `secondaryFontSize`，字号按正文的 0.875 倍缩放，随 `text.fontSize` 变化；代码块使用 `code.fontSize`，引用使用 `quote.fontSize`，两者都是固定 token，修改正文字号或语法主题不会联动修改。带标题代码块的标题条使用 `secondaryFontSize` 与 `secondaryColor`。表头背景色由 `table.headerBackgroundColor` 单独控制。
+字族等根级表现属于 theme.css 的 `&` 根规则；页面背景是例外，使用可选的 `page.backgroundColor`，`&` 仍可覆盖。标题颜色统一使用 `headingColor`。行内代码与表格不读 `secondaryFontSize`，字号按正文的 0.875 倍缩放，随 `text.fontSize` 变化；代码块使用 `code.fontSize`，引用使用 `quote.fontSize`，两者都是固定 token，修改正文字号或语法主题不会联动修改。带标题代码块的标题条使用 `secondaryFontSize` 与 `secondaryColor`。表头背景色由 `table.headerBackgroundColor` 单独控制。
 
 ### 标题装饰
 
@@ -314,6 +317,7 @@ type HeadingLevel = {
 --fucha-divider-border-top-color
 --fucha-divider-margin-top
 --fucha-divider-margin-bottom
+--fucha-page-background-color
 --fucha-page-padding-top
 --fucha-page-padding-right
 --fucha-page-padding-bottom
@@ -353,7 +357,7 @@ pre code { ... }
 .hljs-keyword { ... }
 ```
 
-`&` 必须单独成条，不能与元素或类组合；预览作用于 `.article-body`，导出时解析 token 变量并合并到最外层 `section` 的 style。字族、页面底色等根级样式写在这里，不要枚举正文标签。
+`&` 必须单独成条，不能与元素或类组合；预览作用于 `.article-body`，导出时解析 token 变量并合并到最外层 `section` 的 style。字族等根级样式写在这里，不要枚举正文标签；页面背景优先用 `page.backgroundColor`，`&` 仍可覆盖。
 
 禁止：
 
@@ -389,7 +393,7 @@ my-theme.fucha-theme
 }
 ```
 
-- 内置主题与自定义主题共用同一结构。当前内置「雾紫」（id `default`）、「书卷」（id `shujuan`）与「青瓷」（id `qingci`），均为只读。发布后的视觉升级通过新增 id 保留旧版本。三套主题均显式写入代码块背景。雾紫与青瓷的页面内距为 40/18/40/18，书卷为 32/24/40/24。三套主题的标题分两层：正文 H1 与 H2 同样式，H3 至 H6 统一为 16px 子标题样式。雾紫与青瓷的 H1、H2 使用 700 字重，其余标题用 600；书卷六级标题均用 600。青瓷的正文色为 `#2f2f2f`，标题色为 `#262626`，次级文字为 `#666666`；H1、H2 通过 token 使用 `#8fae96` 竖条，引用、代码块、行内代码与表头共享 `#f1f5f2` 浅苔底色，边框与线条使用同族浅绿 `#d4e0d6` / `#d3e0d6`。书卷通过 `&` 根规则使用衬线字族；正文 `#221e1b`、标题 `#1e1a18`、次级文字 `#5f564e`，保持暖棕色系。内置主题按主题分文件放在 `src/renderer/src/theme/presets/`（`default.ts`、`shujuan.ts`、`qingci.ts`，`index.ts` 汇总）。主进程做冲突校验所需的保留 id 和名称放在 `src/shared/builtin-themes.ts`，由 harness 校验两边一致。
+- 内置主题与自定义主题共用同一结构。当前内置「雾紫」（id `default`）、「书卷」（id `shujuan`）与「青瓷」（id `qingci`），均为只读。发布后的视觉升级通过新增 id 保留旧版本。三套主题均显式写入代码块背景，且均未设置页面背景。雾紫与青瓷的页面内距为 40/18/40/18，书卷为 32/24/40/24。三套主题的标题分两层：正文 H1 与 H2 同样式，H3 至 H6 统一为 16px 子标题样式。雾紫与青瓷的 H1、H2 使用 700 字重，其余标题用 600；书卷六级标题均用 600。青瓷的正文色为 `#2f2f2f`，标题色为 `#262626`，次级文字为 `#666666`；H1、H2 通过 token 使用 `#8fae96` 竖条，引用、代码块、行内代码与表头共享 `#f1f5f2` 浅苔底色，边框与线条使用同族浅绿 `#d4e0d6` / `#d3e0d6`。书卷通过 `&` 根规则使用衬线字族；正文 `#221e1b`、标题 `#1e1a18`、次级文字 `#5f564e`，保持暖棕色系。内置主题按主题分文件放在 `src/renderer/src/theme/presets/`（`default.ts`、`shujuan.ts`、`qingci.ts`，`index.ts` 汇总）。主进程做冲突校验所需的保留 id 和名称放在 `src/shared/builtin-themes.ts`，由 harness 校验两边一致。
 - 自定义主题导入后，token 与 CSS 存入本地 SQLite；同一 id 或内置 id 已存在时拒绝导入。导入后的自定义主题可原地编辑，也可另存为或新建。
 - 导出主题时把当前 token 和 CSS 重新打包成同样的 zip；内置主题导出时 token 的 `builtin` 置为 false，导入后成为普通自定义主题。不导出文章内容。
 - 自定义主题只允许 CSS 与 token，不允许注入 HTML 或脚本。
@@ -414,6 +418,7 @@ export:
 - 导出前仍执行正文归一：去重复首标题、清引用末段距、外链降级。
 - 预览注入时统一加 `.article-body` 作用域；导出由 juice 直接作用于正文子树。
 - 页面四内边距由 `page.padding*` 控制：预览作用于 `.article-body` 的 padding 与外层宽度，导出写入外层 section 的 padding。
+- 页面背景由 `page.backgroundColor` 控制：设置时预览作用在 `.article-body` 并至少铺满阅读区，导出写入外层 section 的 `background-color`；未设置时不写背景，保留宿主深色模式。
 
 ## 存储
 

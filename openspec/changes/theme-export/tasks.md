@@ -44,3 +44,8 @@
 
 - [x] 7.1 `code.borderStyle` token：允许 solid / dashed / none，默认 solid；base CSS 的 `pre` 与 `figure.code-block` 外框使用该变量，标题分隔线保持实线；验证：默认视觉不变，none 时外框消失，校验拒绝非法值，主题包往返保留该字段
 - [x] 7.2 `divider.borderTopStyle` 允许 solid / dashed / none；衬线预设改为 dashed；验证：内置主题校验通过，排版 tab 选项为实线/虚线/无
+
+## 8. SVG 导出
+
+- [x] 8.1 SVG 样式提升为表现属性：微信会剥离 SVG `style`，sanitize 后将安全的 `fill` / `stroke` / `stroke-dasharray` / `font-*` 等声明写成同名表现属性；导出旧快照时再提升一次，不改写原快照；验证：渲染 harness 覆盖内联、预览、导出与旧快照，rect 不再回退黑底、虚线与文字保留
+- [x] 8.2 烘平 SVG 实色 rect mask 并补尺寸：导出前把 mask 的黑色矩形转成标签底色，移除 mask，只含 viewBox 的 SVG 补 width/height；验证：harness 覆盖 mask 移除、底色矩形位于标签文字前、宽高补齐，嵌入字体回退待微信实机复核
