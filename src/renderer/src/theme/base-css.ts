@@ -231,9 +231,16 @@ figure.table-scroll table {
   width: 100%;
 }
 
+/* 三列及以上按内容自然宽度排布：放得下就铺满，放不下在框内滚动 */
+figure.table-scroll-wide table {
+  width: max-content;
+  min-width: 100%;
+}
+
 figure.table-scroll-wide th,
 figure.table-scroll-wide td {
   min-width: 5em;
+  max-width: 18em;
 }
 
 figure.table-scroll thead > tr:first-child > *,

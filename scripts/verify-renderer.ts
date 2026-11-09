@@ -934,13 +934,13 @@ function testHighlightAndExport(): void {
   check('3.1 元素样式已内联', /<p style="/.test(html) && /<td[^>]*style="[^"]*border/.test(html))
   check('3.1 外链降级为文本', !/href="https?:/.test(html) && html.includes('外链'))
   check('3.1 微信不支持的属性已剔除', !/(position:|float:|display:\s*(grid|flex))/.test(html))
-  check('3.1 代码块保留横向滚动', /<pre[^>]*style="[^"]*overflow-x: auto/.test(html))
   const exportDoc = new DOMParser().parseFromString(html, 'text/html')
-  const exportedQuote = exportDoc.querySelector('blockquote')
+  const exportedQuote = exportDoc.querySelector('section[style*="border-left"]')
   check(
-    '3.1 左条引用导出为主色实线',
+    '3.1 引用导出为 section 并保留主色左条',
     exportedQuote?.style.borderLeftStyle === 'solid' &&
-      exportedQuote.style.borderLeftColor === 'rgb(168, 185, 240)'
+      exportedQuote.style.borderLeftColor === 'rgb(168, 185, 240)' &&
+      exportDoc.querySelector('blockquote') === null
   )
   const exportedCode = exportDoc.querySelector('pre')
   check(
@@ -949,7 +949,52 @@ function testHighlightAndExport(): void {
       exportedCode.style.borderRadius === '4px' &&
       exportedCode.style.borderStyle === 'none'
   )
+  check(
+    '3.1 导出代码块保留横向滚动',
+    exportedCode?.style.overflowX === 'auto' && exportedCode.style.whiteSpace === 'pre',
+    exportedCode?.getAttribute('style') ?? 'missing'
+  )
   check('3.1 高亮样式已内联', /hljs-keyword/.test(html))
+  const spacedCodeArticle = {
+    ...article,
+    html: '<pre><code class="language-ts"><span>export</span><span> default</span>\n<span>  const</span> x = 1</code></pre>',
+  }
+  const spacedExport = buildExportHtml(spacedCodeArticle, DEFAULT_THEME)
+  const spacedCode = new DOMParser()
+    .parseFromString(spacedExport, 'text/html')
+    .querySelector('pre code')
+  check(
+    '3.1 代码块空格以不可折叠空格导出',
+    (spacedCode?.textContent ?? '').includes('\u00a0') &&
+      !(spacedCode?.textContent ?? '').includes(' ')
+  )
+  const spacedText = exportHtmlToText(spacedExport)
+  check(
+    '3.1 代码块纯文本兜底保留普通空格',
+    spacedText.includes('export default') && spacedText.includes('  const')
+  )
+  const listArticle = {
+    ...article,
+    html: '<ul><li><strong>浏览器专属数据</strong>：首次渲染读取数据；</li><li><b>非稳定值</b>：两次结果不同；</li></ul>',
+  }
+  const listExport = new DOMParser().parseFromString(
+    buildExportHtml(listArticle, DEFAULT_THEME),
+    'text/html'
+  )
+  const listItems = Array.from(listExport.querySelectorAll('li'))
+  const listParagraph = listItems[0]?.querySelector('p')
+  check(
+    '3.1 列表内容包进无外边距 p 并保留行内粗体',
+    listItems.length === 2 &&
+      listItems.every(
+        (item) =>
+          !item.querySelector('strong, b') &&
+          !!item.querySelector('p > span[style*="font-weight: 700"]')
+      ) &&
+      listItems[0]?.textContent?.includes('浏览器专属数据：首次渲染') &&
+      listParagraph?.style.margin === '0px',
+    listParagraph?.getAttribute('style') ?? 'missing'
+  )
   check(
     '3.3 导出不附加来源行',
     !html.includes('原文：https://example.com/post') && !html.includes('作者：示例作者')
@@ -970,8 +1015,10 @@ function testHighlightAndExport(): void {
       qingciHeading?.style.color === 'rgb(38, 38, 38)' &&
       !qingciHeading.style.backgroundColor &&
       !qingciHeading.style.paddingTop &&
-      qingciExport.querySelector('blockquote')?.style.borderLeftStyle === 'none' &&
-      qingciExport.querySelector('blockquote')?.style.backgroundColor === 'rgb(241, 245, 242)' &&
+      qingciExport.querySelector('section[style*="border-left"]')?.style.borderLeftStyle ===
+        'none' &&
+      qingciExport.querySelector('section[style*="border-left"]')?.style.backgroundColor ===
+        'rgb(241, 245, 242)' &&
       qingciExport.querySelector('.code-block')?.style.backgroundColor === 'rgb(241, 245, 242)' &&
       qingciExport.querySelector('th')?.style.backgroundColor === 'rgb(241, 245, 242)' &&
       qingciExport.querySelector('.code-block figcaption')?.style.color === 'rgb(102, 102, 102)' &&
@@ -1036,17 +1083,20 @@ function testDomParity(): void {
   const previewDoc = new DOMParser().parseFromString(preview, 'text/html')
   const exportDoc = new DOMParser().parseFromString(exported, 'text/html')
   const previewTail = previewDoc.querySelector('blockquote')?.lastElementChild as HTMLElement | null
-  const exportTail = exportDoc.querySelector('blockquote')?.lastElementChild as HTMLElement | null
+  const exportTail = exportDoc.querySelector('section[style*="border-left"]')
+    ?.lastElementChild as HTMLElement | null
   check(
     '6.2 预览与导出引用末段间距一致',
     previewTail?.style.marginBottom === '0px' && exportTail?.style.marginBottom === '0px'
   )
 
   const wideHeaders = Array.from({ length: 6 }, (_, index) => `<th>列${index + 1}</th>`).join('')
+  const denseRow =
+    '<tr><td>标准模式</td><td>通用编码与复杂任务</td><td>功能完整的编码 Agent，支持文件编辑、Shell、文件与网页检索、Skills、计划、目标、子 Agent 和工作流</td></tr>'
   const tableArticle: Article = {
     title: '表格滚动',
     sourceUrl: 'https://example.com/table',
-    html: `<p>正文</p><table><thead><tr><th>字词</th><th>读音</th><th>句中含义</th></tr></thead><tbody><tr><td>潦水</td><td>lǎo shuǐ</td><td>雨后积水</td></tr></tbody></table><table><thead><tr>${wideHeaders}</tr></thead></table>`,
+    html: `<p>正文</p><table><thead><tr><th>字词</th><th>读音</th><th>句中含义</th></tr></thead><tbody><tr><td>潦水</td><td>lǎo shuǐ</td><td>雨后积水</td></tr></tbody></table><table><thead><tr><th>模式</th><th>定位</th><th>能力概览</th></tr></thead><tbody>${denseRow}</tbody></table><table><thead><tr>${wideHeaders}</tr></thead></table>`,
     images: [],
   }
   const tablePreview = renderPreviewHtml(tableArticle)
@@ -1057,9 +1107,11 @@ function testDomParity(): void {
       /<figure class="table-scroll table-scroll-wide"/.test(tableExported)
   )
   check(
-    '6.1 单元格最小宽度与滚动导出',
-    /<th[^>]*style="[^"]*min-width: 5em/.test(tableExported) &&
-      !/<table[^>]*style="[^"]*min-width/.test(tableExported) &&
+    '6.1 三列表按内容宽度排布并设可读上限',
+    /<table[^>]*style="[^"]*max-content/.test(tableExported) &&
+      /<table[^>]*style="[^"]*min-width: 100%/.test(tableExported) &&
+      /<th[^>]*style="[^"]*min-width: 5em/.test(tableExported) &&
+      /<th[^>]*style="[^"]*max-width: 18em/.test(tableExported) &&
       /overflow-x: auto/.test(tableExported) &&
       /<figure class="table-scroll[^"]*"[^>]*style="[^"]*border/.test(tableExported) &&
       /<th[^>]*style="[^"]*(?:border-top: none|border-top-width: 0)/.test(tableExported)
@@ -1080,13 +1132,15 @@ function testDomParity(): void {
     ['预览', tablePreviewRoot],
     ['导出', tableExportRoot],
   ] as const) {
-    const [shortTable, wideTable] = root.querySelectorAll('figure.table-scroll')
+    const [shortTable, denseTable, wideTable] = root.querySelectorAll('figure.table-scroll')
     check(
-      `6.4 360px ${label}中三列短表完整显示、六列表局部滚动`,
+      `6.4 360px ${label}中短表不滚动、内容多的三列表与六列表局部滚动`,
       !!shortTable &&
+        !!denseTable &&
         !!wideTable &&
         shortTable.clientWidth > 0 &&
         shortTable.scrollWidth === shortTable.clientWidth &&
+        denseTable.scrollWidth > denseTable.clientWidth &&
         wideTable.scrollWidth > wideTable.clientWidth &&
         root.scrollWidth === root.clientWidth
     )

@@ -44,6 +44,14 @@
 
 **导出外层加 section 承载基础排版。** 微信正文会继承客户端字体与颜色，导出 CSS 若不显式给出基础字体、字号、行高、字距和颜色，预览与微信两端会分叉。导出产物在 juice 与属性过滤后用 section 包裹，section 的 inline style 与预览 `.article-body` 同源；文章元素规则仍负责各自的排版。
 
+**引用块导出用 section 承载。** 微信会给 `<blockquote>` 叠加默认左条，和主题左边条并成双线；导出把 blockquote 换成带相同内联样式的 section，保留背景、内距、圆角、左边条和末段间距。预览仍使用 blockquote。
+
+**列表首项粗体改为行内 span 并包进无外边距 p。** 微信保存会把 `<li>` 开头的 `<strong>/<b>` 识别成术语，并把后续内容包进块级 `<section>`，说明因此另起一行；导出把首项粗体换成带 `font-weight:700` 的 span，并把整项内容包进 `style="margin:0"` 的 p，让微信的 section 包住整段，视觉不变、列表保持单行。预览不替换。
+
+**代码块长行保留横向滚动（试验）。** 预览与导出保留 `white-space: pre` 与 `overflow-x: auto`。微信保存可能隐藏滚动条或剥离 overflow；先用实机确认触摸滑动是否保留，若仍被裁切则回退为 `white-space: pre-wrap` / `word-break: break-all` 的自动换行。
+
+**代码块空白以不可折叠空格导出。** 高亮后的空格常落在 span 内，微信保存会裁掉 span 前后的空白，导致 token 粘连、缩进消失；导出时把 `pre code` 文本里的空格替换为不可折叠空格，纯文本兜底再还原为普通空格。预览不使用该替换，保持正常可复制文本。
+
 **SVG 样式导出提升为表现属性。** 微信会剥离 SVG 元素的 `style`；sanitize 与导出阶段把安全的 `fill`、`stroke`、`stroke-dasharray`、`font-*` 等声明提升为同名表现属性，旧快照在导出时再处理一次且不改写原快照。导出还会把只含实色 rect 的 mask 烘成标签底色矩形并移除 mask，给只有 viewBox 的 SVG 补宽高；嵌入字体被微信剥离时回退系统字体，但标签位置、遮罩和线条保持。矩形不再回退黑底，虚线与文字保留。
 
 **页面背景走 token，导出按设置写外层。** 预览把 `page.backgroundColor` 写成 `.article-body` 的背景并保证至少铺满阅读区；导出只在字段存在时给外层 section 写 `background-color`，未设置时保持透明以跟随微信深色模式。theme.css 的 `& { background-color }` 仍然后写覆盖。
@@ -64,7 +72,7 @@
 
 **语言映射归高亮层。** Rspress 的 `data-lang` 可能是 `tsx`、`jsx` 或 `html`，都不是 hljs 注册语言；映射到 `typescript`、`javascript`、`xml` 放在 `theme/highlight.ts`，适配器只把声明的语言写入 `language-*`，不复制 hljs 知识。
 
-**表格超出可用宽度时在带框容器内横向滚动。** 预览和导出共用 `figure.table-scroll`，容器承担 1px 外框与代码块圆角，用 `overflow-x: auto` 显示原生滚动条。表格占容器宽度并允许单元格换行。三列及以上继续标记 `table-scroll-wide`，由单元格的 `min-width: 5em` 保留可读宽度。旧规则给整张三列表设 600px 下限，导致简短的字词表也需要横滑。改用单元格下限后，由布局根据列宽决定是否横滚，预览和导出共用该规则。内联导出使用白名单中的 `min-width` 与 `overflow-x`，微信编辑器是否保留仍需实机验证。
+**表格按内容量决定是否横向滚动，只限三列及以上。** 预览和导出共用 `figure.table-scroll`，一至两列表格保持占满容器并换行。三列及以上标记 `table-scroll-wide`，表格改用 `width: max-content` 按内容自然宽度排布，并以 `min-width: 100%` 保证内容少时仍铺满容器；单元格宽度限制在 `5em` 到 `18em`，超过上限的内容在单元格内换行。这样短表放得下就不出现滚动条，内容多到自然宽度超出容器才在边框内横滚，滚动量与内容量相关。旧规则给整张三列表设 600px 下限，短表也被迫横滑；只设单元格下限又会让内容多的表被压成很高的行。内联导出使用白名单中的 `width`、`min-width`、`max-width` 与 `overflow-x`，微信编辑器是否保留 `max-content` 与滚动能力仍需实机验证，缺失时回落为普通换行。
 
 **导出圆角按 CSSOM 长属性保留。** Chromium 会把 `border-radius` 展开成四个角的长属性，微信属性过滤按枚举到的属性名匹配；白名单必须包含四个角的长属性，否则引用、代码块、图片与表格的圆角会在导出时静默丢失。
 

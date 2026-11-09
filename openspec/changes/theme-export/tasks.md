@@ -49,3 +49,8 @@
 
 - [x] 8.1 SVG 样式提升为表现属性：微信会剥离 SVG `style`，sanitize 后将安全的 `fill` / `stroke` / `stroke-dasharray` / `font-*` 等声明写成同名表现属性；导出旧快照时再提升一次，不改写原快照；验证：渲染 harness 覆盖内联、预览、导出与旧快照，rect 不再回退黑底、虚线与文字保留
 - [x] 8.2 烘平 SVG 实色 rect mask 并补尺寸：导出前把 mask 的黑色矩形转成标签底色，移除 mask，只含 viewBox 的 SVG 补 width/height；验证：harness 覆盖 mask 移除、底色矩形位于标签文字前、宽高补齐，嵌入字体回退待微信实机复核
+- [x] 8.3 代码块空格改用不可折叠空格导出，避免微信保存裁掉高亮 span 前后的空白；纯文本兜底还原普通空格；验证：harness 覆盖导出不可折叠空格与纯文本普通空格，待微信保存草稿复核
+- [x] 8.4 列表首项粗体导出为带 `font-weight:700` 的行内 span，并把整项内容包进 `style="margin:0"` 的 p，避免微信把首项后的内容包进 section 拆成两行；验证：harness 覆盖 strong/b 转换、p 包裹与文本保持，待微信保存草稿复核
+- [x] 8.5 代码块长行恢复横向滚动：预览与导出保留 `white-space: pre` 与 `overflow-x: auto`；微信保存后触摸滑动是否保留待实机复核，若仍被裁切则回退自动换行；验证：harness 覆盖导出滚动样式，待微信保存草稿复核
+- [x] 8.6 引用块导出转为带同样内联样式的 section，避免微信给 blockquote 叠加默认左条形成双线；预览仍用 blockquote；验证：harness 覆盖导出无 blockquote、section 保留主色左条与末段间距，待微信保存草稿复核
+- [x] 8.7 三列及以上表格按内容量决定是否滚动：表格改 `width: max-content` + `min-width: 100%`，单元格 `5em`～`18em`，短表铺满不滚，内容多的表在边框内横滚；验证：harness 覆盖 360px 下三列短表不滚、内容多的三列表与六列表局部滚动，待微信实机复核
