@@ -250,7 +250,7 @@ async function main(): Promise<void> {
       .catch(() => false)
   )
   const versionRow = getDb().prepare('PRAGMA user_version').get() as { user_version: number }
-  check('1.2 迁移到最新 schema', versionRow.user_version === 9, String(versionRow.user_version))
+  check('1.2 迁移到最新 schema', versionRow.user_version === 10, String(versionRow.user_version))
   const articleIndexes = getDb().prepare("PRAGMA index_list('articles')").all() as {
     name: string
   }[]
@@ -408,9 +408,32 @@ async function main(): Promise<void> {
   deleteArticle(qingciHash)
   deleteTheme('legacy-source')
 
+  const legacyPadding = structuredClone(defaultTheme)
+  legacyPadding.page.paddingLeft = 18
+  legacyPadding.page.paddingRight = 24
+  getDb()
+    .prepare(
+      `INSERT INTO themes
+         (id, name, token, css, token_version, source_theme_id, sort, created_at, updated_at)
+       VALUES ('legacy-padding', '旧留白', ?, '', 1, 'default', 0, ?, ?)`
+    )
+    .run(JSON.stringify(legacyPadding), legacyTime, legacyTime)
+  closeLocalStore()
+  const v9Db = new DatabaseSync(storePath)
+  v9Db.exec('PRAGMA user_version = 9')
+  v9Db.close()
+  check('1.2 v9 库迁移主题留白', initLocalStore(storePath).available)
+  check(
+    '1.2 主题左右留白归零并保留上下留白',
+    getTheme('legacy-padding')?.token.page.paddingLeft === 0 &&
+      getTheme('legacy-padding')?.token.page.paddingRight === 0 &&
+      getTheme('legacy-padding')?.token.page.paddingTop === 40
+  )
+  deleteTheme('legacy-padding')
+
   const higherPath = join(storeDir, 'higher.db')
   const higher = new DatabaseSync(higherPath)
-  higher.exec('PRAGMA user_version = 10')
+  higher.exec('PRAGMA user_version = 11')
   higher.close()
   check('1.1 版本高于代码时降级', initLocalStore(higherPath).available === false)
   initLocalStore(storePath)

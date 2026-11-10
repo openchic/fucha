@@ -11,6 +11,7 @@ import {
   buildExportRootStyle,
   buildPreviewCss,
   tokenVariables,
+  PLATFORM_SIDE_PADDING,
 } from '../src/renderer/src/theme/apply'
 import { highlightArticleHtml, highlightThemeCss } from '../src/renderer/src/theme/highlight'
 import { BUILTIN_THEMES, DEFAULT_THEME } from '../src/renderer/src/theme/presets'
@@ -476,15 +477,14 @@ function testTheme(): void {
     qingci.token.text.lineHeight === 1.8 && qingci.token.text.letterSpacing === 0.02
   )
   check(
-    '1.1 内置主题的页面内距和标题字号符合预设',
+    '1.1 内置主题只保留上下页面内距',
     BUILTIN_THEMES.every(({ token }) => {
       const isShujuan = token.id === 'shujuan'
-      const inlinePadding = isShujuan ? 24 : 18
       return (
         token.page.paddingTop === (isShujuan ? 32 : 40) &&
-        token.page.paddingRight === inlinePadding &&
+        token.page.paddingRight === 0 &&
         token.page.paddingBottom === 40 &&
-        token.page.paddingLeft === inlinePadding &&
+        token.page.paddingLeft === 0 &&
         token.h1.fontSize === 20 &&
         token.h2.fontSize === 20 &&
         token.h3.fontSize === 16 &&
@@ -589,6 +589,20 @@ function testTheme(): void {
   check(
     '1.1 预览常量不进入导出',
     !exportCss.includes('max-width: 724px') && !exportCss.includes('padding: 40px 24px')
+  )
+  const extraPaddingToken = {
+    ...DEFAULT_THEME.token,
+    page: { ...DEFAULT_THEME.token.page, paddingLeft: 8, paddingRight: 6 },
+  }
+  check(
+    '1.1 预览加入平台左右留白',
+    previewCss.includes(`calc(var(--fucha-page-padding-right) + ${PLATFORM_SIDE_PADDING}px)`) &&
+      previewCss.includes(`+ ${PLATFORM_SIDE_PADDING * 2}px`)
+  )
+  check(
+    '1.1 导出使用 token 额外内距',
+    exportRootStyle(DEFAULT_THEME.token).includes('padding: 40px 0px 40px 0px') &&
+      exportRootStyle(extraPaddingToken).includes('padding: 40px 6px 40px 8px')
   )
   check('1.1 导出 CSS 不含变量', !exportCss.includes('var('))
   check(

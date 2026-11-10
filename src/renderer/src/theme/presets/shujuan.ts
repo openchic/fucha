@@ -33,9 +33,9 @@ const token = {
   headingColor: '#1e1a18',
   page: {
     paddingTop: 32,
-    paddingRight: 24,
+    paddingRight: 0,
     paddingBottom: 40,
-    paddingLeft: 24,
+    paddingLeft: 0,
   },
   h1: {
     fontSize: 20,

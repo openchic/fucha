@@ -11,6 +11,8 @@ import { highlightThemeBackground, highlightThemeCss } from './highlight'
 
 /** 预览画布常量，不进入 token，也不参与导出 */
 export const PREVIEW_CONTENT_WIDTH = 676
+/** 微信正文自带的左右留白；预览用它模拟平台边距，导出由平台提供 */
+export const PLATFORM_SIDE_PADDING = 20
 export const ARTICLE_FONT_FAMILY =
   "-apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif"
 
@@ -98,9 +100,9 @@ function decorationCss(token: ThemeToken): string {
 
 function previewCanvas(): string {
   return [
-    `  max-width: calc(${PREVIEW_CONTENT_WIDTH}px + var(--fucha-page-padding-left) + var(--fucha-page-padding-right));`,
+    `  max-width: calc(${PREVIEW_CONTENT_WIDTH}px + var(--fucha-page-padding-left) + var(--fucha-page-padding-right) + ${PLATFORM_SIDE_PADDING * 2}px);`,
     '  margin: 0 auto;',
-    '  padding: var(--fucha-page-padding-top) var(--fucha-page-padding-right) var(--fucha-page-padding-bottom) var(--fucha-page-padding-left);',
+    `  padding: var(--fucha-page-padding-top) calc(var(--fucha-page-padding-right) + ${PLATFORM_SIDE_PADDING}px) var(--fucha-page-padding-bottom) calc(var(--fucha-page-padding-left) + ${PLATFORM_SIDE_PADDING}px);`,
     '  background-color: var(--fucha-page-background-color);',
     '  min-height: 100%;',
     `  font-family: ${ARTICLE_FONT_FAMILY};`,

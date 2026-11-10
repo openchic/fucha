@@ -100,9 +100,9 @@ type HeadingLevel = {
   "headingColor": "#333333",
   "page": {
     "paddingTop": 40,
-    "paddingRight": 18,
+    "paddingRight": 0,
     "paddingBottom": 40,
-    "paddingLeft": 18
+    "paddingLeft": 0
   },
   "h1": {
     "fontSize": 20,
@@ -250,9 +250,9 @@ type HeadingLevel = {
 | `image.borderRadius`                    | 4px                                     | 0–20                             | 图片圆角                                          |
 | `page.backgroundColor`                  | 未设置                                  | 颜色或缺省                       | 页面背景色；缺省透明，导出不写背景                |
 | `page.paddingTop`                       | 40px                                    | 0–80                             | 页面内容上内边距                                  |
-| `page.paddingRight`                     | 18px                                    | 0–80                             | 页面内容右内边距                                  |
+| `page.paddingRight`                     | 0px                                     | 0–80                             | 平台留白之外的额外右内边距                        |
 | `page.paddingBottom`                    | 40px                                    | 0–80                             | 页面内容下内边距                                  |
-| `page.paddingLeft`                      | 18px                                    | 0–80                             | 页面内容左内边距                                  |
+| `page.paddingLeft`                      | 0px                                     | 0–80                             | 平台留白之外的额外左内边距                        |
 | `divider.borderTopStyle`                | solid                                   | solid / dashed / none            | 分割线样式                                        |
 | `divider.borderTopColor`                | #ccd4e6                                 | 颜色                             | 分割线颜色                                        |
 | `divider.marginTop`                     | 18px                                    | 0–40                             | 分割线上外边距                                    |
@@ -393,7 +393,7 @@ my-theme.fucha-theme
 }
 ```
 
-- 内置主题与自定义主题共用同一结构。当前内置「雾紫」（id `default`）、「书卷」（id `shujuan`）与「青瓷」（id `qingci`），均为只读。发布后的视觉升级通过新增 id 保留旧版本。三套主题均显式写入代码块背景，且均未设置页面背景。雾紫与青瓷的页面内距为 40/18/40/18，书卷为 32/24/40/24。三套主题的标题分两层：正文 H1 与 H2 同样式，H3 至 H6 统一为 16px 子标题样式。雾紫与青瓷的 H1、H2 使用 700 字重，其余标题用 600；书卷六级标题均用 600。青瓷的正文色为 `#2f2f2f`，标题色为 `#262626`，次级文字为 `#666666`；H1、H2 通过 token 使用 `#8fae96` 竖条，引用、代码块、行内代码与表头共享 `#f1f5f2` 浅苔底色，边框与线条使用同族浅绿 `#d4e0d6` / `#d3e0d6`。书卷通过 `&` 根规则使用衬线字族；正文 `#221e1b`、标题 `#1e1a18`、次级文字 `#5f564e`，保持暖棕色系。内置主题按主题分文件放在 `src/renderer/src/theme/presets/`（`default.ts`、`shujuan.ts`、`qingci.ts`，`index.ts` 汇总）。主进程做冲突校验所需的保留 id 和名称放在 `src/shared/builtin-themes.ts`，由 harness 校验两边一致。
+- 内置主题与自定义主题共用同一结构。当前内置「雾紫」（id `default`）、「书卷」（id `shujuan`）与「青瓷」（id `qingci`），均为只读。发布后的视觉升级通过新增 id 保留旧版本。三套主题均显式写入代码块背景，且均未设置页面背景。雾紫与青瓷的页面内距为 40/0/40/0，书卷为 32/0/40/0；左右内距默认 0，只表达额外的页面缩进。预览画布在四边内距之外固定加 20px 平台左右留白，模拟公众号阅读页；导出外层原样输出 token 内距，左右基础留白由微信正文提供，默认不会重复叠加。三套主题的标题分两层：正文 H1 与 H2 同样式，H3 至 H6 统一为 16px 子标题样式。雾紫与青瓷的 H1、H2 使用 700 字重，其余标题用 600；书卷六级标题均用 600。青瓷的正文色为 `#2f2f2f`，标题色为 `#262626`，次级文字为 `#666666`；H1、H2 通过 token 使用 `#8fae96` 竖条，引用、代码块、行内代码与表头共享 `#f1f5f2` 浅苔底色，边框与线条使用同族浅绿 `#d4e0d6` / `#d3e0d6`。书卷通过 `&` 根规则使用衬线字族；正文 `#221e1b`、标题 `#1e1a18`、次级文字 `#5f564e`，保持暖棕色系。内置主题按主题分文件放在 `src/renderer/src/theme/presets/`（`default.ts`、`shujuan.ts`、`qingci.ts`，`index.ts` 汇总）。主进程做冲突校验所需的保留 id 和名称放在 `src/shared/builtin-themes.ts`，由 harness 校验两边一致。
 - 自定义主题导入后，token 与 CSS 存入本地 SQLite；同一 id 或内置 id 已存在时拒绝导入。导入后的自定义主题可原地编辑，也可另存为或新建。
 - 导出主题时把当前 token 和 CSS 重新打包成同样的 zip；内置主题导出时 token 的 `builtin` 置为 false，导入后成为普通自定义主题。不导出文章内容。
 - 自定义主题只允许 CSS 与 token，不允许注入 HTML 或脚本。

@@ -18,6 +18,15 @@
 - **WHEN** 检查导出 HTML
 - **THEN** 不含 style 标签选择器依赖，元素样式均可内联溯源
 
+### Requirement: 导出外层页边距
+
+导出产物外层 section SHALL 应用页面 token 的四边内距；页面 token 的左右内距默认 0，只表达额外内距。微信正文自带的左右留白由平台提供，SHALL NOT 重复计入 token。预览画布 SHALL 在 token 内距之外固定加入平台左右留白，模拟真实阅读页。
+
+#### Scenario: 公众号预览左右留白
+
+- **WHEN** 导出并粘贴到微信公众号编辑器预览
+- **THEN** 正文左右留白为平台固定留白加 token 额外内距，默认不出现两层边距叠加导致的过宽留白
+
 ### Requirement: 代码高亮
 
 导出与预览 SHALL 对代码块做语法高亮（highlight.js，class 输出由内联步骤转 style），代码块 SHALL 横向可滚动不折行。
