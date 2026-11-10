@@ -207,7 +207,7 @@ const ThemeEditor = (props: ThemeEditorProps) => {
 
   return (
     <div className="flex h-full min-h-0 flex-col overflow-hidden">
-      <div className="drag-region relative z-30 flex h-11 flex-none items-center gap-2 border-b border-divider px-6">
+      <div className="relative z-30 flex h-11 flex-none items-center gap-2 border-b border-divider pr-6 pl-[calc(1.5rem+var(--page-header-inset,0px))] transition-[padding-left] duration-200 ease-out">
         <Button
           variant="back"
           onClick={leaveToList}

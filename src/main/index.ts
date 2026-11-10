@@ -29,7 +29,9 @@ function createWindow(): void {
     ...(process.platform === 'darwin'
       ? {
           titleBarStyle: 'hiddenInset' as const,
-          trafficLightPosition: { x: 18, y: 18 },
+          trafficLightPosition: { x: 18, y: 24 },
+          // 未激活时第一次点击直接作用于控件，避免点侧栏按钮只激活窗口
+          acceptFirstMouse: true,
         }
       : {}),
     ...(process.platform === 'linux' ? { icon } : {}),

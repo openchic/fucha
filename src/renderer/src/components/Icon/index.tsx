@@ -17,6 +17,8 @@ type IconName =
   | 'more'
   | 'settings'
   | 'smartphone'
+  | 'sidebar-collapse'
+  | 'sidebar-expand'
 
 type IconProps = {
   name: IconName
@@ -45,11 +47,19 @@ const PATHS: Record<IconName, string> = {
     'M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z M12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z',
   smartphone:
     'M6 2.5h12a2 2 0 0 1 2 2v15a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-15a2 2 0 0 1 2-2Z M10 18.5h4',
+  'sidebar-collapse':
+    'M5 4h14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z M9 4v16',
+  'sidebar-expand': 'M5 4h14a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z',
 }
 
 /** 点状图标的笔画就是点径，需要比线图标更粗才看得清 */
 const STROKE_WIDTHS: Partial<Record<IconName, number>> = {
   more: 3,
+}
+
+/** 收起态与展开态同形，只把分隔线画浅一些 */
+const FAINT_PATHS: Partial<Record<IconName, string>> = {
+  'sidebar-expand': 'M9 4v16',
 }
 
 /** 应用壳共用的线性图标，与文章内容样式分开。 */
@@ -64,6 +74,7 @@ export const Icon = ({ name, className }: IconProps) => (
     strokeLinecap="round"
     strokeLinejoin="round"
     className={className ?? 'h-4 w-4 flex-none'}>
+    {FAINT_PATHS[name] && <path d={FAINT_PATHS[name]} strokeOpacity={0.45} />}
     <path d={PATHS[name]} />
   </svg>
 )

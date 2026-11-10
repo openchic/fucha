@@ -75,7 +75,7 @@ export const Sidebar = (props: SidebarProps) => {
   }
 
   return (
-    <aside aria-label="最近文章" className="flex w-[264px] flex-none flex-col bg-panel">
+    <aside aria-label="最近文章" className="flex h-full w-[248px] flex-none flex-col bg-panel">
       <div className="pt-14 pb-3">
         <div className="px-2">
           <button
@@ -139,7 +139,7 @@ export const Sidebar = (props: SidebarProps) => {
         )}
       </nav>
 
-      <div className="flex justify-end px-3 pt-2 pb-3">
+      <footer className="flex h-12 flex-none items-center px-3">
         <button
           type="button"
           onClick={onSettings}
@@ -148,7 +148,7 @@ export const Sidebar = (props: SidebarProps) => {
           className="flex h-7 w-7 items-center justify-center rounded-full text-ink-soft transition-colors hover:bg-white hover:text-ink">
           <Icon name="settings" className="h-4 w-4 flex-none" />
         </button>
-      </div>
+      </footer>
 
       {menuTarget && (
         <Popover

@@ -23,3 +23,27 @@
 
 - **WHEN** 来源页没有 Rspress 代码块标记
 - **THEN** 正文结构与改动前一致
+
+### Requirement: 正文快照的结构边界
+
+提取 SHALL 在抓取时把语义结构冻结进 `Article.html`。提取阶段的规则——Readability 正文判定、站点 profile、标签与属性白名单、SVG 内联、Rspress 代码块归一——变更后 SHALL 只影响之后抓取的文章，系统 SHALL NOT 自动迁移或重写旧快照。旧文章需要新结构时 SHALL 通过重新抓取或显式刷新快照完成。渲染与导出阶段的规则——正文归一、语法高亮、微信结构投影与样式内联——SHALL 在读取快照时执行，对所有文章生效，且 SHALL NOT 改写快照。主题 token 与 theme.css 变更同样 SHALL 对所有文章生效。规则属于哪一层的判断标准是它是否写入 `Article.html`。
+
+#### Scenario: 提取规则变更
+
+- **WHEN** 修改标签白名单、站点 profile 或 Rspress 代码块归一规则
+- **THEN** 新抓取的文章使用新结构；旧快照保持原样，不执行自动迁移
+
+#### Scenario: 渲染或导出修复
+
+- **WHEN** 修改引用转 section、列表包 p、代码逐行拆块或微信属性过滤
+- **THEN** 旧快照在预览与导出时同样应用新投影，快照本身不被改写
+
+#### Scenario: 主题变更
+
+- **WHEN** 切换主题或修改 token 与 theme.css
+- **THEN** 所有文章按新主题渲染，无需重新提取
+
+#### Scenario: 旧文章升级
+
+- **WHEN** 需要让旧文章获得新的提取结构
+- **THEN** 由重新抓取或显式刷新快照触发，而不是数据库迁移
