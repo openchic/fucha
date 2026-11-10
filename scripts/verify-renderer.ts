@@ -957,6 +957,7 @@ function testHighlightAndExport(): void {
       exportDoc.querySelector('blockquote') === null
   )
   const exportedCode = exportDoc.querySelector('pre')
+  const exportedCodeTag = exportDoc.querySelector('pre code') as HTMLElement | null
   check(
     '5.6 雾紫无标题代码块导出保留底色和圆角且无外框',
     !!exportedCode?.style.backgroundColor &&
@@ -964,9 +965,15 @@ function testHighlightAndExport(): void {
       exportedCode.style.borderStyle === 'none'
   )
   check(
-    '3.1 导出代码块保留横向滚动',
-    exportedCode?.style.overflowX === 'auto' && exportedCode.style.whiteSpace === 'pre',
-    exportedCode?.getAttribute('style') ?? 'missing'
+    '3.1 导出代码块以 code 作横向滚动容器',
+    exportedCode?.style.maxWidth === '1000%' &&
+      exportedCode.style.getPropertyPriority('max-width') === 'important' &&
+      exportedCodeTag?.style.display === 'block' &&
+      exportedCodeTag.style.width === 'max-content' &&
+      exportedCodeTag.style.getPropertyPriority('width') === 'important' &&
+      exportedCodeTag.style.overflowX === 'auto' &&
+      exportedCodeTag.style.getPropertyPriority('overflow-x') === 'important',
+    exportedCodeTag?.getAttribute('style') ?? 'missing'
   )
   check('3.1 高亮样式已内联', /hljs-keyword/.test(html))
   const spacedCodeArticle = {
@@ -974,9 +981,23 @@ function testHighlightAndExport(): void {
     html: '<pre><code class="language-ts"><span>export</span><span> default</span>\n<span>  const</span> x = 1</code></pre>',
   }
   const spacedExport = buildExportHtml(spacedCodeArticle, DEFAULT_THEME)
-  const spacedCode = new DOMParser()
-    .parseFromString(spacedExport, 'text/html')
-    .querySelector('pre code')
+  const spacedDoc = new DOMParser().parseFromString(spacedExport, 'text/html')
+  const spacedCode = spacedDoc.querySelector('pre code')
+  const spacedLines = Array.from(
+    spacedDoc.querySelectorAll('pre [data-code-line]')
+  ) as HTMLElement[]
+  check(
+    '3.1 代码块每行宽度由内容决定且子元素豁免宽度限制',
+    !!spacedCode &&
+      spacedLines.length === 2 &&
+      spacedLines.every(
+        (line) => line.style.display === 'block' && line.style.width === 'max-content'
+      ) &&
+      spacedCode.querySelectorAll('br').length === 0 &&
+      Array.from(spacedDoc.querySelectorAll('pre *')).every(
+        (node) => (node as HTMLElement).style.getPropertyPriority('max-width') === 'important'
+      )
+  )
   check(
     '3.1 代码块空格以不可折叠空格导出',
     (spacedCode?.textContent ?? '').includes('\u00a0') &&
@@ -987,6 +1008,34 @@ function testHighlightAndExport(): void {
     '3.1 代码块纯文本兜底保留普通空格',
     spacedText.includes('export default') && spacedText.includes('  const')
   )
+  const longCodeExport = buildExportHtml(
+    { ...article, html: `<pre><code>const value = ${'a'.repeat(200)}</code></pre>` },
+    DEFAULT_THEME
+  )
+  const wechatRoot = document.createElement('div')
+  wechatRoot.className = 'rich_media_content'
+  wechatRoot.style.cssText = 'width: 350px; overflow: hidden'
+  wechatRoot.innerHTML = longCodeExport
+  const wechatStyle = document.createElement('style')
+  wechatStyle.textContent =
+    '.rich_media_content * { max-width: 100% !important; box-sizing: border-box !important; word-wrap: break-word !important; }'
+  document.head.append(wechatStyle)
+  document.body.append(wechatRoot)
+  const wechatPre = wechatRoot.querySelector('pre') as HTMLElement | null
+  const wechatCode = wechatRoot.querySelector('pre code') as HTMLElement | null
+  const wechatLine = wechatRoot.querySelector('[data-code-line]') as HTMLElement | null
+  check(
+    '3.1 模拟微信全局样式后滚动条位于代码框底部',
+    !!wechatPre &&
+      !!wechatCode &&
+      !!wechatLine &&
+      wechatPre.scrollWidth > wechatPre.clientWidth + 1 &&
+      wechatLine.getBoundingClientRect().width > wechatPre.clientWidth + 1 &&
+      wechatCode.style.width === 'max-content' &&
+      getComputedStyle(wechatCode).display === 'block'
+  )
+  wechatRoot.remove()
+  wechatStyle.remove()
   const listArticle = {
     ...article,
     html: '<ul><li><strong>浏览器专属数据</strong>：首次渲染读取数据；</li><li><b>非稳定值</b>：两次结果不同；</li></ul>',

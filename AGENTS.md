@@ -16,6 +16,8 @@ fucha —— 基于 Electron + React + TypeScript 的桌面应用。
 
 验证界面与交互一律启动本地应用（`pnpm dev`）在真实窗口里操作，不用浏览器打开 dev server 页面替代：那里没有 preload 暴露的 IPC，抓取、预览与错误态都跑不通。
 
+代码改动后先确认本地应用是否在运行：没启动就主动启动 `pnpm dev`；已启动则依靠它自动热更新或重启，在真实窗口里验证后再收尾，不等用户提醒。
+
 ## OpenSpec 变更管理规则
 
 ### 1. Change 边界

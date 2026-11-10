@@ -94,7 +94,7 @@
 
 ### Requirement: 代码块卡片
 
-正文中的代码块 SHALL 使用主题的代码块背景与圆角，外框 SHALL 由 `code.borderStyle` 决定。带标题的代码块 SHALL 在顶部增加标题条，标题左对齐，使用次级文字色、次级字号与等宽字体，标题条与代码区之间的 1px 分隔线 SHALL 由 `code.captionDivider` 控制线型和颜色。主题 SHALL 可在 theme.css 中用 `pre`、`.code-block` 与 `.code-block figcaption` 覆盖。预览与导出的代码块样式 SHALL 同源一致，导出所用属性 SHALL 在微信白名单内。导出代码块中的空格与缩进 SHALL 使用不可折叠空格，避免微信保存时裁掉高亮 span 前后的空白；纯文本兜底 SHALL 将不可折叠空格还原为普通空格。导出代码块 SHALL 保留 `white-space: pre` 与 `overflow-x: auto` 的横向滚动；微信保存后是否保留触摸滑动待实机复核，若仍被裁切则回退为自动换行。
+正文中的代码块 SHALL 使用主题的代码块背景与圆角，外框 SHALL 由 `code.borderStyle` 决定。带标题的代码块 SHALL 在顶部增加标题条，标题左对齐，使用次级文字色、次级字号与等宽字体，标题条与代码区之间的 1px 分隔线 SHALL 由 `code.captionDivider` 控制线型和颜色。主题 SHALL 可在 theme.css 中用 `pre`、`.code-block` 与 `.code-block figcaption` 覆盖。预览与导出的代码块样式 SHALL 同源一致，导出所用属性 SHALL 在微信白名单内。导出代码块中的空格与缩进 SHALL 使用不可折叠空格，避免微信保存时裁掉高亮 span 前后的空白；纯文本兜底 SHALL 将不可折叠空格还原为普通空格。导出代码块 SHALL 按行拆成 `width: max-content` 的块，以 `code` 作为横向滚动容器（`display: block` / `overflow-x: auto`），空格与缩进改用不可折叠空格，`pre` 及其子元素 SHALL 豁免 `max-width`；行宽由内容决定，避免微信保存时重写空白或 `white-space` 导致折行；`code` SHALL 撑到最宽行，使滚动条位于 `pre` 底部并与预览一致，宽度被丢弃时回退到 `code` 滚动。触摸滑动是否保留待实机复核，若仍被裁切则回退为自动换行。
 
 #### Scenario: 带标题代码块
 
@@ -114,7 +114,7 @@
 #### Scenario: 长行代码横向滚动
 
 - **WHEN** 代码行超过手机正文宽度并粘贴到微信保存草稿
-- **THEN** 预览与导出 SHALL 保留横向滚动；微信保存后的触摸滑动能力待实机复核，若被裁切则改为自动换行
+- **THEN** 预览与导出 SHALL 保留横向滚动；导出以逐行 `max-content` 块、`code` 滚动容器与不可折叠空格抵抗微信重写，触摸滑动能力待实机复核，若被裁切则改为自动换行
 
 #### Scenario: 无标题代码块
 

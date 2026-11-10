@@ -51,6 +51,57 @@ function escapeStyleAttribute(value: string): string {
     .replace(/>/g, '&gt;')
 }
 
+/** 代码文本里的空格与缩进改成不可折叠空格，换行仍保留为文本/br，供下一步按行拆块 */
+function normalizeCodeText(doc: Document, code: HTMLElement): void {
+  const walker = doc.createTreeWalker(code, NodeFilter.SHOW_TEXT)
+  const textNodes: Text[] = []
+  for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+    textNodes.push(node as Text)
+  }
+  for (const node of textNodes) {
+    const value = node.nodeValue ?? ''
+    if (!value.includes(' ') && !value.includes('\t') && !value.includes('\n')) continue
+    const normalized = value
+      .replace(/\r\n?/g, '\n')
+      .replace(/\t/g, '\u00a0\u00a0\u00a0\u00a0')
+      .replace(/ /g, '\u00a0')
+    const fragment = doc.createDocumentFragment()
+    normalized.split('\n').forEach((line, index) => {
+      if (index) fragment.append(doc.createElement('br'))
+      if (line) fragment.append(doc.createTextNode(line))
+    })
+    node.replaceWith(fragment)
+  }
+}
+
+/** 每行成为 width:max-content 的块：宽度由内容决定，微信丢掉 white-space 也不会折行 */
+function splitCodeLines(doc: Document, code: HTMLElement): void {
+  const lines: Node[][] = [[]]
+  for (const child of Array.from(code.childNodes)) {
+    if (child.nodeName === 'BR') {
+      child.remove()
+      lines.push([])
+      continue
+    }
+    lines[lines.length - 1]!.push(child)
+  }
+  const fragment = doc.createDocumentFragment()
+  for (const nodes of lines) {
+    const line = doc.createElement('span')
+    line.setAttribute('data-code-line', '')
+    line.style.display = 'block'
+    line.style.width = 'max-content'
+    line.style.whiteSpace = 'pre'
+    if (nodes.length) {
+      for (const node of nodes) line.append(node)
+    } else {
+      line.append(doc.createTextNode('\u00a0'))
+    }
+    fragment.append(line)
+  }
+  code.replaceChildren(fragment)
+}
+
 function filterWechatStyles(html: string): string {
   const doc = new DOMParser().parseFromString(html, 'text/html')
   doc.querySelectorAll('style, link, script').forEach((node) => node.remove())
@@ -68,19 +119,28 @@ function filterWechatStyles(html: string): string {
     if (!style.cssText.trim()) element.removeAttribute('style')
   })
 
-  // juice 不会内联 pre 的 white-space；导出时补上，保证代码块不折行
+  // 微信正文全局限制 max-width:100% 且会重写 pre 的空白；代码块把每行拆成
+  // width:max-content 的块，行宽由内容决定，即使 white-space 被丢弃也不会折行
   doc.querySelectorAll('pre').forEach((pre) => {
-    ;(pre as HTMLElement).style.whiteSpace = 'pre'
+    const element = pre as HTMLElement
+    element.style.setProperty('white-space', 'normal', 'important')
+    element.style.setProperty('overflow-x', 'auto', 'important')
+    element.style.setProperty('max-width', '1000%', 'important')
   })
 
-  // 微信会裁掉高亮 span 前后的空白；代码块空格改用不可折叠空格以保住缩进
   doc.querySelectorAll('pre code').forEach((code) => {
-    const walker = doc.createTreeWalker(code, NodeFilter.SHOW_TEXT)
-    for (let node = walker.nextNode(); node; node = walker.nextNode()) {
-      const value = node.nodeValue ?? ''
-      if (!value.includes(' ') && !value.includes('\t')) continue
-      node.nodeValue = value.replace(/\t/g, '\u00a0\u00a0\u00a0\u00a0').replace(/ /g, '\u00a0')
-    }
+    const element = code as HTMLElement
+    element.style.setProperty('display', 'block', 'important')
+    // 让 code 撑到最宽行，滚动条回到 pre 底部，与预览一致；被微信丢弃时回退到 code 自身滚动
+    element.style.setProperty('width', 'max-content', 'important')
+    element.style.setProperty('overflow-x', 'auto', 'important')
+    element.style.setProperty('white-space', 'normal', 'important')
+    element.style.setProperty('max-width', '1000%', 'important')
+    normalizeCodeText(doc, element)
+    splitCodeLines(doc, element)
+    element.querySelectorAll('*').forEach((child) => {
+      ;(child as HTMLElement).style.setProperty('max-width', '1000%', 'important')
+    })
   })
 
   // 微信会给 blockquote 叠加默认左条；导出改为带同样内联样式的 section
@@ -126,7 +186,9 @@ export function exportHtmlToText(html: string): string {
   const doc = new DOMParser().parseFromString(html, 'text/html')
   doc.querySelectorAll('br').forEach((br) => br.replaceWith('\n'))
   doc
-    .querySelectorAll('p, h1, h2, h3, h4, h5, h6, li, blockquote, section, pre, tr')
+    .querySelectorAll(
+      'p, h1, h2, h3, h4, h5, h6, li, blockquote, section, pre, tr, [data-code-line]'
+    )
     .forEach((node) => {
       node.append('\n')
     })

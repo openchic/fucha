@@ -55,3 +55,7 @@
 - [x] 8.6 引用块导出转为带同样内联样式的 section，避免微信给 blockquote 叠加默认左条形成双线；预览仍用 blockquote；验证：harness 覆盖导出无 blockquote、section 保留主色左条与末段间距，待微信保存草稿复核
 - [x] 8.7 三列及以上表格按内容量决定是否滚动：表格改 `width: max-content` + `min-width: 100%`，单元格 `5em`～`18em`，短表铺满不滚，内容多的表在边框内横滚；验证：harness 覆盖 360px 下三列短表不滚、内容多的三列表与六列表局部滚动，待微信实机复核
 - [x] 8.8 页面留白改为「平台固定留白 + token 额外内距」：内置主题与 schema v10 把左右内距归零，预览画布另加 20px 平台左右留白，导出按 token 输出；验证：harness 覆盖预览平台留白、导出额外内距与 v10 迁移，待公众号预览复核
+- [x] 8.9 导出代码块按原生 code-snippet 豁免微信全局宽度限制：`pre` 及其子元素内联 `max-width:1000% !important`，`white-space` / `overflow-x` 提升为 `!important`；验证：harness 覆盖根与子元素优先级，待公众号保存后复核
+- [x] 8.10 实机反馈仅给 `pre` 加 `max-width:1000%!important` 仍折行：改为 `code` 横向滚动容器（`display:-webkit-box` / `overflow-x:auto`）、换行用 `<br>`、空格用不可折叠空格，`pre` 及子元素继续豁免 `max-width`；验证：harness 覆盖结构、`br` 与模拟微信全局样式的滚动，待公众号保存后复核
+- [x] 8.11 实机反馈 `<br>` + `-webkit-box` 仍会在空格与中文处折行：代码按行拆成 `width:max-content` 块，`code` 改用 `display:block` + `overflow-x:auto` 作滚动容器，空格用不可折叠空格，`pre` 及子元素继续豁免 `max-width`；验证：harness 覆盖行块结构、无 br、模拟微信全局样式下代码与行均横滚，待公众号保存后复核
+- [x] 8.12 代码块滚动条位置与预览对齐：`code` 用 `width:max-content !important` 撑到最宽行，滚动条回到 `pre` 底部；该宽度被微信丢弃时回退到 `code` 自身滚动；验证：harness 覆盖 `code` 宽度与模拟微信样式下 `pre` 滚动，待公众号复核

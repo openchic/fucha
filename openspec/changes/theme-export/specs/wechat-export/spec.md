@@ -29,12 +29,12 @@
 
 ### Requirement: 代码高亮
 
-导出与预览 SHALL 对代码块做语法高亮（highlight.js，class 输出由内联步骤转 style），代码块 SHALL 横向可滚动不折行。
+导出与预览 SHALL 对代码块做语法高亮（highlight.js，class 输出由内联步骤转 style），代码块 SHALL 横向可滚动不折行。导出 SHALL 把代码按行拆成 `width: max-content` 的块，`code` 作为横向滚动容器内联 `display: block` 与 `overflow-x: auto`，空格与缩进 SHALL 用不可折叠空格，`pre` 及其子元素 SHALL 内联 `max-width: 1000% !important`；行宽由内容决定，即使微信丢弃 `white-space`、重写空白，也不会把长行折回容器宽度。`code` SHALL 以 `width: max-content` 撑到最宽行，让滚动条落在 `pre` 底部，与预览一致；该宽度被微信丢弃时回退到 `code` 自身滚动。
 
 #### Scenario: 代码块高亮且不折行
 
 - **WHEN** 正文含多语言代码块
-- **THEN** 高亮色以内联样式呈现，长行横向滚动
+- **THEN** 高亮色以内联样式呈现，每行保持单行并在代码框内横向滚动，不被微信全局宽度限制或空白重写压回折行
 
 ### Requirement: 图片内联
 
