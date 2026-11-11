@@ -51,11 +51,11 @@
 - [x] 3.33 标题字号范围统一为 12–40，标题上下边距与段落间距统一 0–40；内置 h1 恢复 22/24，旧主题超 40 的标题字号读取时夹到 40
 - [x] 3.34 排版间距/边距统一 0–40：引用上下/左右内距、表格内距、图上距、图下距；段落间距与标题上下边距保持 0–40
 - [x] 3.35 排版分组内右侧控件文字（数值、单位、下拉值、层级值）统一 12px；颜色与代码 tab 的控件文字保持 14px
-- [x] 3.36 引用内距拆成上下内距与左右内距：token 改为 `quote.paddingBlock` / `quote.paddingInline`；旧 `quote.padding` 读取时复制到两者，主题 CSS 保留 `--fucha-quote-padding` 兼容别名
+- [x] 3.36 引用内距拆成上下内距与左右内距：token 改为 `quote.paddingBlock` / `quote.paddingInline`；旧 `quote.padding` 读取时复制到两者，主题 CSS 保留 `--theme-quote-padding` 兼容别名
 - [x] 3.37 「表格与图片」拆成「表格」「图片」两组；表格内距一组，图上距/图下距一组，分组标题与间距规则不变
-- [x] 3.38 表格内距拆成上下内距与左右内距：token 改为 `table.paddingBlock` / `table.paddingInline`；旧 `table.padding` 读取时复制到两者，主题 CSS 保留 `--fucha-table-padding` 兼容别名
+- [x] 3.38 表格内距拆成上下内距与左右内距：token 改为 `table.paddingBlock` / `table.paddingInline`；旧 `table.padding` 读取时复制到两者，主题 CSS 保留 `--theme-table-padding` 兼容别名
 - [x] 3.39 图片组字段改名：图上距 / 图下距 → 上边距 / 下边距（token 不变：`image.marginTop` / `image.marginBottom`）
-- [x] 3.40 圆角按元素拆分：移除顶层 `borderRadius`，改为 `quote.borderRadius`、`image.borderRadius`、`code.borderRadius`、`code.inlineBorderRadius`；引用/图片组与代码 tab 分别控制，旧值读取时复制到四处，主题 CSS 保留 `--fucha-border-radius` 兼容别名
+- [x] 3.40 圆角按元素拆分：移除顶层 `borderRadius`，改为 `quote.borderRadius`、`image.borderRadius`、`code.borderRadius`、`code.inlineBorderRadius`；引用/图片组与代码 tab 分别控制，旧值读取时复制到四处，主题 CSS 保留 `--theme-border-radius` 兼容别名
 - [x] 3.41 圆角范围统一为 0–20（step 1），引用/图片/代码块/行内代码四处共用
 - [x] 3.42 分割线组的行标签改为「样式」，分组标题保持「分割线」；重置标签仍为「分割线样式」
 - [x] 3.43 分割线上下边距：新增 `divider.marginTop` / `divider.marginBottom`（0–40，默认 20），排版分割线组在样式下加两行数值控件；预览 `hr` 外边距改用 token 变量，旧主题读取时补 20
@@ -68,14 +68,14 @@
 - [x] 3.50 代码 tab 数值范围对齐排版：代码内距 8–20 → 0–40，代码行高 1.4–2 → 1–3（step 0.05）；圆角保持 0–20
 - [x] 3.51 代码块背景色不再显示「跟随语法主题」文字：未设置时色块直接显示语法主题的默认背景色，切换语法主题时默认色同步变化
 - [x] 3.52 代码块圆角移到代码块分组最后：代码块行序为语法主题、背景色、内距、行高、圆角，圆角承担末行行距
-- [x] 3.53 代码内距拆成上下内距与左右内距：token 改为 `code.paddingBlock` / `code.paddingInline`；旧 `code.padding` 读取时复制到两者，主题 CSS 保留 `--fucha-code-padding` 兼容别名
+- [x] 3.53 代码内距拆成上下内距与左右内距：token 改为 `code.paddingBlock` / `code.paddingInline`；旧 `code.padding` 读取时复制到两者，主题 CSS 保留 `--theme-code-padding` 兼容别名
 - [x] 3.54 行内代码背景色：新增可选 `code.inlineBackgroundColor`，缺省回退 `backgroundColor`；代码 tab 行内代码组增加背景色行，预览 `code` 使用独立变量，主题 CSS 变量白名单同步
 - [x] 3.55 所有颜色块悬停显示当前色值：ColorControl 色块加 title，覆盖颜色 tab、标题颜色与代码块/行内代码背景
 - [x] 3.56 色值提示改为自定义气泡：移除原生 title，鼠标移入立即显示，不再等待系统 tooltip 延迟
 - [x] 3.57 引用与行内代码背景色拆开：颜色 tab 的「块底色」拆为「引用背景色」与「行内代码背景色」，行内代码背景改为必填 `code.inlineBackgroundColor`，旧主题读取时复制 `backgroundColor`；代码 tab 行内代码组保留圆角，对比度提示覆盖两种背景
 - [x] 3.58 颜色 tab 标签调整：「主色」改为「主题色」，token 仍为 `primary`
 - [x] 3.59 正文色与标题色拆开：新增顶层 `headingColor`，颜色 tab 加「标题色」；各级标题 `color` 未填时回退 `headingColor`，旧主题读取时从 `text.color` 复制；正文色与标题色分别做对比度提示
-- [x] 3.60 去掉逐级标题颜色：排版标题组删除颜色行，`HeadingToken` 移除可选 `color`；各级标题统一使用 `headingColor`，`--fucha-h1-color` 至 `--fucha-h6-color` 继续输出同一值供主题 CSS 使用
+- [x] 3.60 去掉逐级标题颜色：排版标题组删除颜色行，`HeadingToken` 移除可选 `color`；各级标题统一使用 `headingColor`，`--theme-h1-color` 至 `--theme-h6-color` 继续输出同一值供主题 CSS 使用
 - [x] 3.61 颜色 tab 文案精简：只保留主题色与弱化文字的作用范围说明，其余与标签重复的默认用法说明移除；「边框色」改为「表格边框色」
 - [x] 3.62 颜色 tab 去掉全部常驻说明文字：主题色与弱化文字的作用范围说明一并移除，行名自解释；对比度提示保留
 - [x] 3.63 颜色 tab 字段标签字号改为 12px，与排版、代码 tab 一致
@@ -102,7 +102,7 @@
 - [x] 3.84 分割线样式选项改为实线/虚线/无；`divider.borderTopStyle` 允许 solid/dashed/none；衬线主题分割线改为 dashed；验证：排版 tab 菜单为实线/虚线/无
 - [x] 3.85 新增内置主题「丹霞」（id `danxia`）：token 迁自自定义主题（主色 #fa5700、底色 #f5f5f5、h1–h3 标题竖条、正文 14/1.6/0.1em、页面内距 40/24/64/24），无额外 theme.css；验证：内置列表只读可见，harness 校验暖橙主色与标题装饰通过
 - [x] 3.86 内置主题注册完整性断言：加载时校验预设 id 集合与 shared 的 `BUILTIN_THEME_IDS` 双向一致、无重复，名称与 `BUILTIN_THEME_NAMES` 一致；验证：typecheck、lint 与 harness 全绿
-- [x] 3.87 移除旧主题兼容并下沉引用背景：删除 `normalizeThemeToken` 兼容层与主题 CSS 旧值别名；顶层 `backgroundColor` 改为 `quote.backgroundColor`，主题 CSS 变量改为 `--fucha-quote-background-color`；3 份预设、配置页、文档与 harness 同步；验证：typecheck、lint、Prettier 与 harness 全绿
+- [x] 3.87 移除旧主题兼容并下沉引用背景：删除 `normalizeThemeToken` 兼容层与主题 CSS 旧值别名；顶层 `backgroundColor` 改为 `quote.backgroundColor`，主题 CSS 变量改为 `--theme-quote-background-color`；3 份预设、配置页、文档与 harness 同步；验证：typecheck、lint、Prettier 与 harness 全绿
 - [x] 3.88 内置主题 CSS 载体统一：新增 `defineBuiltinTheme(token, css = '')` 统一做 token/CSS 校验，三套预设同一入口，删除空的 `default-css.ts`；验证：typecheck、lint、Prettier 与 harness 全绿
 - [x] 3.89 内置主题按雾紫规范对齐：页面内距统一 40/24/40/24；标题字号统一 24/20/18/16/14/14（丹霞 h1 22→24、书卷 h5 15→14）；书卷与丹霞显式写入 `code.backgroundColor`；保留各自配色、字体、标题装饰与间距；验证：typecheck、lint、Prettier 与 harness 全绿
 - [x] 3.90 内置主题命名与文件对齐：默认主题定名「雾紫」（id `default`，文件 `default.json`），书卷 id 改为 `shujuan`（文件 `shujuan.json` / `shujuan-css.ts`），丹霞不变；`BUILTIN_THEME_IDS`、名称表、默认主题回退、测试与文档同步；验证：typecheck、lint、Prettier 与 harness 全绿

@@ -133,6 +133,7 @@ export const ArticleMeta = (props: ArticleMetaProps) => {
           value={themeId}
           options={themes.map((theme) => ({ value: theme.id, label: theme.name }))}
           actions={[{ label: '主题管理', onSelect: onManageThemes }]}
+          tooltip="切换主题"
           onChange={onThemeChange}
         />
       </div>

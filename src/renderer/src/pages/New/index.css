@@ -1,0 +1,9 @@
+/* 与 NumberInput 共用「1px 主色边框 + 3px 16% 光晕」的焦点语言 */
+.new-field:has(input:focus-visible) {
+  outline: 3px solid color-mix(in srgb, var(--color-primary) 16%, transparent);
+  outline-offset: 0;
+}
+
+.new-field[data-error='true']:has(input:focus-visible) {
+  outline-color: color-mix(in srgb, var(--color-danger) 16%, transparent);
+}

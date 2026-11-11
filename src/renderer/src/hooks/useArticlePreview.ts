@@ -71,7 +71,7 @@ function toArticle(stored: StoredArticle): Article {
 }
 
 async function resolveImages(article: Article, articleHash: string): Promise<Article> {
-  const results: ImageDownloadResult[] = await window.fucha
+  const results: ImageDownloadResult[] = await window.api
     .downloadImages({
       articleHash,
       images: article.images.map(({ id, originalUrl }) => ({ id, originalUrl })),
@@ -121,7 +121,7 @@ export function useArticlePreview(
 
       if (useSnapshot) {
         try {
-          const stored = await window.fucha.getArticle(snapshotHash)
+          const stored = await window.api.getArticle(snapshotHash)
           if (currentRequest !== requestId.current) return
           if (stored) {
             article = toArticle(stored)
@@ -138,7 +138,7 @@ export function useArticlePreview(
         if (useSnapshot && !keepPreviousPreview) {
           setState({ view: 'loading', stage: 'request' })
         }
-        const fetched = await window.fucha.fetchArticle(url).catch(() => ({
+        const fetched = await window.api.fetchArticle(url).catch(() => ({
           ok: false as const,
           error: { kind: 'network' as const, message: '连接中断，请稍后重试。' },
         }))

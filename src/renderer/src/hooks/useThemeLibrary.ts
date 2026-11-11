@@ -18,7 +18,7 @@ export function useThemeLibrary(): ThemeLibrary {
   useEffect(() => {
     let cancelled = false
     setError(undefined)
-    window.fucha
+    window.api
       .listThemes()
       .then((records) => {
         if (cancelled) return

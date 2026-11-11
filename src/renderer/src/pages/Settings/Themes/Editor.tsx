@@ -95,7 +95,7 @@ const ThemeEditor = (props: ThemeEditorProps) => {
   const save = async (): Promise<string | null> => {
     if (mode !== 'edit') return '请使用创建主题'
     try {
-      await window.fucha.updateTheme({
+      await window.api.updateTheme({
         id: source.id,
         token: draft.token,
         css: draft.css,
@@ -118,7 +118,7 @@ const ThemeEditor = (props: ThemeEditorProps) => {
       builtin: false,
     }
     try {
-      await window.fucha.createTheme({
+      await window.api.createTheme({
         token,
         css: draft.css,
         sourceThemeId: mode === 'new' ? undefined : source.id,

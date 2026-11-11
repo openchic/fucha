@@ -277,12 +277,12 @@ function validateValue(rule: CssRule, property: string, value: string): void {
       `${rule.selector} 的 display 只允许 ${[...SAFE_DISPLAY_VALUES].join(' / ')}`
     )
   }
-  for (const match of lower.matchAll(/var\(\s*--fucha-([a-z0-9-]+)\s*\)/g)) {
+  for (const match of lower.matchAll(/var\(\s*--theme-([a-z0-9-]+)\s*\)/g)) {
     if (!THEME_CSS_VARIABLES.has(match[1]!)) {
-      failLine(rule.line, `${rule.selector} 引用了不存在的变量 --fucha-${match[1]}`)
+      failLine(rule.line, `${rule.selector} 引用了不存在的变量 --theme-${match[1]}`)
     }
   }
-  if (/var\(/.test(lower.replace(/var\(\s*--fucha-[a-z0-9-]+\s*\)/g, ''))) {
+  if (/var\(/.test(lower.replace(/var\(\s*--theme-[a-z0-9-]+\s*\)/g, ''))) {
     failLine(rule.line, `${rule.selector} 只能引用 token 契约内的变量`)
   }
 }
@@ -341,9 +341,9 @@ export function scopeCss(css: string, scope: string): string {
 
 /** 导出路径：把 token 变量替换成具体值，juice 不解析 CSS 变量 */
 export function resolveThemeVariables(css: string, values: Record<string, string>): string {
-  return css.replace(/var\(\s*--fucha-([a-z0-9-]+)\s*\)/g, (_match, name: string) => {
+  return css.replace(/var\(\s*--theme-([a-z0-9-]+)\s*\)/g, (_match, name: string) => {
     const value = values[name]
-    if (value === undefined) throw new Error(`未定义的 token 变量 --fucha-${name}`)
+    if (value === undefined) throw new Error(`未定义的 token 变量 --theme-${name}`)
     return value
   })
 }

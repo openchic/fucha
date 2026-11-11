@@ -1,6 +1,6 @@
 ## 1. 数据库与迁移
 
-- [x] 1.1 新增 `src/main/db.ts`，用 Electron 自带 `node:sqlite` 打开数据库（默认 `userData/fucha.db`，支持测试注入路径），设置 WAL、foreign keys、busy timeout 与 `PRAGMA user_version` 检查；验证：临时路径首次初始化生成数据库文件，版本高于代码时判定不可用
+- [x] 1.1 新增 `src/main/db.ts`，用 Electron 自带 `node:sqlite` 打开数据库（默认 `userData/app.db`，支持测试注入路径），设置 WAL、foreign keys、busy timeout 与 `PRAGMA user_version` 检查；验证：临时路径首次初始化生成数据库文件，版本高于代码时判定不可用
 - [x] 1.2 实现 v1 建表 SQL（preferences、themes、articles、article_images 及索引，含 JSON、长度、状态与计数 CHECK）；验证：连续初始化两次不重复建表，已有数据保留，非法 JSON/状态被拒
 - [x] 1.3 在主进程启动流程调用 `initLocalStore()`，捕获打开、迁移失败或版本过高并暴露存储不可用状态；验证：人为使用不可读数据库文件时应用仍能进入抓取与预览链路
 - [x] 1.4 v2 迁移：为 `articles` 增加 `theme_id` 与主题索引，兼容已有 v1 数据库；验证：新库 `user_version = 5`，v1/v2 库升级后主题字段存在且文章数据保留
@@ -37,3 +37,18 @@
 - [x] 4.5 真实 Electron 验收：两篇文章提取后进入历史栏，停掉源站仍可打开快照，访问计数与排序正确，快照刷新更新正文
 - [x] 4.6 页面拆分：Home 布局 + 嵌套路由 + 右侧 Outlet，`/` index 为 New 输入页、`/preview` 为文章页；左侧历史栏常驻，切换不重建
 - [x] 4.8 历史项悬停更多菜单：更多按钮、删除、删除确认、当前文章删除后回 Home 页、失败提示；只删数据库行，缓存保留
+- [x] 4.9 侧栏开关提示去掉「左侧栏」，只保留「展开 / 收起」与 ⌘B，`aria-label` 仍保留可读描述；验证：真实窗口收起与展开两种悬停截图
+
+## 5. 首页输入页精修
+
+- [x] 5.1 New 说明改为「把网页文章，妥帖地排进公众号」，占位改为「粘贴文章链接」，说明与输入框间距 36px → 24px；验证：真实窗口截图，`getBoundingClientRect` 量得间距 24px
+- [x] 5.2 空输入时提交按钮禁用，Button 增加禁用态（not-allowed + 40% 不透明度），按压反馈只作用于可用状态；验证：真实窗口空态禁用、输入后启用
+- [x] 5.3 输入框焦点与 NumberInput 一致（1px 主色边框 + 3px 16% 主色光晕），错误态改用危险色；验证：真实窗口焦点与错误截图、计算样式 outline 3px solid
+- [x] 5.4 失败面板增加「返回修改链接」，回车提交非法地址就地报错且保留输入；验证：真实窗口 example.com 失败 → 返回 → 输入框回填 https://example.com/，非法输入回车后焦点回到输入框
+- [x] 5.5 输入区下方新增「落纸」出处与释义脚注：20px 细线 + 12px 次级文字 + 约 38em 短行，文案为杜甫《饮中八仙歌》「挥毫落纸如云烟」的典故；验证：真实窗口截图，脚注两行内结束且不与输入框抢焦点
+
+## 6. 更名落纸与标识解耦
+
+- [x] 6.1 显示名改为「落纸」：首页标题、窗口标题、安装包 productName 与菜单名；出处脚注改为杜甫《饮中八仙歌》「挥毫落纸如云烟」；验证：真实窗口截图与菜单名
+- [x] 6.2 代码标识通用化：`app://` 图片协议、`window.api` / `AppApi`、`--theme-*` 变量、`app.db`、`.article-theme` 主题包、`OPEN_DEVTOOLS`；验证：全库 grep 仅迁移代码保留 fucha
+- [x] 6.3 数据迁移：默认数据目录从 fucha 搬到 luozhi（含 WAL 与 article-cache），schema v11 改写主题 CSS 变量，旧 `.fucha-theme` 包导入兼容；验证：harness 覆盖搬运、v11 与旧包导入

@@ -1,9 +1,9 @@
 import { DatabaseSync } from 'node:sqlite'
-import { mkdirSync } from 'fs'
+import { copyFileSync, cpSync, existsSync, mkdirSync, renameSync, rmSync } from 'fs'
 import { dirname, join } from 'path'
 import { app } from 'electron'
 
-export const LOCAL_STORE_SCHEMA_VERSION = 10
+export const LOCAL_STORE_SCHEMA_VERSION = 11
 
 export type LocalStoreStatus = {
   available: boolean
@@ -115,6 +115,11 @@ const V10_SCHEMA = `
 UPDATE themes SET token = json_set(token, '$.page.paddingLeft', 0, '$.page.paddingRight', 0);
 `
 
+// 品牌解耦：已存主题 CSS 的旧变量前缀统一改写为 --theme-
+const V11_SCHEMA = `
+UPDATE themes SET css = replace(css, '--fucha-', '--theme-');
+`
+
 type Migration = {
   version: number
   sql: string
@@ -131,11 +136,43 @@ const MIGRATIONS: Migration[] = [
   { version: 8, sql: V8_SCHEMA },
   { version: 9, sql: V9_SCHEMA },
   { version: 10, sql: V10_SCHEMA },
+  { version: 11, sql: V11_SCHEMA },
 ]
 
 let database: DatabaseSync | null = null
 let storeError: string | null = null
 let storePath = ''
+
+const DB_FILE = 'app.db'
+export const LEGACY_USER_DATA_DIR = 'fucha'
+const LEGACY_DB_FILE = 'fucha.db'
+
+/** 旧版数据一次性搬运：复制数据库与图片缓存到新目录，失败只记录不阻断启动 */
+export function migrateLegacyUserData(legacyRoot: string, targetRoot: string): void {
+  try {
+    const legacyDb = join(legacyRoot, LEGACY_DB_FILE)
+    const targetDb = join(targetRoot, DB_FILE)
+    if (!existsSync(legacyDb) || existsSync(targetDb)) return
+
+    mkdirSync(targetRoot, { recursive: true })
+    for (const suffix of ['', '-wal', '-shm']) {
+      if (existsSync(`${legacyDb}${suffix}`)) {
+        copyFileSync(`${legacyDb}${suffix}`, `${targetDb}${suffix}`)
+      }
+    }
+
+    const legacyCache = join(legacyRoot, 'article-cache')
+    const targetCache = join(targetRoot, 'article-cache')
+    if (existsSync(legacyCache) && !existsSync(targetCache)) {
+      const staging = `${targetCache}.migrating`
+      rmSync(staging, { recursive: true, force: true })
+      cpSync(legacyCache, staging, { recursive: true })
+      renameSync(staging, targetCache)
+    }
+  } catch (error) {
+    console.error('[local-store] 旧数据迁移失败', error)
+  }
+}
 
 function readUserVersion(db: DatabaseSync): number {
   const row = db.prepare('PRAGMA user_version').get() as { user_version?: number } | undefined
@@ -143,9 +180,7 @@ function readUserVersion(db: DatabaseSync): number {
 }
 
 /** 主进程启动时调用；失败只标记存储不可用，不抛出到应用启动流程 */
-export function initLocalStore(
-  dbPath = join(app.getPath('userData'), 'fucha.db')
-): LocalStoreStatus {
+export function initLocalStore(dbPath = join(app.getPath('userData'), DB_FILE)): LocalStoreStatus {
   closeLocalStore()
   storePath = dbPath
 

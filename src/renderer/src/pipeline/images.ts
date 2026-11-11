@@ -24,7 +24,7 @@ export function renderPreviewHtml(article: Article): string {
     if (!src) return
     const asset = byUrl.get(src)
     if (!asset) return
-    img.dataset.fuchaImageId = asset.id
+    img.dataset.imageAssetId = asset.id
     img.setAttribute('src', PENDING_PLACEHOLDER)
     img.setAttribute('loading', 'lazy')
   })
@@ -40,13 +40,13 @@ export function updatePreviewImages(
   if (!root) return
 
   const assetsById = new Map(article.images.map((asset) => [asset.id, asset]))
-  root.querySelectorAll<HTMLImageElement>('img[data-fucha-image-id]').forEach((img) => {
-    const asset = assetsById.get(img.dataset.fuchaImageId ?? '')
+  root.querySelectorAll<HTMLImageElement>('img[data-image-asset-id]').forEach((img) => {
+    const asset = assetsById.get(img.dataset.imageAssetId ?? '')
     if (!asset) return
 
     const nextSrc =
       asset.status === 'done' && asset.localPath
-        ? `fucha://img/${articleHash}/${asset.localPath}`
+        ? `app://img/${articleHash}/${asset.localPath}`
         : asset.status === 'failed'
           ? FAILED_PLACEHOLDER
           : PENDING_PLACEHOLDER

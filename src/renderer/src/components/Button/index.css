@@ -22,8 +22,13 @@
       transform 150ms ease-out;
   }
 
-  .button:active {
+  .button:enabled:active {
     transform: scale(0.97);
+  }
+
+  .button:disabled {
+    cursor: not-allowed;
+    opacity: 0.4;
   }
 
   .button-primary {

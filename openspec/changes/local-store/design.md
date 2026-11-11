@@ -21,7 +21,7 @@
 
 **使用 `node:sqlite`，不用 `better-sqlite3`。** 当前 Electron 39 自带 Node 22.22.1，已验证 SQLite 3.51.2 与 FTS5；内置驱动不引入原生编译与打包链路。代价是 experimental API，因此数据库访问集中在 `src/main/db.ts`，升级 Electron 时以主进程 harness 冒烟。备选 `better-sqlite3` API 更稳定，但需要 Electron ABI 重建，收益不足以抵消成本。
 
-**文章正文存 SQLite，图片字节仍存文件系统。** 正文是打开快照的主数据，放进 `articles.html` 可让一次读取完成；图片可能很大且已有 `fucha://` 协议，数据库只存 `article_images` 元数据。备选把图片转 BLOB 会膨胀数据库并绕开现有缓存。
+**文章正文存 SQLite，图片字节仍存文件系统。** 正文是打开快照的主数据，放进 `articles.html` 可让一次读取完成；图片可能很大且已有 `app://` 协议，数据库只存 `article_images` 元数据。备选把图片转 BLOB 会膨胀数据库并绕开现有缓存。
 
 **主进程 repository，IPC 只暴露领域方法。** `src/main/store.ts` 暴露类型化函数，`ipc.ts` 按历史栏与主题面板的真实需求接 `themes:*`、`articles:*`、`preferences:*` 频道；渲染进程不提交 SQL，也不拿数据库对象。
 
@@ -37,13 +37,19 @@
 
 **文章主题只存引用 id，不存 token。** `articles.theme_id` 默认 `default`；首次 upsert 写入当前选择的主题，重新提取保留文章原主题，`setArticleTheme` 只更新引用 id。自定义主题可原地编辑，引用它的文章同步换样；删除仍被文章引用的主题会被拒绝，消费方读取到未知 id 时回退默认主题但保留原引用。
 
-**测试使用可注入的数据库路径。** `initLocalStore(dbPath?)` 默认取 `userData/fucha.db`，harness 传入临时路径，避免污染真实历史。`user_version` 高于代码支持版本时不迁移，直接判定存储不可用。
+**测试使用可注入的数据库路径。** `initLocalStore(dbPath?)` 默认取 `userData/app.db`，harness 传入临时路径，避免污染真实历史。`user_version` 高于代码支持版本时不迁移，直接判定存储不可用。
 
 **启动失败采用降级。** `initLocalStore()` 返回可用状态；失败时历史/主题仓储抛明确错误，但不让 `app.whenReady()` 失败。抓取与预览不依赖数据库。
 
 **历史打开优先读本地快照。** 历史栏点击用 `?hash=` 打开 `getArticle` 的 HTML 与图片元数据，不重新抓取；图片按缓存索引映射，缓存缺失时回退占位。打开时 `touchArticle` 更新最近访问与次数，列表顺序不变。`重新提取` 才走网络并 upsert 新快照，主题引用保持不变。
 
 **Home 布局固定 264px 左侧历史栏。** 与右侧 724px 正文列相加仍能在 1000px 最小窗口内放下；列表独立滚动，输入页与文章预览之间切换只替换右侧 Outlet 内容。历史切换与「新建」直接执行，主题编辑的未保存确认只属于设置页。
+
+**New 输入页只承诺「排版」，不承诺「发布」。** 说明文案避免「直接发进公众号」，以免用户误以为应用会代为发布；空输入直接禁用提交，让「先有链接」这一前置条件在视觉上成立，只有非空且格式错误的地址才走就地错误提示。焦点样式复用 NumberInput 的「1px 主色边框 + 3px 16% 主色光晕」，与应用壳的其余控件保持同一套焦点语言。失败面板补「返回修改链接」，与 LoadingPanel 的取消共用 `/?url=` 路径，避免抓取失败后链接丢失。
+
+**名称出处作为脚注，不做独立介绍块。** 「落纸」的出处与释义放在输入区下方，用 20px 细线分隔、12px 次级文字与约 38em 的短行，读完即走；不放在说明之前或独立面板里，避免和输入动作争夺注意力。文案只给「典出杜甫《饮中八仙歌》的『挥毫落纸如云烟』」，不追加命名解释，让意象自己成立。
+
+**更名与代码标识解耦。** 品牌名只进界面与安装包：`app.setName('落纸')` 与 productName 管显示名；包名、appId 与可执行文件名统一为 `luozhi`；代码标识统一为通用名（`app://`、`window.api` / `AppApi`、`--theme-*`、`app.db`、`.article-theme`、`OPEN_DEVTOOLS`），避免再次更名牵动协议与存储。旧标识只保留在迁移代码：启动时把 `appData/fucha` 的数据库与图片缓存复制到固定 ASCII 数据目录 `appData/luozhi`，schema v11 把已存主题 CSS 的 `--fucha-` 前缀改写为 `--theme-`，旧 `.fucha-theme` 主题包导入时改写变量前缀；带 `--user-data-dir` 的测试实例跳过迁移。
 
 ## Risks / Trade-offs
 
@@ -56,7 +62,7 @@
 
 ## Migration Plan
 
-新增文件与启动初始化，不迁移既有 JSON。回滚时移除 `src/main/db.ts`、`src/main/store.ts`、`src/shared/store-types.ts`、`src/shared/theme.ts` 与启动调用；`userData/fucha.db` 可安全删除，图片缓存不受影响。
+新增文件与启动初始化，不迁移既有 JSON。回滚时移除 `src/main/db.ts`、`src/main/store.ts`、`src/shared/store-types.ts`、`src/shared/theme.ts` 与启动调用；`userData/app.db` 可安全删除，图片缓存不受影响。
 
 ## Open Questions
 

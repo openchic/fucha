@@ -13,10 +13,11 @@ const ERROR_LABEL: Record<AppError['kind'], string> = {
 type ErrorPanelProps = {
   error: AppError
   onRetry: () => void
+  onCancel?: () => void
 }
 
 export const ErrorPanel = (props: ErrorPanelProps) => {
-  const { error, onRetry } = props
+  const { error, onRetry, onCancel } = props
   return (
     <div className="flex h-full min-h-0 flex-col">
       <div className="flex-none border-b border-line bg-white pt-[66px] pb-5">
@@ -34,10 +35,17 @@ export const ErrorPanel = (props: ErrorPanelProps) => {
             <Icon name="alert" className="mt-1 h-4 w-4 flex-none text-danger" />
             <p>{error.message}</p>
           </div>
-          <Button variant="primary" onClick={onRetry} className="mt-6 h-9 px-[18px]">
-            重新尝试
-            <Icon name="arrow-right" />
-          </Button>
+          <div className="mt-6 flex items-center gap-3">
+            <Button variant="primary" onClick={onRetry} className="h-9 px-[18px]">
+              重新尝试
+              <Icon name="arrow-right" />
+            </Button>
+            {onCancel && (
+              <Button variant="secondary" onClick={onCancel} className="h-9 px-[18px]">
+                返回修改链接
+              </Button>
+            )}
+          </div>
         </div>
       </div>
     </div>

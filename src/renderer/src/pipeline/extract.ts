@@ -1,7 +1,7 @@
 import type { Article, ImageAsset } from '@shared/types'
 import { Readability } from '@mozilla/readability'
 import { matchProfile } from '@shared/profiles'
-import { normalizeRspressCodeBlocks } from './rspress'
+import { normalizeRspressCallouts, normalizeRspressCodeBlocks } from './rspress'
 import { sanitizeHtml } from './sanitize'
 import {
   collectEmbeddedSvgFonts,
@@ -71,12 +71,12 @@ function dropProfileChrome(doc: Document, url: string): void {
     doc.querySelectorAll(selector).forEach((node) => node.remove())
   }
   for (const selector of profile.postDropSelectors ?? []) {
-    doc.querySelectorAll(selector).forEach((node) => node.setAttribute('data-fucha-chrome', ''))
+    doc.querySelectorAll(selector).forEach((node) => node.setAttribute('data-browser-chrome', ''))
   }
 }
 
 function removeProfileChrome(doc: Document): void {
-  doc.querySelectorAll('[data-fucha-chrome]').forEach((node) => node.remove())
+  doc.querySelectorAll('[data-browser-chrome]').forEach((node) => node.remove())
 }
 
 /** 微信等站点：图片真实地址在 data-src，先映射回 src 再交给后续流程 */
@@ -102,6 +102,7 @@ export function extractArticle(html: string, url: string): Article {
   preserveSvgHeadings(doc)
   inlineSvgStyles(doc)
   const preservedClasses = normalizeRspressCodeBlocks(doc)
+  normalizeRspressCallouts(doc)
 
   const cover = extractCover(doc)
   const publishedAt = extractPublishedAt(doc)

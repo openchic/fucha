@@ -2,11 +2,11 @@
 
 ### Requirement: 本地数据库初始化与版本迁移
 
-系统 SHALL 在主进程使用 Electron 自带 `node:sqlite` 打开 `userData/fucha.db`，以 `PRAGMA user_version` 管理 schema 版本；首次创建 SHALL 建立当前 schema（v8），已有 v1–v7 库 SHALL 顺序迁移补齐文章主题字段、统一默认主题 id、增加主题字段、切换历史排序索引、收敛索引、统一书卷主题 id 并清理中间主题 id。数据库打开、迁移失败或 `user_version` 高于代码支持版本时，系统 SHALL 将存储标记为不可用，且不阻断抓取、提取与预览主链路。
+系统 SHALL 在主进程使用 Electron 自带 `node:sqlite` 打开 `userData/app.db`，以 `PRAGMA user_version` 管理 schema 版本；首次创建 SHALL 建立当前 schema（v8），已有 v1–v7 库 SHALL 顺序迁移补齐文章主题字段、统一默认主题 id、增加主题字段、切换历史排序索引、收敛索引、统一书卷主题 id 并清理中间主题 id。数据库打开、迁移失败或 `user_version` 高于代码支持版本时，系统 SHALL 将存储标记为不可用，且不阻断抓取、提取与预览主链路。
 
 #### Scenario: 首次创建当前数据库
 
-- **WHEN** 用户数据目录中尚不存在 `fucha.db`
+- **WHEN** 用户数据目录中尚不存在 `app.db`
 - **THEN** 系统创建数据库与当前四张表，并把 `user_version` 设置为 8
 
 #### Scenario: v1 库升级
@@ -61,7 +61,7 @@ SQLite 访问 SHALL 只存在于主进程，渲染进程 SHALL 只能通过 prel
 #### Scenario: 渲染进程无数据库能力
 
 - **WHEN** 历史栏或主题面板已接入
-- **THEN** preload 只暴露领域方法，不暴露通用 SQL 或数据库对象，渲染进程不能直接访问 `fucha.db`
+- **THEN** preload 只暴露领域方法，不暴露通用 SQL 或数据库对象，渲染进程不能直接访问 `app.db`
 
 ### Requirement: 偏好键值存储
 

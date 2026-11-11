@@ -69,7 +69,7 @@ const PreviewContent = ({ url, snapshotHash }: PreviewContentProps) => {
     const snapshotKey = `${state.articleHash}:${state.loadedAt}`
     if (visitedSnapshotRef.current === snapshotKey) return
     visitedSnapshotRef.current = snapshotKey
-    void window.fucha.touchArticle(state.articleHash).catch(() => {})
+    void window.api.touchArticle(state.articleHash).catch(() => {})
   }, [state])
 
   useEffect(() => {
@@ -78,7 +78,7 @@ const PreviewContent = ({ url, snapshotHash }: PreviewContentProps) => {
     if (savedSnapshotRef.current === snapshotKey) return
     savedSnapshotRef.current = snapshotKey
     savedHashRef.current = state.articleHash
-    void window.fucha
+    void window.api
       .saveArticle({
         hash: state.articleHash,
         finalUrl: state.article.sourceUrl,
@@ -96,7 +96,7 @@ const PreviewContent = ({ url, snapshotHash }: PreviewContentProps) => {
     const signature = JSON.stringify(images)
     if (persistedImagesRef.current === signature) return
     persistedImagesRef.current = signature
-    void window.fucha.replaceArticleImages(state.articleHash, images).catch(() => {})
+    void window.api.replaceArticleImages(state.articleHash, images).catch(() => {})
   }, [state])
 
   const cancel = (): void => {
@@ -108,7 +108,9 @@ const PreviewContent = ({ url, snapshotHash }: PreviewContentProps) => {
       {state.view === 'loading' && !state.quiet && (
         <LoadingPanel stage={state.stage} onCancel={cancel} />
       )}
-      {state.view === 'error' && <ErrorPanel error={state.error} onRetry={retry} />}
+      {state.view === 'error' && (
+        <ErrorPanel error={state.error} onRetry={retry} onCancel={cancel} />
+      )}
       {state.view === 'preview' && (
         <>
           <ArticleMeta

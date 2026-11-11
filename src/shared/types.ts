@@ -48,7 +48,7 @@ export type ImageDownloadStatus = 'done' | 'failed'
 export type ImageDownloadResult = {
   id: string
   status: ImageDownloadStatus
-  /** 下载成功时的缓存文件名（内容 hash），配合 fucha://img/ 使用 */
+  /** 下载成功时的缓存文件名（内容 hash），配合 app://img/ 使用 */
   file?: string
 }
 
@@ -165,7 +165,7 @@ export type ThemeImportResult =
   { ok: true; theme: ThemeRecord } | { ok: false; canceled?: boolean; error?: string }
 
 /** preload 经 contextBridge 暴露的单一命名空间 */
-export type FuchaApi = {
+export type AppApi = {
   fetchArticle: (url: string) => Promise<FetchResult>
   downloadImages: (payload: DownloadImagesPayload) => Promise<ImageDownloadResult[]>
   exportHtml: (payload: ExportHtmlPayload) => Promise<string>

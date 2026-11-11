@@ -27,8 +27,8 @@ export function useArticleExport(
     setState({ action: 'copy' })
     try {
       const rendered = buildExportHtml(article, theme)
-      const html = await window.fucha.exportHtml({ articleHash, html: rendered })
-      await window.fucha.copyHtml({ html, text: exportHtmlToText(html) })
+      const html = await window.api.exportHtml({ articleHash, html: rendered })
+      await window.api.copyHtml({ html, text: exportHtmlToText(html) })
       setState({ action: null, notice: '已复制到剪贴板' })
     } catch {
       setState({ action: null, error: '导出失败，请重试' })

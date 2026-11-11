@@ -39,3 +39,29 @@ export function normalizeRspressCodeBlocks(doc: Document): string[] {
 
   return [...preservedClasses]
 }
+
+/** 把 Rspress 提示容器归一为引用块：标题作粗体首段，其余内容原样搬入 */
+export function normalizeRspressCallouts(doc: Document): void {
+  doc.querySelectorAll('.rp-callout').forEach((callout) => {
+    const titleNode = callout.querySelector('.rp-callout__title')
+    const content = callout.querySelector('.rp-callout__content')
+    const title = titleNode?.textContent?.trim() ?? ''
+
+    const quote = doc.createElement('blockquote')
+    if (title) {
+      const heading = doc.createElement('p')
+      const strong = doc.createElement('strong')
+      strong.textContent = title
+      heading.append(strong)
+      quote.append(heading)
+    }
+    if (content) {
+      while (content.firstChild) quote.append(content.firstChild)
+    } else {
+      Array.from(callout.children).forEach((child) => {
+        if (child !== titleNode) quote.append(child)
+      })
+    }
+    callout.replaceWith(quote)
+  })
+}

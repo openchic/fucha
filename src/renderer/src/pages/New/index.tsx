@@ -1,6 +1,7 @@
 import { type FormEvent, useRef, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router'
 import { Button, Icon } from '../../components'
+import './index.css'
 
 /** Home 布局的 index 子路由：默认 New 输入页 */
 const New = () => {
@@ -39,15 +40,16 @@ const New = () => {
         <div className="content-column pb-6">
           <div className="flex items-center gap-3.5">
             <Icon name="sail" className="h-9 w-9 flex-none text-primary [stroke-width:1.35]" />
-            <h1 className="text-[32px] leading-[1.3] tracking-[-0.04em]">浮槎</h1>
+            <h1 className="text-[32px] leading-[1.3] tracking-[-0.04em]">落纸</h1>
           </div>
           <p className="mt-4 text-title leading-[1.8] text-ink-soft">
-            把一个能公开访问的链接，变成一篇可以直接发进公众号的文章
+            把网页文章，妥帖地排进公众号
           </p>
-          <div className="mt-9">
+          <div className="mt-6">
             <form onSubmit={handleSubmit} className="w-full min-w-0" noValidate>
               <div
-                className={`flex h-14 min-w-0 items-center gap-2.5 rounded-full border bg-white py-1.5 pr-1.5 pl-[18px] transition-colors duration-150 ease-out ${
+                data-error={error ? 'true' : undefined}
+                className={`new-field flex h-14 min-w-0 items-center gap-2.5 rounded-full border bg-white py-1.5 pr-1.5 pl-[18px] transition-colors duration-150 ease-out ${
                   error
                     ? 'border-danger focus-within:border-danger'
                     : 'border-line focus-within:border-primary'
@@ -66,7 +68,7 @@ const New = () => {
                     setValue(event.target.value)
                   }}
                   aria-label="文章链接"
-                  placeholder="请输入一个链接"
+                  placeholder="粘贴文章链接"
                   aria-invalid={!!error}
                   aria-describedby="new-feedback"
                   className="h-full w-0 min-w-0 flex-1 border-0 bg-transparent p-0 text-body text-ellipsis text-ink placeholder:text-ink-soft focus-visible:outline-none"
@@ -86,7 +88,11 @@ const New = () => {
                     <Icon name="close" />
                   </button>
                 )}
-                <Button type="submit" variant="primary" className="h-[42px] gap-2.5 px-5 text-body">
+                <Button
+                  type="submit"
+                  variant="primary"
+                  disabled={value.trim().length === 0}
+                  className="h-[42px] gap-2.5 px-5 text-body">
                   <span>生成预览</span>
                   <Icon name="arrow-right" />
                 </Button>
@@ -97,6 +103,10 @@ const New = () => {
                 {error && <p role="alert">{error}</p>}
               </div>
             </form>
+            <div aria-hidden className="mt-9 h-px w-5 bg-line" />
+            <p className="mt-3 max-w-[38em] text-description leading-[1.9] text-ink-soft">
+              「落纸」典出杜甫《饮中八仙歌》「挥毫落纸如云烟」，写草圣张旭落笔成篇；取文章落到版面上之意。
+            </p>
           </div>
         </div>
       </div>

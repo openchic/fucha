@@ -85,7 +85,7 @@ function decorationCss(token: ThemeToken): string {
   return HEADING_KEYS.map((key) => {
     const decoration = token[key].decoration
     if (decoration === 'none') return ''
-    const border = `var(--fucha-primary)`
+    const border = `var(--theme-primary)`
     if (decoration === 'bar') {
       return `${key} {\n  border-left: 3px solid ${border};\n  padding-left: 12px;\n}`
     }
@@ -100,16 +100,16 @@ function decorationCss(token: ThemeToken): string {
 
 function previewCanvas(): string {
   return [
-    `  max-width: calc(${PREVIEW_CONTENT_WIDTH}px + var(--fucha-page-padding-left) + var(--fucha-page-padding-right) + ${PLATFORM_SIDE_PADDING * 2}px);`,
+    `  max-width: calc(${PREVIEW_CONTENT_WIDTH}px + var(--theme-page-padding-left) + var(--theme-page-padding-right) + ${PLATFORM_SIDE_PADDING * 2}px);`,
     '  margin: 0 auto;',
-    `  padding: var(--fucha-page-padding-top) calc(var(--fucha-page-padding-right) + ${PLATFORM_SIDE_PADDING}px) var(--fucha-page-padding-bottom) calc(var(--fucha-page-padding-left) + ${PLATFORM_SIDE_PADDING}px);`,
-    '  background-color: var(--fucha-page-background-color);',
+    `  padding: var(--theme-page-padding-top) calc(var(--theme-page-padding-right) + ${PLATFORM_SIDE_PADDING}px) var(--theme-page-padding-bottom) calc(var(--theme-page-padding-left) + ${PLATFORM_SIDE_PADDING}px);`,
+    '  background-color: var(--theme-page-background-color);',
     '  min-height: 100%;',
     `  font-family: ${ARTICLE_FONT_FAMILY};`,
-    '  font-size: var(--fucha-text-font-size);',
-    '  line-height: var(--fucha-text-line-height);',
-    '  letter-spacing: var(--fucha-text-letter-spacing);',
-    '  color: var(--fucha-text-color);',
+    '  font-size: var(--theme-text-font-size);',
+    '  line-height: var(--theme-text-line-height);',
+    '  letter-spacing: var(--theme-text-letter-spacing);',
+    '  color: var(--theme-text-color);',
     '  word-break: break-word;',
     '  text-align: left;',
   ].join('\n')
@@ -135,7 +135,7 @@ function rootDeclarationsOf(theme: ThemeDefinition): string {
 /** 预览：token 变量 + 根规则 + base.css + 装饰 + 语法色 + theme.css，全部限定在 .article-body */
 export function buildPreviewCss(theme: ThemeDefinition): string {
   const variables = Object.entries(tokenVariables(theme.token))
-    .map(([name, value]) => `  --fucha-${name}: ${value};`)
+    .map(([name, value]) => `  --theme-${name}: ${value};`)
     .join('\n')
 
   return [
@@ -158,10 +158,10 @@ export function buildPreviewStyle(theme: ThemeDefinition): string {
     .join('\n\n')
 }
 
-/** 预览容器内联的 token 变量，键名带 --fucha- 前缀 */
+/** 预览容器内联的 token 变量，键名带 --theme- 前缀 */
 export function previewStyleVariables(token: ThemeToken): Record<string, string> {
   return Object.fromEntries(
-    Object.entries(tokenVariables(token)).map(([name, value]) => [`--fucha-${name}`, value])
+    Object.entries(tokenVariables(token)).map(([name, value]) => [`--theme-${name}`, value])
   )
 }
 

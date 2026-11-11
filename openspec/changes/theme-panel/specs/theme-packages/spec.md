@@ -6,7 +6,7 @@
 
 ### Requirement: 主题包格式
 
-主题包 SHALL 是一个 `.fucha-theme` zip，只包含 `theme.json` 与 `theme.css`。`theme.json` SHALL 包含 `id`、`name`、`version`、`tokenVersion` 与完整 `token`；`id` 与 `name` SHALL 与 `token.id`、`token.name` 一致。`tokenVersion` SHALL 等于当前支持的版本。
+主题包 SHALL 是一个 `.article-theme` zip，只包含 `theme.json` 与 `theme.css`。`theme.json` SHALL 包含 `id`、`name`、`version`、`tokenVersion` 与完整 `token`；`id` 与 `name` SHALL 与 `token.id`、`token.name` 一致。`tokenVersion` SHALL 等于当前支持的版本。
 
 #### Scenario: 导出主题
 

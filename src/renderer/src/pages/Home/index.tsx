@@ -24,7 +24,7 @@ const Home = () => {
 
   const deleteHistory = async (item: ArticleSummary): Promise<void> => {
     const activeHash = page?.activeHash
-    await window.fucha.deleteArticle(item.hash)
+    await window.api.deleteArticle(item.hash)
     if (item.hash === activeHash) navigate('/')
     history.refresh()
   }

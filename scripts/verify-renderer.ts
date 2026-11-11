@@ -304,8 +304,9 @@ function testRspressCodeBlocks(): void {
   const filler = `<p>${'用于让 Readability 判定正文的填充段落。'.repeat(20)}</p>`
   const titled = `<div class="rp-codeblock language-tsx"><div class="rp-codeblock__title">app/article/[id]/page.tsx</div><div class="rp-codeblock__content"><pre class="shiki" data-lang="tsx" data-title="app/article/[id]/page.tsx"><code>export default async function ArticlePage() {}</code></pre></div></div>`
   const plain = `<div class="rp-codeblock language-html"><div class="rp-codeblock__content"><pre data-lang="html"><code>&lt;p&gt;hi&lt;/p&gt;</code></pre></div></div>`
+  const callout = `<div class="rp-callout rp-callout--tip"><div class="rp-callout__title">Agent = Model + Harness</div><div class="rp-callout__content"><p>Harness Engineering = 包裹 LLM 的运行时基础设施</p></div></div>`
   const article = extractArticle(
-    `<html><head><title>Rspress 代码块</title></head><body><article><h1>Rspress 代码块</h1>${filler}${titled}${plain}<pre><code>const a = 1</code></pre>${filler}</article></body></html>`,
+    `<html><head><title>Rspress 代码块</title></head><body><article><h1>Rspress 代码块</h1>${filler}${titled}${plain}${callout}<pre><code>const a = 1</code></pre>${filler}</article></body></html>`,
     'https://example.com/rspress'
   )
   check(
@@ -322,6 +323,12 @@ function testRspressCodeBlocks(): void {
       /class="language-html"/.test(article.html)
   )
   check('5.1 普通代码块不变', article.html.includes('<pre><code>const a = 1</code></pre>'))
+  check(
+    '5.7 Rspress 提示容器归一为引用块',
+    article.html.includes(
+      '<blockquote><p><strong>Agent = Model + Harness</strong></p><p>Harness Engineering = 包裹 LLM 的运行时基础设施</p></blockquote>'
+    ) && !article.html.includes('rp-callout')
+  )
 
   const highlighted = highlightArticleHtml(
     '<pre><code class="language-tsx">const a: number = 1</code></pre>'
@@ -408,13 +415,13 @@ function testTheme(): void {
   const pageBackgroundPreview = buildPreviewCss(pageBackgroundTheme)
   check(
     '1.1 预览应用页面背景',
-    pageBackgroundPreview.includes('--fucha-page-background-color: #faf7f2;') &&
-      pageBackgroundPreview.includes('background-color: var(--fucha-page-background-color);') &&
+    pageBackgroundPreview.includes('--theme-page-background-color: #faf7f2;') &&
+      pageBackgroundPreview.includes('background-color: var(--theme-page-background-color);') &&
       pageBackgroundPreview.includes('min-height: 100%;')
   )
   check(
     '1.1 未设置页面背景时预览透明且导出不写背景',
-    buildPreviewCss(DEFAULT_THEME).includes('--fucha-page-background-color: transparent;') &&
+    buildPreviewCss(DEFAULT_THEME).includes('--theme-page-background-color: transparent;') &&
       !buildExportRootStyle(DEFAULT_THEME).includes('background-color')
   )
   check(
@@ -596,7 +603,7 @@ function testTheme(): void {
   }
   check(
     '1.1 预览加入平台左右留白',
-    previewCss.includes(`calc(var(--fucha-page-padding-right) + ${PLATFORM_SIDE_PADDING}px)`) &&
+    previewCss.includes(`calc(var(--theme-page-padding-right) + ${PLATFORM_SIDE_PADDING}px)`) &&
       previewCss.includes(`+ ${PLATFORM_SIDE_PADDING * 2}px`)
   )
   check(
@@ -607,16 +614,16 @@ function testTheme(): void {
   check('1.1 导出 CSS 不含变量', !exportCss.includes('var('))
   check(
     '1.1 预览 CSS 使用作用域变量',
-    previewCss.includes('.article-body') && previewCss.includes('--fucha-primary')
+    previewCss.includes('.article-body') && previewCss.includes('--theme-primary')
   )
   check(
     '1.1 预览注入 quote 背景变量',
-    previewCss.includes('--fucha-quote-background-color') &&
-      !previewCss.includes('--fucha-background-color')
+    previewCss.includes('--theme-quote-background-color') &&
+      !previewCss.includes('--theme-background-color')
   )
   let legacyQuoteVariable = ''
   try {
-    validateThemeCss('blockquote { background-color: var(--fucha-background-color); }')
+    validateThemeCss('blockquote { background-color: var(--theme-background-color); }')
   } catch (error) {
     legacyQuoteVariable = String(error)
   }
@@ -624,7 +631,7 @@ function testTheme(): void {
   check(
     '1.1 新引用背景变量可用',
     validateThemeCss(
-      'blockquote { background-color: var(--fucha-quote-background-color); }'
+      'blockquote { background-color: var(--theme-quote-background-color); }'
     ).includes('quote-background-color')
   )
 
@@ -673,7 +680,7 @@ function testTheme(): void {
     { name: '伪元素', css: 'h1::before { content: "x"; }', expected: '选择器' },
     { name: '@ 规则', css: '@media (min-width: 1px) { h1 { color: #000; } }', expected: '@' },
     { name: '不支持属性', css: 'h1 { position: relative; }', expected: 'position' },
-    { name: '未知变量', css: 'h1 { color: var(--fucha-nope); }', expected: 'nope' },
+    { name: '未知变量', css: 'h1 { color: var(--theme-nope); }', expected: 'nope' },
     { name: '!important', css: 'h1 { color: #000 !important; }', expected: '!important' },
     {
       name: '外部资源',
@@ -777,7 +784,7 @@ function testTheme(): void {
 
   let unresolved = ''
   try {
-    resolveThemeVariables('h1 { color: var(--fucha-missing); }', {})
+    resolveThemeVariables('h1 { color: var(--theme-missing); }', {})
   } catch (error) {
     unresolved = String(error)
   }
@@ -1242,7 +1249,7 @@ function testImageMapping(): void {
     { ...article, images: [{ ...article.images[0]!, status: 'done', localPath: 'abc123.png' }] },
     hash
   )
-  check('4.3 成功图片走 fucha://', doneRoot.innerHTML.includes(`fucha://img/${hash}/abc123.png`))
+  check('4.3 成功图片走 app://', doneRoot.innerHTML.includes(`app://img/${hash}/abc123.png`))
   check(
     '5.3 预览去除与元信息重复的首标题',
     !/<h[12][^>]*>\s*示例文章标题\s*<\/h[12]>/i.test(doneRoot.innerHTML)
@@ -1306,7 +1313,7 @@ async function testChecklist(): Promise<void> {
   const rows: string[] = []
   let ok = 0
   for (const item of CHECKLIST) {
-    const fetched = await window.fucha.fetchArticle(item.url)
+    const fetched = await window.api.fetchArticle(item.url)
     if (!fetched.ok) {
       rows.push(
         `  ${item.expect === 'fail' ? '·' : 'X'} [${item.kind}] ${fetched.error.kind} — ${item.url}`

@@ -30,7 +30,7 @@ M1 的主题是只读内置预设，用户只能整体切换，不能基于现�
 - 引用与行内代码背景色拆开：颜色 tab 的「块底色」拆为「引用背景色」与「行内代码背景色」；引用背景存于 `quote.backgroundColor`，行内代码背景独立存储为 `code.inlineBackgroundColor`。
 - 新增 `divider.borderTopColor`，在颜色 tab 单独配置分割线色。书卷的表格使用浅暖灰边框，代码块用浅纸色底并去掉外框。
 - 新增自定义主题管理：设置页列表支持导入、导出、删除，改名在配置页随保存提交；主题名称全局唯一，重名的新建、导入与改名被拒绝；被文章引用的主题拒绝删除。
-- 新增 `.fucha-theme` 主题包（`theme.json` + `theme.css`）导入导出；导入校验 token、CSS、zip 结构与文件完整性，id 冲突或内置 id 拒绝。
+- 新增 `.article-theme` 主题包（`theme.json` + `theme.css`）导入导出；导入校验 token、CSS、zip 结构与文件完整性，id 冲突或内置 id 拒绝。
 - 本地存储 schema v9 不新增表或字段：v9 迁移把内置主题 id 从 `danxia` 统一为 `qingci`，同步文章 `theme_id`、`themes.source_theme_id` 与 `theme.active`。`themes` 已有 `css`、`token_version`、`source_theme_id`；自定义主题可更新 token/css，另存为与新建创建新行。
 - 文章快照写入本地存储，切换主题只更新 `articles.theme_id`，并记住 `theme.active` 作为新文章默认主题；编辑当前主题会让引用它的文章同步换样。
 
@@ -42,7 +42,7 @@ M1 的主题是只读内置预设，用户只能整体切换，不能基于现�
 
 - `theme-panel`: 主题选择、设置页主题列表、示例预览与 token 配置、编辑/另存为/完全自定义新建。
 - `theme-persistence`: 可编辑的自定义主题、文章主题绑定、默认主题偏好与内置主题保护。
-- `theme-packages`: `.fucha-theme` 主题包导入导出与 fail-closed 校验。
+- `theme-packages`: `.article-theme` 主题包导入导出与 fail-closed 校验。
 
 ### Modified Capabilities
 

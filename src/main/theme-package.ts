@@ -15,6 +15,11 @@ import { createTheme } from './store'
 import { createZip, readZip } from './zip'
 
 const PACKAGE_VERSION = '1.0.0'
+const PACKAGE_EXTENSION = 'article-theme'
+const LEGACY_PACKAGE_EXTENSION = 'fucha-theme'
+// 旧主题包沿用 --fucha- 变量前缀，导入时统一改写为 --theme-
+const LEGACY_CSS_PREFIX = '--fucha-'
+const CSS_PREFIX = '--theme-'
 const PACKAGE_FILES = ['theme.json', 'theme.css'] as const
 
 type ThemePackageJson = {
@@ -103,7 +108,9 @@ export function parseThemePackage(buffer: Buffer): {
   }
 
   const { token, tokenVersion } = parseThemeJson(entries.get('theme.json')!)
-  const css = validateThemeCss(entries.get('theme.css')!.toString('utf8'))
+  const css = validateThemeCss(
+    entries.get('theme.css')!.toString('utf8').replaceAll(LEGACY_CSS_PREFIX, CSS_PREFIX)
+  )
   return { token, css, tokenVersion }
 }
 
@@ -117,17 +124,20 @@ export async function exportThemePackage(
 
     const options: SaveDialogOptions = {
       title: '导出主题包',
-      defaultPath: join(app.getPath('documents'), `${safeFileName(input.token.name)}.fucha-theme`),
-      filters: [{ name: 'fucha 主题包', extensions: ['fucha-theme'] }],
+      defaultPath: join(
+        app.getPath('documents'),
+        `${safeFileName(input.token.name)}.${PACKAGE_EXTENSION}`
+      ),
+      filters: [{ name: '主题包', extensions: [PACKAGE_EXTENSION] }],
     }
     const result = parent
       ? await dialog.showSaveDialog(parent, options)
       : await dialog.showSaveDialog(options)
     if (result.canceled || !result.filePath) return { ok: false, canceled: true }
 
-    const filePath = result.filePath.endsWith('.fucha-theme')
+    const filePath = result.filePath.endsWith(`.${PACKAGE_EXTENSION}`)
       ? result.filePath
-      : `${result.filePath}.fucha-theme`
+      : `${result.filePath}.${PACKAGE_EXTENSION}`
     await fs.writeFile(filePath, zip)
     return { ok: true, path: filePath }
   } catch (error) {
@@ -141,7 +151,7 @@ export async function importThemePackage(parent?: BrowserWindow): Promise<ThemeI
     const options: OpenDialogOptions = {
       title: '导入主题包',
       properties: ['openFile'],
-      filters: [{ name: 'fucha 主题包', extensions: ['fucha-theme'] }],
+      filters: [{ name: '主题包', extensions: [PACKAGE_EXTENSION, LEGACY_PACKAGE_EXTENSION] }],
     }
     const result = parent
       ? await dialog.showOpenDialog(parent, options)

@@ -1,4 +1,4 @@
-# 浮槎 fucha
+# 落纸
 
 把一个链接，变成一篇可以直接发进公众号的文章。
 
@@ -10,9 +10,11 @@
 
 ## 命名
 
-浮槎，读音 fú chá。出自晋代张华《博物志》：天河与海相通，海边有人年年八月见浮槎往来，从不错期。取「从此岸渡到彼岸」之意，把一篇文章从它原本所在的地方，渡到它要去的地方。
+落纸，读音 luò zhǐ。出自杜甫《饮中八仙歌》「挥毫落纸如云烟」，写草圣张旭落笔成篇。取「文章落到版面上」之意：把网页文章排成适合公众号的版式。
 
-图标用「渡」方案：一根横木加一道弧线，16px 可辨。已知风险：槎字生僻，易误读为「差」。应对是图标不依赖文字即可识别，README 首行固定标注读音「浮槎（fú chá）」。
+界面与安装包显示名用「落纸」；代码标识保持通用，不与品牌挂钩：图片协议 `app://`、preload 命名空间 `window.api`、主题变量 `--theme-*`、数据库 `app.db`、主题包 `.article-theme`。旧版 `fucha` 只出现在数据迁移代码里。
+
+图标沿用帆形字标「渡」方案：一根横木加一道弧线，16px 可辨。更名「落纸」后，字标与字义的对应待品牌视觉统一时一并调整。
 
 ## 技术栈
 
@@ -29,7 +31,7 @@
 - `高亮`：highlight.js，输出 class，导出时由 juice 一并内联成 style。
 - `内联`：juice。
 
-结构化数据用 Electron 自带 `node:sqlite` 存 `userData/fucha.db`，图片字节仍按文章存 `userData/article-cache/`。数据库与文件读写只在主进程，渲染进程经后续 IPC 调用；表结构见 `docs/local-store.md`。
+结构化数据用 Electron 自带 `node:sqlite` 存 `userData/app.db`，图片字节仍按文章存 `userData/article-cache/`。数据库与文件读写只在主进程，渲染进程经后续 IPC 调用；表结构见 `docs/local-store.md`。
 
 工具链版本锁在 TypeScript 5.9 与 ESLint 9：@vainjs/eslint-config 的 peer 要求 TS ^5.9，typescript-eslint 只支持 TS 小于 6.1，eslint 插件（import、react、react-hooks）最高到 9。三者互相牵制，升 TS 或 ESLint 要同时换掉这一组，不能单独抬版本。ESLint 用该包的 react 预设，React 19 走自动运行时故关掉 react-in-jsx-scope，并忽略 out/ 与 dist/ 构建产物。
 
@@ -39,13 +41,13 @@
 
 主进程与渲染进程的边界由两件事决定：渲染进程的 fetch 受同源策略限制，主进程不受；渲染进程开了 sandbox，不能直接读写磁盘。
 
-| 层       | 职责                                                                                      | 为什么在这一层                                                                       |
-| -------- | ----------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
-| 主进程   | 抓取、图片下载与缓存、`fucha://` 协议、文件读写、主题与偏好存储、导出末端图片内嵌、剪贴板 | 网络请求不受同源策略限制，且只有它能直接访问磁盘与系统剪贴板                         |
-| preload  | 通过 contextBridge 暴露 `window.fucha` 单一命名空间                                       | sandbox 渲染进程只能经它调用 IPC                                                     |
-| 渲染进程 | HTML 解析、Readability 提取、DOMPurify 净化、预览渲染、主题 CSS 生成、juice 内联          | 自带 DOM，省掉主进程再装一份 DOM 实现；净化贴着解析入口做，进 React 状态的数据已安全 |
+| 层       | 职责                                                                                    | 为什么在这一层                                                                       |
+| -------- | --------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| 主进程   | 抓取、图片下载与缓存、`app://` 协议、文件读写、主题与偏好存储、导出末端图片内嵌、剪贴板 | 网络请求不受同源策略限制，且只有它能直接访问磁盘与系统剪贴板                         |
+| preload  | 通过 contextBridge 暴露 `window.api` 单一命名空间                                       | sandbox 渲染进程只能经它调用 IPC                                                     |
+| 渲染进程 | HTML 解析、Readability 提取、DOMPurify 净化、预览渲染、主题 CSS 生成、juice 内联        | 自带 DOM，省掉主进程再装一份 DOM 实现；净化贴着解析入口做，进 React 状态的数据已安全 |
 
-`FuchaApi` 是唯一的跨进程契约，类型与 IPC 方法签名同文件维护（`src/shared/types.ts`）。方法按里程碑逐步补齐：
+`AppApi` 是唯一的跨进程契约，类型与 IPC 方法签名同文件维护（`src/shared/types.ts`）。方法按里程碑逐步补齐：
 
 | 方法             | 载荷                                             | 返回                                   | 阶段 |
 | ---------------- | ------------------------------------------------ | -------------------------------------- | ---- |
@@ -59,7 +61,7 @@
 
 ```
 输入 URL
-  │ window.fucha.fetchArticle(url)
+  │ window.api.fetchArticle(url)
   ▼
 主进程抓取 ── 失败 ──► 错误四分类 ──► 失败态
   │ { html, finalUrl }
@@ -69,7 +71,7 @@
   │ Article
   ├──────────────► 预览链路
   │                 downloadImages（主进程）
-  │                 img src → fucha://
+  │                 img src → app://
   │                 ThemeToken → CSS 变量
   │
   └──────────────► 导出链路
@@ -87,17 +89,17 @@
 
 ### 本地图片协议
 
-- `fucha://` 在 app ready 前注册为 privileged scheme（standard、secure、supportFetchAPI、stream），ready 后由 `protocol.handle` 服务。
-- 路径形态 `fucha://img/<articleHash>/<file>`，只服务 `userData/article-cache/`；路径归一化后必须仍在缓存目录内，防路径穿越。
+- `app://` 在 app ready 前注册为 privileged scheme（standard、secure、supportFetchAPI、stream），ready 后由 `protocol.handle` 服务。
+- 路径形态 `app://img/<articleHash>/<file>`，只服务 `userData/article-cache/`；路径归一化后必须仍在缓存目录内，防路径穿越。
 - 渲染进程用 `img` 的 `src` 直接引用，不把图片字节经 IPC 复制成 blob URL。
 - 选自定义协议而不选 `file://`：dev 下渲染源是 http、打包后是 file，`file://` 图片在 dev 会被 CSP 拦；自定义协议把两端行为拉平。
-- CSP 放行 `default-src 'self'`、`script-src 'self'`、`style-src 'self' 'unsafe-inline'`、`img-src 'self' data: fucha:`、`font-src 'self' data:`；`data:` 字体仅供提取净化器生成的安全内嵌 SVG 字体使用。
+- CSP 放行 `default-src 'self'`、`script-src 'self'`、`style-src 'self' 'unsafe-inline'`、`img-src 'self' data: app:`、`font-src 'self' data:`；`data:` 字体仅供提取净化器生成的安全内嵌 SVG 字体使用。
 
 ### 缓存与存储
 
 - 文章图片按文章归档：`userData/article-cache/<articleHash>/<内容 hash>.<ext>`，文件名取内容 SHA-1；同目录的 `index.json` 记 URL 到文件名的映射，重复提交直接复用。
 - 文章 hash 取 `finalUrl` 的 SHA-256 前 32 位。
-- 结构化数据存 `userData/fucha.db`：自定义主题进 `themes`、偏好进 `preferences`、文章快照与图片元数据进 `articles` / `article_images`；文章快照的 `theme_id` 只存主题引用，自定义主题原地编辑后所有引用它的文章同步换样，内置主题只读。schema 与迁移策略见 `docs/local-store.md`。
+- 结构化数据存 `userData/app.db`：自定义主题进 `themes`、偏好进 `preferences`、文章快照与图片元数据进 `articles` / `article_images`；文章快照的 `theme_id` 只存主题引用，自定义主题原地编辑后所有引用它的文章同步换样，内置主题只读。schema 与迁移策略见 `docs/local-store.md`。
 - 所有数据库与文件读写只在主进程。渲染进程的 `theme/store.ts` 将来只是 IPC 客户端，不是第二份存储实现。
 - 数据库不可用时回默认预设与空历史，不阻断抓取、提取与预览。
 - 缓存跨提交复用，清理动作不放在导出完成时，避免当前预览裂图；具体清理策略后置。
@@ -106,7 +108,7 @@
 
 - contextIsolation 与 sandbox 开启，nodeIntegration 关闭。sandbox 在窗口配置里显式开启，另外两项沿用 Electron 默认值。
 - 渲染进程不直接加载远程页面。预览容器拦截文章内的链接点击，交给系统浏览器打开，不在应用窗口内导航。
-- 内容净化、`fucha://` 路径校验与 CSP 分别见「提取与净化」「本地图片协议」，此处不重复。
+- 内容净化、`app://` 路径校验与 CSP 分别见「提取与净化」「本地图片协议」，此处不重复。
 
 ## 抓取
 
@@ -160,7 +162,7 @@ interface ImageAsset {
 - 正文提取完成后先进入预览，图片在后台下载并原地更新；下载失败保留 originalUrl，预览用占位图展示，不阻断正文。
 - 外链 SVG 图片与位图走同一下载链路，缓存保留 `.svg` 并以 `image/svg+xml` 提供；内嵌 SVG 由净化白名单直接保留，不进入下载。
 - 微信图片下载按图片域名匹配站点表里的请求头（文章域名与 `mmbiz.qpic.cn` 共享配置）；缓存命中则跳过网络下载，布局与复用规则见「缓存与存储」。
-- 预览重写：done 的 `img` 的 `src` 换成 `fucha://img/<articleHash>/<file>`；failed 换成占位图。
+- 预览重写：done 的 `img` 的 `src` 换成 `app://img/<articleHash>/<file>`；failed 换成占位图。
 
 ## 主题系统
 
@@ -172,7 +174,7 @@ interface ImageAsset {
 - 内置主题「雾紫」（`default`）、「书卷」（`shujuan`）与「青瓷」（`qingci`）各自带 token 默认值与 `theme.css`，均为只读。发布后的视觉升级通过新增 id 保留旧版本。
 - 应用维护 `base.css`，元素规则只引用 token 变量；主题 CSS 只写差异。加载顺序为 base.css → 装饰规则 → hljs 语法色 → theme.css。
 - 文章只保存 `theme_id`；内置主题只读，自定义主题可在设置页原地编辑并同步所有引用文章，另存为与新建生成新主题；文章页只负责选择主题。
-- 自定义主题以 `.fucha-theme` 主题包导入导出（`theme.json` + `theme.css`），导入时 fail-closed 校验 token 与 CSS。
+- 自定义主题以 `.article-theme` 主题包导入导出（`theme.json` + `theme.css`），导入时 fail-closed 校验 token 与 CSS。
 
 ### 预览与导出
 
@@ -190,7 +192,7 @@ export:
   -> 微信属性过滤
 ```
 
-- 导出必须把所有 `var(--fucha-*)` 替换成具体值；juice 不解析 CSS 变量。
+- 导出必须把所有 `var(--theme-*)` 替换成具体值；juice 不解析 CSS 变量。
 - 预览与导出共用 `normalizeArticleDom`：去重复首标题、清引用末段距。
 - 导出输入是净化后的 `Article.html`（原始图片地址），不是预览 HTML；正文外链降级为文本。
 - hljsTheme 只提供语法色，代码块背景取 `code.backgroundColor`，未设置时用语法主题背景；表头背景色取 `table.headerBackgroundColor`。
@@ -244,7 +246,7 @@ macOS 隐藏系统标题栏，红绿灯直接覆盖在内容上，不保留系�
 src/
   main/
     index.ts              窗口创建与生命周期
-    ipc.ts                抓取、图片下载、fucha:// 协议、存储 IPC、导出图片内嵌、剪贴板
+    ipc.ts                抓取、图片下载、app:// 协议、存储 IPC、导出图片内嵌、剪贴板
     db.ts                 SQLite 初始化、schema 迁移与存储可用状态
     store.ts              偏好、自定义主题、文章快照与图片元数据仓储
     theme-package.ts      主题包生成、解析与导入导出
@@ -333,6 +335,6 @@ src/
 
 `正文不可编辑`：提取质量差时无法在应用内修正，只能换来源。后续若确有需要，再引入 Tiptap 做最小编辑。
 
-`跨平台`：Windows 需要单独验证 `fucha://` 的路径服务与字体渲染。当前协议处理按 `/` 拼路径前缀，Windows 的 `resolve()` 产出反斜杠，需要按 `path.sep` 处理。
+`跨平台`：Windows 需要单独验证 `app://` 的路径服务与字体渲染。当前协议处理按 `/` 拼路径前缀，Windows 的 `resolve()` 产出反斜杠，需要按 `path.sep` 处理。
 
 `签名`：对外分发才需要，自用可跳过。

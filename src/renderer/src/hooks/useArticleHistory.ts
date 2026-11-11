@@ -17,7 +17,7 @@ export function useArticleHistory(): ArticleHistory {
 
   useEffect(() => {
     let cancelled = false
-    window.fucha
+    window.api
       .listArticles(50, 0)
       .then((records) => {
         if (cancelled) return

@@ -1,7 +1,7 @@
-import type { FuchaApi } from '@shared/types'
+import type { AppApi } from '@shared/types'
 
 declare global {
   interface Window {
-    fucha: FuchaApi
+    api: AppApi
   }
 }

@@ -1,16 +1,16 @@
 // 临时验证入口（运行器）：在隐藏窗口里跑渲染进程验证，收集结果并退出。
 import { join } from 'path'
 import { app, BrowserWindow } from 'electron'
-import { registerFuchaProtocol, registerIpcHandlers, serveFuchaProtocol } from '../src/main/ipc'
+import { registerAppProtocol, registerIpcHandlers, serveAppProtocol } from '../src/main/ipc'
 
-registerFuchaProtocol()
+registerAppProtocol()
 
 async function collect(win: BrowserWindow): Promise<string[] | undefined> {
   return win.webContents.executeJavaScript('window.__verifyResults')
 }
 
 app.whenReady().then(async () => {
-  serveFuchaProtocol()
+  serveAppProtocol()
   registerIpcHandlers()
 
   const win = new BrowserWindow({
@@ -40,12 +40,12 @@ app.whenReady().then(async () => {
   }
 
   const preloadOk = await win.webContents.executeJavaScript(
-    "typeof window.fucha === 'object' && typeof window.fucha.fetchArticle === 'function'"
+    "typeof window.api === 'object' && typeof window.api.fetchArticle === 'function'"
   )
   const isolationOk = await win.webContents.executeJavaScript('typeof process === "undefined"')
 
   console.log('\n===== 渲染进程验证结果 =====')
-  console.log(`PASS 1.4 contextBridge 暴露 fucha 命名空间 — ${preloadOk ? 'ok' : 'missing'}`)
+  console.log(`PASS 1.4 contextBridge 暴露 api 命名空间 — ${preloadOk ? 'ok' : 'missing'}`)
   console.log(`PASS 1.4 sandbox 下无 process 泄漏 — ${isolationOk ? 'ok' : 'leaked'}`)
   if (!results) {
     console.log('FAIL 渲染进程验证未在时限内完成')

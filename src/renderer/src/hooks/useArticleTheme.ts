@@ -36,13 +36,13 @@ export function useArticleTheme(options: UseArticleThemeOptions): ArticleThemeCo
     void (async () => {
       let id: string | null = null
       try {
-        id = (await window.fucha.getArticle(articleHash))?.themeId ?? null
+        id = (await window.api.getArticle(articleHash))?.themeId ?? null
       } catch {
         // 存储不可用时回退默认主题
       }
       if (!id) {
         try {
-          const preference = await window.fucha.getPreference('theme.active')
+          const preference = await window.api.getPreference('theme.active')
           if (typeof preference === 'string') id = preference
         } catch {
           // 存储不可用时回退默认主题
@@ -62,8 +62,8 @@ export function useArticleTheme(options: UseArticleThemeOptions): ArticleThemeCo
     (id: string): void => {
       if (!findTheme(themes, id)) return
       setActiveId(id)
-      if (articleHash) void window.fucha.setArticleTheme(articleHash, id).catch(() => {})
-      void window.fucha.setPreference('theme.active', id).catch(() => {})
+      if (articleHash) void window.api.setArticleTheme(articleHash, id).catch(() => {})
+      void window.api.setPreference('theme.active', id).catch(() => {})
     },
     [articleHash, themes]
   )

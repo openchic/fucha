@@ -276,52 +276,52 @@ type HeadingLevel = {
 主题 CSS 只能引用以下类型变量：
 
 ```text
---fucha-primary
---fucha-quote-background-color
---fucha-quote-border-left-style
---fucha-table-header-background-color
---fucha-border-color
---fucha-quote-border-radius
---fucha-quote-font-size
---fucha-image-border-radius
---fucha-code-border-radius
---fucha-code-inline-border-radius
---fucha-code-font-size
---fucha-text-font-size
---fucha-text-secondary-font-size
---fucha-text-line-height
---fucha-text-letter-spacing
---fucha-text-margin-bottom
---fucha-text-color
---fucha-text-secondary-color
---fucha-h1-font-size ... --fucha-h6-font-size
---fucha-h1-font-weight ... --fucha-h6-font-weight
---fucha-h1-line-height ... --fucha-h6-line-height
---fucha-h1-color ... --fucha-h6-color
---fucha-h1-text-align ... --fucha-h6-text-align
---fucha-h1-margin-top ... --fucha-h6-margin-bottom
---fucha-quote-padding-block
---fucha-quote-padding-inline
---fucha-code-line-height
---fucha-code-padding-block
---fucha-code-padding-inline
---fucha-code-background-color
---fucha-code-inline-background-color
---fucha-code-caption-border-bottom-style
---fucha-code-caption-border-bottom-color
---fucha-table-padding-block
---fucha-table-padding-inline
---fucha-image-margin-top
---fucha-image-margin-bottom
---fucha-divider-border-top-style
---fucha-divider-border-top-color
---fucha-divider-margin-top
---fucha-divider-margin-bottom
---fucha-page-background-color
---fucha-page-padding-top
---fucha-page-padding-right
---fucha-page-padding-bottom
---fucha-page-padding-left
+--theme-primary
+--theme-quote-background-color
+--theme-quote-border-left-style
+--theme-table-header-background-color
+--theme-border-color
+--theme-quote-border-radius
+--theme-quote-font-size
+--theme-image-border-radius
+--theme-code-border-radius
+--theme-code-inline-border-radius
+--theme-code-font-size
+--theme-text-font-size
+--theme-text-secondary-font-size
+--theme-text-line-height
+--theme-text-letter-spacing
+--theme-text-margin-bottom
+--theme-text-color
+--theme-text-secondary-color
+--theme-h1-font-size ... --theme-h6-font-size
+--theme-h1-font-weight ... --theme-h6-font-weight
+--theme-h1-line-height ... --theme-h6-line-height
+--theme-h1-color ... --theme-h6-color
+--theme-h1-text-align ... --theme-h6-text-align
+--theme-h1-margin-top ... --theme-h6-margin-bottom
+--theme-quote-padding-block
+--theme-quote-padding-inline
+--theme-code-line-height
+--theme-code-padding-block
+--theme-code-padding-inline
+--theme-code-background-color
+--theme-code-inline-background-color
+--theme-code-caption-border-bottom-style
+--theme-code-caption-border-bottom-color
+--theme-table-padding-block
+--theme-table-padding-inline
+--theme-image-margin-top
+--theme-image-margin-bottom
+--theme-divider-border-top-style
+--theme-divider-border-top-color
+--theme-divider-margin-top
+--theme-divider-margin-bottom
+--theme-page-background-color
+--theme-page-padding-top
+--theme-page-padding-right
+--theme-page-padding-bottom
+--theme-page-padding-left
 ```
 
 `hljsTheme` 不是 CSS 变量，由导出/预览直接选择语法主题，可选 `github`、`atom-one-light`、`xcode`。未知值拒绝。语法主题决定语法色与缺省代码块背景；`code.backgroundColor` 可选，设置后覆盖代码块背景。引用背景使用 `quote.backgroundColor`，行内代码使用 `code.inlineBackgroundColor`；表头背景色由 `table.headerBackgroundColor` 提供；自定义 `theme.css` 可以继续覆盖 `pre` 与 `th` 背景及 `.hljs` 颜色。
@@ -366,7 +366,7 @@ pre code { ... }
 - `@` 规则：`@media`、`@import`、`@font-face`、`@keyframes`、`@layer`
 - `!important`
 - 外部资源：`url(http...)`、远程字体与图片
-- token 契约之外的 `var(--fucha-*)`
+- token 契约之外的 `var(--theme-*)`
 - 微信不支持的属性：`position`、`float`、`grid`、`flex` 布局等
 
 导入时做 fail-closed 静态校验：任何一条不通过就拒绝整个主题包，并给出行号与原因，不做部分导入。
@@ -376,7 +376,7 @@ pre code { ... }
 主题包使用 zip：
 
 ```text
-my-theme.fucha-theme
+my-theme.article-theme
   theme.json
   theme.css
 ```
@@ -396,6 +396,7 @@ my-theme.fucha-theme
 - 内置主题与自定义主题共用同一结构。当前内置「雾紫」（id `default`）、「书卷」（id `shujuan`）与「青瓷」（id `qingci`），均为只读。发布后的视觉升级通过新增 id 保留旧版本。三套主题均显式写入代码块背景，且均未设置页面背景。雾紫与青瓷的页面内距为 40/0/40/0，书卷为 32/0/40/0；左右内距默认 0，只表达额外的页面缩进。预览画布在四边内距之外固定加 20px 平台左右留白，模拟公众号阅读页；导出外层原样输出 token 内距，左右基础留白由微信正文提供，默认不会重复叠加。三套主题的标题分两层：正文 H1 与 H2 同样式，H3 至 H6 统一为 16px 子标题样式。雾紫与青瓷的 H1、H2 使用 700 字重，其余标题用 600；书卷六级标题均用 600。青瓷的正文色为 `#2f2f2f`，标题色为 `#262626`，次级文字为 `#666666`；H1、H2 通过 token 使用 `#8fae96` 竖条，引用、代码块、行内代码与表头共享 `#f1f5f2` 浅苔底色，边框与线条使用同族浅绿 `#d4e0d6` / `#d3e0d6`。书卷通过 `&` 根规则使用衬线字族；正文 `#221e1b`、标题 `#1e1a18`、次级文字 `#5f564e`，保持暖棕色系。内置主题按主题分文件放在 `src/renderer/src/theme/presets/`（`default.ts`、`shujuan.ts`、`qingci.ts`，`index.ts` 汇总）。主进程做冲突校验所需的保留 id 和名称放在 `src/shared/builtin-themes.ts`，由 harness 校验两边一致。
 - 自定义主题导入后，token 与 CSS 存入本地 SQLite；同一 id 或内置 id 已存在时拒绝导入。导入后的自定义主题可原地编辑，也可另存为或新建。
 - 导出主题时把当前 token 和 CSS 重新打包成同样的 zip；内置主题导出时 token 的 `builtin` 置为 false，导入后成为普通自定义主题。不导出文章内容。
+- 旧版 `.fucha-theme` 主题包仍可导入，导入时把 `--fucha-` 变量前缀改写为 `--theme-`；导出统一为 `.article-theme`。
 - 自定义主题只允许 CSS 与 token，不允许注入 HTML 或脚本。
 
 ## 预览与导出
@@ -413,7 +414,7 @@ export:
 ```
 
 - 预览不解析 `var()`，直接用浏览器变量。
-- 导出必须把所有 `var(--fucha-*)` 替换成具体值，再交给 juice；juice 不解析 CSS 变量。
+- 导出必须把所有 `var(--theme-*)` 替换成具体值，再交给 juice；juice 不解析 CSS 变量。
 - 预览和复制使用当前文章选中的已落库主题；配置页的示例预览使用编辑草稿，保存后回到文章自然加载。
 - 导出前仍执行正文归一：去重复首标题、清引用末段距、外链降级。
 - 预览注入时统一加 `.article-body` 作用域；导出由 juice 直接作用于正文子树。

@@ -10,7 +10,7 @@ type SidebarToggleProps = {
 /** 交通灯右侧的侧栏开关，Home 与设置页共用同一位置和提示 */
 export const SidebarToggle = ({ collapsed, onToggle, fullscreen }: SidebarToggleProps) => (
   <div className={`no-drag absolute top-[16px] z-40 ${fullscreen ? 'left-[12px]' : 'left-[84px]'}`}>
-    <Tooltip label={collapsed ? '展开左侧栏' : '收起左侧栏'} shortcut="⌘B">
+    <Tooltip label={collapsed ? '展开' : '收起'} shortcut="⌘B">
       <button
         type="button"
         onClick={onToggle}

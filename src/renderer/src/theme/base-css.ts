@@ -1,77 +1,77 @@
 /** 正文基础排版；只引用 token 变量，主题 CSS 在此基础上写差异 */
 export const BASE_CSS = `
 p {
-  margin: 0 0 var(--fucha-text-margin-bottom);
-  color: var(--fucha-text-color);
-  font-size: var(--fucha-text-font-size);
-  line-height: var(--fucha-text-line-height);
-  letter-spacing: var(--fucha-text-letter-spacing);
+  margin: 0 0 var(--theme-text-margin-bottom);
+  color: var(--theme-text-color);
+  font-size: var(--theme-text-font-size);
+  line-height: var(--theme-text-line-height);
+  letter-spacing: var(--theme-text-letter-spacing);
   word-break: break-word;
 }
 
 h1 {
-  margin-top: var(--fucha-h1-margin-top);
-  margin-bottom: var(--fucha-h1-margin-bottom);
-  color: var(--fucha-h1-color);
-  font-size: var(--fucha-h1-font-size);
-  font-weight: var(--fucha-h1-font-weight);
-  line-height: var(--fucha-h1-line-height);
-  text-align: var(--fucha-h1-text-align);
+  margin-top: var(--theme-h1-margin-top);
+  margin-bottom: var(--theme-h1-margin-bottom);
+  color: var(--theme-h1-color);
+  font-size: var(--theme-h1-font-size);
+  font-weight: var(--theme-h1-font-weight);
+  line-height: var(--theme-h1-line-height);
+  text-align: var(--theme-h1-text-align);
 }
 
 h2 {
-  margin-top: var(--fucha-h2-margin-top);
-  margin-bottom: var(--fucha-h2-margin-bottom);
-  color: var(--fucha-h2-color);
-  font-size: var(--fucha-h2-font-size);
-  font-weight: var(--fucha-h2-font-weight);
-  line-height: var(--fucha-h2-line-height);
-  text-align: var(--fucha-h2-text-align);
+  margin-top: var(--theme-h2-margin-top);
+  margin-bottom: var(--theme-h2-margin-bottom);
+  color: var(--theme-h2-color);
+  font-size: var(--theme-h2-font-size);
+  font-weight: var(--theme-h2-font-weight);
+  line-height: var(--theme-h2-line-height);
+  text-align: var(--theme-h2-text-align);
 }
 
 h3 {
-  margin-top: var(--fucha-h3-margin-top);
-  margin-bottom: var(--fucha-h3-margin-bottom);
-  color: var(--fucha-h3-color);
-  font-size: var(--fucha-h3-font-size);
-  font-weight: var(--fucha-h3-font-weight);
-  line-height: var(--fucha-h3-line-height);
-  text-align: var(--fucha-h3-text-align);
+  margin-top: var(--theme-h3-margin-top);
+  margin-bottom: var(--theme-h3-margin-bottom);
+  color: var(--theme-h3-color);
+  font-size: var(--theme-h3-font-size);
+  font-weight: var(--theme-h3-font-weight);
+  line-height: var(--theme-h3-line-height);
+  text-align: var(--theme-h3-text-align);
 }
 
 h4 {
-  margin-top: var(--fucha-h4-margin-top);
-  margin-bottom: var(--fucha-h4-margin-bottom);
-  color: var(--fucha-h4-color);
-  font-size: var(--fucha-h4-font-size);
-  font-weight: var(--fucha-h4-font-weight);
-  line-height: var(--fucha-h4-line-height);
-  text-align: var(--fucha-h4-text-align);
+  margin-top: var(--theme-h4-margin-top);
+  margin-bottom: var(--theme-h4-margin-bottom);
+  color: var(--theme-h4-color);
+  font-size: var(--theme-h4-font-size);
+  font-weight: var(--theme-h4-font-weight);
+  line-height: var(--theme-h4-line-height);
+  text-align: var(--theme-h4-text-align);
 }
 
 h5 {
-  margin-top: var(--fucha-h5-margin-top);
-  margin-bottom: var(--fucha-h5-margin-bottom);
-  color: var(--fucha-h5-color);
-  font-size: var(--fucha-h5-font-size);
-  font-weight: var(--fucha-h5-font-weight);
-  line-height: var(--fucha-h5-line-height);
-  text-align: var(--fucha-h5-text-align);
+  margin-top: var(--theme-h5-margin-top);
+  margin-bottom: var(--theme-h5-margin-bottom);
+  color: var(--theme-h5-color);
+  font-size: var(--theme-h5-font-size);
+  font-weight: var(--theme-h5-font-weight);
+  line-height: var(--theme-h5-line-height);
+  text-align: var(--theme-h5-text-align);
 }
 
 h6 {
-  margin-top: var(--fucha-h6-margin-top);
-  margin-bottom: var(--fucha-h6-margin-bottom);
-  color: var(--fucha-h6-color);
-  font-size: var(--fucha-h6-font-size);
-  font-weight: var(--fucha-h6-font-weight);
-  line-height: var(--fucha-h6-line-height);
-  text-align: var(--fucha-h6-text-align);
+  margin-top: var(--theme-h6-margin-top);
+  margin-bottom: var(--theme-h6-margin-bottom);
+  color: var(--theme-h6-color);
+  font-size: var(--theme-h6-font-size);
+  font-weight: var(--theme-h6-font-weight);
+  line-height: var(--theme-h6-line-height);
+  text-align: var(--theme-h6-text-align);
 }
 
 strong,
 b {
-  color: var(--fucha-text-color);
+  color: var(--theme-text-color);
   font-weight: 700;
 }
 
@@ -93,49 +93,49 @@ h6 b {
 
 em,
 i {
-  color: var(--fucha-text-color);
+  color: var(--theme-text-color);
   font-style: italic;
 }
 
 a {
-  color: var(--fucha-text-color);
+  color: var(--theme-text-color);
   text-decoration: underline;
 }
 
 ul {
-  margin: 0 0 var(--fucha-text-margin-bottom);
+  margin: 0 0 var(--theme-text-margin-bottom);
   padding-left: 24px;
-  color: var(--fucha-text-color);
-  font-size: var(--fucha-text-font-size);
-  line-height: var(--fucha-text-line-height);
+  color: var(--theme-text-color);
+  font-size: var(--theme-text-font-size);
+  line-height: var(--theme-text-line-height);
   list-style-type: disc;
 }
 
 ol {
-  margin: 0 0 var(--fucha-text-margin-bottom);
+  margin: 0 0 var(--theme-text-margin-bottom);
   padding-left: 24px;
-  color: var(--fucha-text-color);
-  font-size: var(--fucha-text-font-size);
-  line-height: var(--fucha-text-line-height);
+  color: var(--theme-text-color);
+  font-size: var(--theme-text-font-size);
+  line-height: var(--theme-text-line-height);
   list-style-type: decimal;
 }
 
 li {
-  margin: 0 0 var(--fucha-text-list-gap);
-  color: var(--fucha-text-color);
-  font-size: var(--fucha-text-font-size);
-  line-height: var(--fucha-text-line-height);
+  margin: 0 0 var(--theme-text-list-gap);
+  color: var(--theme-text-color);
+  font-size: var(--theme-text-font-size);
+  line-height: var(--theme-text-line-height);
 }
 
 blockquote {
-  margin: 0 0 var(--fucha-text-margin-bottom);
-  padding: var(--fucha-quote-padding-block) var(--fucha-quote-padding-inline);
-  color: var(--fucha-text-color);
-  font-size: var(--fucha-quote-font-size);
-  line-height: var(--fucha-text-line-height);
-  background-color: var(--fucha-quote-background-color);
-  border-left: 3px var(--fucha-quote-border-left-style) var(--fucha-primary);
-  border-radius: var(--fucha-quote-border-radius);
+  margin: 0 0 var(--theme-text-margin-bottom);
+  padding: var(--theme-quote-padding-block) var(--theme-quote-padding-inline);
+  color: var(--theme-text-color);
+  font-size: var(--theme-quote-font-size);
+  line-height: var(--theme-text-line-height);
+  background-color: var(--theme-quote-background-color);
+  border-left: 3px var(--theme-quote-border-left-style) var(--theme-primary);
+  border-radius: var(--theme-quote-border-radius);
 }
 
 blockquote p,
@@ -151,15 +151,15 @@ blockquote > :last-child {
 }
 
 pre {
-  margin: 0 0 var(--fucha-text-margin-bottom);
-  padding: var(--fucha-code-padding-block) var(--fucha-code-padding-inline);
-  color: var(--fucha-text-color);
+  margin: 0 0 var(--theme-text-margin-bottom);
+  padding: var(--theme-code-padding-block) var(--theme-code-padding-inline);
+  color: var(--theme-text-color);
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: var(--fucha-code-font-size);
-  line-height: var(--fucha-code-line-height);
-  background-color: var(--fucha-code-background-color);
-  border: 1px var(--fucha-code-border-style) var(--fucha-border-color);
-  border-radius: var(--fucha-code-border-radius);
+  font-size: var(--theme-code-font-size);
+  line-height: var(--theme-code-line-height);
+  background-color: var(--theme-code-background-color);
+  border: 1px var(--theme-code-border-style) var(--theme-border-color);
+  border-radius: var(--theme-code-border-radius);
   overflow-x: auto;
   white-space: pre;
   word-break: normal;
@@ -178,51 +178,51 @@ pre code {
 }
 
 figure.code-block {
-  background-color: var(--fucha-code-background-color);
-  border: 1px var(--fucha-code-border-style) var(--fucha-border-color);
-  border-radius: var(--fucha-code-border-radius);
+  background-color: var(--theme-code-background-color);
+  border: 1px var(--theme-code-border-style) var(--theme-border-color);
+  border-radius: var(--theme-code-border-radius);
 }
 
 .code-block figcaption {
   margin: 0;
-  padding: var(--fucha-code-padding-block) var(--fucha-code-padding-inline);
-  color: var(--fucha-text-secondary-color);
+  padding: var(--theme-code-padding-block) var(--theme-code-padding-inline);
+  color: var(--theme-text-secondary-color);
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-  font-size: var(--fucha-text-secondary-font-size);
+  font-size: var(--theme-text-secondary-font-size);
   line-height: 1.6;
   text-align: left;
-  border-bottom: 1px var(--fucha-code-caption-border-bottom-style)
-    var(--fucha-code-caption-border-bottom-color);
+  border-bottom: 1px var(--theme-code-caption-border-bottom-style)
+    var(--theme-code-caption-border-bottom-color);
 }
 
 figure.code-block pre {
   margin: 0;
   border: none;
-  border-radius: 0 0 var(--fucha-code-border-radius) var(--fucha-code-border-radius);
+  border-radius: 0 0 var(--theme-code-border-radius) var(--theme-code-border-radius);
 }
 
 code {
   padding: 2px 4px;
-  color: var(--fucha-text-color);
+  color: var(--theme-text-color);
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
   font-size: 0.875em;
-  background-color: var(--fucha-code-inline-background-color);
-  border-radius: var(--fucha-code-inline-border-radius);
+  background-color: var(--theme-code-inline-background-color);
+  border-radius: var(--theme-code-inline-border-radius);
 }
 
 table {
   width: 100%;
-  margin: 0 0 var(--fucha-text-margin-bottom);
-  color: var(--fucha-text-color);
+  margin: 0 0 var(--theme-text-margin-bottom);
+  color: var(--theme-text-color);
   font-size: 0.875em;
   line-height: 1.6;
   border-collapse: collapse;
 }
 
 figure.table-scroll {
-  margin: 0 0 var(--fucha-text-margin-bottom);
-  border: 1px solid var(--fucha-border-color);
-  border-radius: var(--fucha-code-border-radius);
+  margin: 0 0 var(--theme-text-margin-bottom);
+  border: 1px solid var(--theme-border-color);
+  border-radius: var(--theme-code-border-radius);
   overflow-x: auto;
 }
 
@@ -261,41 +261,41 @@ figure.table-scroll tr > :last-child {
 }
 
 th {
-  padding: var(--fucha-table-padding-block) var(--fucha-table-padding-inline);
-  color: var(--fucha-text-color);
+  padding: var(--theme-table-padding-block) var(--theme-table-padding-inline);
+  color: var(--theme-text-color);
   font-weight: 600;
   line-height: 1.6;
   text-align: left;
   vertical-align: top;
-  background-color: var(--fucha-table-header-background-color);
-  border: 1px solid var(--fucha-border-color);
+  background-color: var(--theme-table-header-background-color);
+  border: 1px solid var(--theme-border-color);
 }
 
 td {
-  padding: var(--fucha-table-padding-block) var(--fucha-table-padding-inline);
-  color: var(--fucha-text-color);
+  padding: var(--theme-table-padding-block) var(--theme-table-padding-inline);
+  color: var(--theme-text-color);
   line-height: 1.6;
   text-align: left;
   vertical-align: top;
-  border: 1px solid var(--fucha-border-color);
+  border: 1px solid var(--theme-border-color);
 }
 
 img {
   display: block;
   max-width: 100%;
   height: auto;
-  margin: var(--fucha-image-margin-top) auto var(--fucha-image-margin-bottom);
-  border-radius: var(--fucha-image-border-radius);
+  margin: var(--theme-image-margin-top) auto var(--theme-image-margin-bottom);
+  border-radius: var(--theme-image-border-radius);
 }
 
 figure {
-  margin: 0 0 var(--fucha-text-margin-bottom);
+  margin: 0 0 var(--theme-text-margin-bottom);
 }
 
 figcaption {
-  margin: 4px 0 var(--fucha-image-margin-bottom);
-  color: var(--fucha-text-secondary-color);
-  font-size: var(--fucha-text-secondary-font-size);
+  margin: 4px 0 var(--theme-image-margin-bottom);
+  color: var(--theme-text-secondary-color);
+  font-size: var(--theme-text-secondary-font-size);
   line-height: 1.6;
   text-align: center;
 }
@@ -312,18 +312,18 @@ figure > a:has(> img:last-child) + figcaption {
 
 hr {
   height: 0;
-  margin: var(--fucha-divider-margin-top) 0 var(--fucha-divider-margin-bottom);
+  margin: var(--theme-divider-margin-top) 0 var(--theme-divider-margin-bottom);
   border: none;
-  border-top: 1px var(--fucha-divider-border-top-style) var(--fucha-divider-border-top-color);
+  border-top: 1px var(--theme-divider-border-top-style) var(--theme-divider-border-top-color);
 }
 
 sup {
-  font-size: var(--fucha-text-secondary-font-size);
+  font-size: var(--theme-text-secondary-font-size);
   vertical-align: super;
 }
 
 sub {
-  font-size: var(--fucha-text-secondary-font-size);
+  font-size: var(--theme-text-secondary-font-size);
   vertical-align: sub;
 }
 

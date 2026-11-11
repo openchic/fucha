@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 
-const SIDEBAR_COLLAPSED_KEY = 'fucha.sidebar.collapsed'
+const SIDEBAR_COLLAPSED_KEY = 'sidebar.collapsed'
 
 /** 左侧栏收起状态；Home 与设置页共用同一份本地偏好和 ⌘B 快捷键 */
 export function useSidebarCollapsed(): { collapsed: boolean; toggle: () => void } {

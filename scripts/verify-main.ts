@@ -1,4 +1,4 @@
-// 临时验证入口（主进程侧）：真跑 Electron 运行时，验证抓取分类、图片下载与 fucha:// 协议。
+// 临时验证入口（主进程侧）：真跑 Electron 运行时，验证抓取分类、图片下载与 app:// 协议。
 import type { Article } from '../src/shared/types'
 import type { StoredImageInput } from '../src/shared/store-types'
 import { promises as fs } from 'fs'
@@ -12,10 +12,16 @@ import {
   downloadImages,
   exportHtml,
   fetchArticle,
-  registerFuchaProtocol,
-  serveFuchaProtocol,
+  registerAppProtocol,
+  serveAppProtocol,
 } from '../src/main/ipc'
-import { closeLocalStore, getDb, getLocalStoreStatus, initLocalStore } from '../src/main/db'
+import {
+  closeLocalStore,
+  getDb,
+  getLocalStoreStatus,
+  initLocalStore,
+  migrateLegacyUserData,
+} from '../src/main/db'
 import {
   clearHistory,
   createTheme,
@@ -42,7 +48,7 @@ import { validateThemeToken } from '../src/shared/theme'
 
 const defaultTheme = DEFAULT_THEME.token
 
-registerFuchaProtocol()
+registerAppProtocol()
 
 const results: string[] = []
 function check(name: string, pass: boolean, detail = ''): void {
@@ -50,7 +56,7 @@ function check(name: string, pass: boolean, detail = ''): void {
 }
 
 async function main(): Promise<void> {
-  serveFuchaProtocol()
+  serveAppProtocol()
 
   let imageRequests = 0
   const server = createServer((request, response) => {
@@ -97,7 +103,7 @@ async function main(): Promise<void> {
     notFound.ok ? 'unexpected ok' : `${notFound.error.kind} / ${notFound.error.message}`
   )
 
-  const unreachable = await fetchArticle('https://this-host-does-not-exist-fucha.invalid/a')
+  const unreachable = await fetchArticle('https://this-host-does-not-exist.invalid/a')
   check(
     '2.1 网络不可达分类',
     !unreachable.ok && unreachable.error.kind === 'network',
@@ -204,23 +210,23 @@ async function main(): Promise<void> {
     clipboard.readText() === '剪贴板' && clipboard.readHTML().includes('剪贴板')
   )
 
-  // 1.5 fucha:// 协议服务本地图片
+  // 1.5 app:// 协议服务本地图片
   if (okDone?.file) {
-    const url = `fucha://img/${articleHash}/${okDone.file}`
+    const url = `app://img/${articleHash}/${okDone.file}`
     const res = await net.fetch(url)
     const buf = Buffer.from(await res.arrayBuffer())
-    check('1.5 fucha:// 协议可取图', res.ok && buf.length > 0, `${res.status} ${buf.length} 字节`)
+    check('1.5 app:// 协议可取图', res.ok && buf.length > 0, `${res.status} ${buf.length} 字节`)
     check('1.5 内容类型为图片', (res.headers.get('content-type') ?? '').startsWith('image/'))
   }
   if (svgDone?.file) {
-    const svgResponse = await net.fetch(`fucha://img/${articleHash}/${svgDone.file}`)
+    const svgResponse = await net.fetch(`app://img/${articleHash}/${svgDone.file}`)
     check(
       '4.4 SVG 以矢量内容类型返回',
       svgResponse.headers.get('content-type') === 'image/svg+xml',
       svgResponse.headers.get('content-type') ?? ''
     )
   }
-  const traversal = await net.fetch(`fucha://img/${articleHash}/../../package.json`)
+  const traversal = await net.fetch(`app://img/${articleHash}/../../package.json`)
   check(
     '1.5 路径穿越被拒',
     traversal.status === 403 || traversal.status === 404,
@@ -238,8 +244,8 @@ async function main(): Promise<void> {
     }
   }
 
-  const storeDir = await fs.mkdtemp(join(app.getPath('temp'), 'fucha-store-'))
-  const storePath = join(storeDir, 'fucha.db')
+  const storeDir = await fs.mkdtemp(join(app.getPath('temp'), 'store-'))
+  const storePath = join(storeDir, 'app.db')
   const storeStatus = initLocalStore(storePath)
   check('1.1 首次初始化数据库', storeStatus.available && getLocalStoreStatus().available)
   check(
@@ -250,7 +256,7 @@ async function main(): Promise<void> {
       .catch(() => false)
   )
   const versionRow = getDb().prepare('PRAGMA user_version').get() as { user_version: number }
-  check('1.2 迁移到最新 schema', versionRow.user_version === 10, String(versionRow.user_version))
+  check('1.2 迁移到最新 schema', versionRow.user_version === 11, String(versionRow.user_version))
   const articleIndexes = getDb().prepare("PRAGMA index_list('articles')").all() as {
     name: string
   }[]
@@ -431,9 +437,53 @@ async function main(): Promise<void> {
   )
   deleteTheme('legacy-padding')
 
+  getDb()
+    .prepare(
+      `INSERT INTO themes
+         (id, name, token, css, token_version, source_theme_id, sort, created_at, updated_at)
+       VALUES ('legacy-css', '旧变量', ?, 'p { color: var(--fucha-text-color); }', 1, 'default', 0, ?, ?)`
+    )
+    .run(JSON.stringify(defaultTheme), legacyTime, legacyTime)
+  closeLocalStore()
+  const v10Db = new DatabaseSync(storePath)
+  v10Db.exec('PRAGMA user_version = 10')
+  v10Db.close()
+  check('1.2 v10 库迁移主题变量前缀', initLocalStore(storePath).available)
+  check(
+    '1.2 主题 CSS 变量改写为 --theme-',
+    getTheme('legacy-css')?.css === 'p { color: var(--theme-text-color); }'
+  )
+  deleteTheme('legacy-css')
+
+  const legacyDataRoot = await fs.mkdtemp(join(app.getPath('temp'), 'legacy-data-'))
+  const freshDataRoot = await fs.mkdtemp(join(app.getPath('temp'), 'fresh-data-'))
+  const legacyFileDb = new DatabaseSync(join(legacyDataRoot, 'fucha.db'))
+  legacyFileDb.exec('CREATE TABLE note (value TEXT)')
+  legacyFileDb.close()
+  await fs.mkdir(join(legacyDataRoot, 'article-cache', 'sample'), { recursive: true })
+  await fs.writeFile(join(legacyDataRoot, 'article-cache', 'sample', 'a.png'), 'img')
+  migrateLegacyUserData(legacyDataRoot, freshDataRoot)
+  const movedDb = await fs
+    .stat(join(freshDataRoot, 'app.db'))
+    .then(() => true)
+    .catch(() => false)
+  const movedImage = await fs
+    .readFile(join(freshDataRoot, 'article-cache', 'sample', 'a.png'), 'utf8')
+    .catch(() => '')
+  check('6.3 旧数据目录搬运数据库', movedDb)
+  check('6.3 旧数据目录搬运图片缓存', movedImage === 'img')
+  await fs.writeFile(join(freshDataRoot, 'app.db'), 'marker')
+  migrateLegacyUserData(legacyDataRoot, freshDataRoot)
+  check(
+    '6.3 已迁移目录不再覆盖',
+    (await fs.readFile(join(freshDataRoot, 'app.db'), 'utf8')) === 'marker'
+  )
+  await fs.rm(legacyDataRoot, { recursive: true, force: true })
+  await fs.rm(freshDataRoot, { recursive: true, force: true })
+
   const higherPath = join(storeDir, 'higher.db')
   const higher = new DatabaseSync(higherPath)
-  higher.exec('PRAGMA user_version = 11')
+  higher.exec('PRAGMA user_version = 12')
   higher.close()
   check('1.1 版本高于代码时降级', initLocalStore(higherPath).available === false)
   initLocalStore(storePath)
@@ -766,6 +816,15 @@ async function main(): Promise<void> {
         ])
       )
     )
+  )
+  const legacyCssPackage = createZip([
+    { name: 'theme.json', data: packageParts.get('theme.json')! },
+    { name: 'theme.css', data: Buffer.from('h1 { color: var(--fucha-primary); }', 'utf8') },
+  ])
+  const legacyParsed = parseThemePackage(legacyCssPackage)
+  check(
+    '2.8 旧主题包变量前缀自动改写',
+    legacyParsed.css.includes('var(--theme-primary)') && !legacyParsed.css.includes('--fucha-')
   )
 
   const corruptPath = join(storeDir, 'corrupt.db')

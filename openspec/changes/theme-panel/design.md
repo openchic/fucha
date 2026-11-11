@@ -33,7 +33,7 @@
 
 **token + theme.css 两层。** 把所有元素盒模型都 token 化会让接口膨胀，且很多控件在部分主题上无效；token 只保留约 20 个跨主题稳定字段，逐元素 margin/padding/border 放 theme.css。应用维护 base.css，主题只写差异；字族、页面底色等根级表现用单独成条的 `&` 规则写在 theme.css，避免枚举正文标签。
 
-**变量路径与具体值路径共用同一份 CSS。** 预览把 token 写成 `.article-body` 上的 CSS 变量并注入 base + theme；导出把同一份 CSS 的 `var(--fucha-*)` 替换成具体值，再交给 juice。juice 不解析变量，因此导出前必须清零 `var()`。
+**变量路径与具体值路径共用同一份 CSS。** 预览把 token 写成 `.article-body` 上的 CSS 变量并注入 base + theme；导出把同一份 CSS 的 `var(--theme-*)` 替换成具体值，再交给 juice。juice 不解析变量，因此导出前必须清零 `var()`。
 
 **CSS 校验 fail-closed。** 主题包来自外部，CSS 注入风险与微信兼容风险都必须挡在导入时。只允许元素/类/后代选择器与共享的微信属性白名单，拒绝伪类、`@` 规则、`!important`、`url()`、契约外变量与 `<>`，错误带行号；任何一条失败整包拒绝。
 

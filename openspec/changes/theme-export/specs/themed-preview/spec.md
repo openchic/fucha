@@ -121,6 +121,15 @@
 - **WHEN** 正文中的代码块没有标题
 - **THEN** 预览与导出均按主题显示背景、圆角与外框，省略标题条和分隔线
 
+### Requirement: Rspress 提示容器
+
+提取 SHALL 把 Rspress 提示容器（`.rp-callout`）归一为正文 `blockquote`：标题 SHALL 作为块内首段加粗，内容子节点 SHALL 原样搬入，站点自带的提示样式不再保留；预览与导出 SHALL 按主题引用样式渲染与导出。
+
+#### Scenario: 提示容器进入引用样式
+
+- **WHEN** 文章包含 `.rp-callout` 提示容器
+- **THEN** 提取结果不含 `.rp-callout`，对应内容位于 `blockquote` 内，标题为粗体首段
+
 ### Requirement: 宽表横向滚动
 
 正文中的表格 SHALL 包在带 1px 边框与代码块圆角的横向滚动容器中。外框 SHALL 由容器承担，滚动条 SHALL 位于边框内并使用浏览器原生样式。一至两列表格 SHALL 占满容器并允许单元格换行。三列及以上表格 SHALL 按内容自然宽度排布（`width: max-content`），并用 `min-width: 100%` 在内容较少时铺满容器；单元格 SHALL 至少 `5em`、至多 `18em` 宽，超过上限的内容在单元格内换行。容器 SHALL 带 `table-scroll` 标记，三列及以上额外带 `table-scroll-wide` 标记。主题 SHALL 可在 theme.css 中用这两个标记覆盖。按上述规则放得下时表格铺满容器且不滚动；放不下时 SHALL 在边框内横向滚动，页面 SHALL NOT 出现横向溢出。预览与导出 SHALL 共用该结构，导出所用属性 SHALL 在微信白名单内。
@@ -147,7 +156,7 @@
 
 ### Requirement: 导出值一致性
 
-预览用 CSS 变量渲染的同时，SHALL 能把同一份 CSS 中的 `var(--fucha-*)` 解析成具体值交给导出——任何 token 值在预览与导出两条路径下 SHALL 解析为相同的最终样式，导出 CSS 不得残留 `var()`。
+预览用 CSS 变量渲染的同时，SHALL 能把同一份 CSS 中的 `var(--theme-*)` 解析成具体值交给导出——任何 token 值在预览与导出两条路径下 SHALL 解析为相同的最终样式，导出 CSS 不得残留 `var()`。
 
 #### Scenario: 变量与具体值同源
 

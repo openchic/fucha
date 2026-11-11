@@ -2,6 +2,7 @@ import type { KeyboardEvent } from 'react'
 import { useId, useRef, useState } from 'react'
 import { Icon } from '../Icon'
 import { Popover } from '../Popover'
+import { Tooltip } from '../Tooltip'
 
 export type DropdownOption = {
   value: string
@@ -19,12 +20,13 @@ type DropdownProps = {
   value: string
   options: DropdownOption[]
   actions?: DropdownAction[]
+  tooltip?: string
   onChange: (value: string) => void
 }
 
 /** 轻量下拉：触发按钮只占用文字宽度，弹层支持键盘、焦点与外部点击关闭 */
 export const Dropdown = (props: DropdownProps) => {
-  const { label, value, options, actions, onChange } = props
+  const { label, value, options, actions, tooltip, onChange } = props
   const [isOpen, setIsOpen] = useState(false)
   const triggerRef = useRef<HTMLButtonElement>(null)
   const optionRefs = useRef<(HTMLButtonElement | null)[]>([])
@@ -80,26 +82,36 @@ export const Dropdown = (props: DropdownProps) => {
     close()
   }
 
+  const trigger = (
+    <button
+      ref={triggerRef}
+      type="button"
+      aria-haspopup="listbox"
+      aria-expanded={isOpen}
+      aria-controls={menuId}
+      aria-label={`${label}：${current?.label ?? ''}`}
+      onClick={() => setIsOpen((open) => !open)}
+      onKeyDown={handleTriggerKeyDown}
+      className={`field-value flex h-7 max-w-40 items-center gap-1.5 rounded-full pr-2 pl-3 text-body transition-colors ${
+        isOpen ? 'bg-raised text-ink' : 'text-ink hover:bg-raised'
+      }`}>
+      <span className="truncate">{current?.label}</span>
+      <Icon
+        name="chevron-down"
+        className={`h-3.5 w-3.5 flex-none transition-transform ${isOpen ? 'rotate-180' : ''}`}
+      />
+    </button>
+  )
+
   return (
     <>
-      <button
-        ref={triggerRef}
-        type="button"
-        aria-haspopup="listbox"
-        aria-expanded={isOpen}
-        aria-controls={menuId}
-        aria-label={`${label}：${current?.label ?? ''}`}
-        onClick={() => setIsOpen((open) => !open)}
-        onKeyDown={handleTriggerKeyDown}
-        className={`field-value flex h-7 max-w-40 items-center gap-1.5 rounded-full pr-2 pl-3 text-body transition-colors ${
-          isOpen ? 'bg-raised text-ink' : 'text-ink hover:bg-raised'
-        }`}>
-        <span className="truncate">{current?.label}</span>
-        <Icon
-          name="chevron-down"
-          className={`h-3.5 w-3.5 flex-none transition-transform ${isOpen ? 'rotate-180' : ''}`}
-        />
-      </button>
+      {tooltip ? (
+        <Tooltip label={tooltip} hidden={isOpen}>
+          {trigger}
+        </Tooltip>
+      ) : (
+        trigger
+      )}
       <Popover
         open={isOpen}
         onOpenChange={setIsOpen}

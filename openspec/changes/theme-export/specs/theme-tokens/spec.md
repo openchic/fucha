@@ -16,7 +16,7 @@
 #### Scenario: 引用背景色归入 quote
 
 - **WHEN** 读取或校验 ThemeToken
-- **THEN** 引用背景色位于 `quote.backgroundColor`，顶层不存在 `backgroundColor`，主题 CSS 使用 `--fucha-quote-background-color`
+- **THEN** 引用背景色位于 `quote.backgroundColor`，顶层不存在 `backgroundColor`，主题 CSS 使用 `--theme-quote-background-color`
 
 #### Scenario: 字号初始值不联动
 

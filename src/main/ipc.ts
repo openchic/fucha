@@ -50,13 +50,13 @@ export function articleCacheDir(): string {
   return join(app.getPath('userData'), 'article-cache')
 }
 
-// ---------- fucha:// 本地图片协议 ----------
+// ---------- app:// 本地图片协议 ----------
 
 /** 必须在 app ready 之前调用 */
-export function registerFuchaProtocol(): void {
+export function registerAppProtocol(): void {
   protocol.registerSchemesAsPrivileged([
     {
-      scheme: 'fucha',
+      scheme: 'app',
       privileges: { standard: true, secure: true, supportFetchAPI: true, stream: true },
     },
   ])
@@ -73,8 +73,8 @@ const MIME_BY_EXT: Record<string, string> = {
 }
 
 /** app ready 之后调用；服务 userData/article-cache 下的图片 */
-export function serveFuchaProtocol(): void {
-  protocol.handle('fucha', async (request) => {
+export function serveAppProtocol(): void {
+  protocol.handle('app', async (request) => {
     const base = resolve(articleCacheDir())
     const { host, pathname } = new URL(request.url)
     if (host !== 'img') {
@@ -333,7 +333,7 @@ export async function exportHtml(payload: ExportHtmlPayload): Promise<string> {
     /(<img\b[^>]*?\bsrc=")([^"]*)(")/gi,
     (match, before: string, src: string, after: string) => {
       if (!src || src.startsWith('data:')) return match
-      const token = `__FUCHA_IMAGE_${counter++}__`
+      const token = `__APP_IMAGE_${counter++}__`
       sources.set(token, src)
       return `${before}${token}${after}`
     }

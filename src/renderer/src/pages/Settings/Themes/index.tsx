@@ -163,7 +163,7 @@ const ThemeList = () => {
 
   const handleImport = (): void => {
     void run(async () => {
-      const result = await window.fucha.importThemePackage()
+      const result = await window.api.importThemePackage()
       if (!result.ok) {
         if (!result.canceled) setError(result.error ?? '导入失败')
         return
@@ -175,7 +175,7 @@ const ThemeList = () => {
 
   const handleExport = (theme: AvailableTheme): void => {
     void run(async () => {
-      const result = await window.fucha.exportThemePackage({
+      const result = await window.api.exportThemePackage({
         token: { ...theme.token, name: theme.name },
         css: theme.css,
       })
@@ -196,7 +196,7 @@ const ThemeList = () => {
     })
     if (!confirmed) return
     void run(async () => {
-      await window.fucha.deleteTheme(theme.id)
+      await window.api.deleteTheme(theme.id)
       refresh()
     })
   }
