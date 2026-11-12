@@ -46,7 +46,7 @@ const Settings = () => {
             <button
               type="button"
               onClick={goBack}
-              className="flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-left text-body text-ink-soft transition-colors hover:bg-white hover:text-ink">
+              className="flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-left text-body text-ink-soft transition-colors hover:bg-raised hover:text-ink">
               <Icon name="arrow-left" className="h-3.5 w-3.5 flex-none" />
               返回
             </button>
@@ -57,9 +57,14 @@ const Settings = () => {
               onClick={goThemes}
               aria-current={themesActive ? 'page' : undefined}
               className={`flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-body transition-colors ${
-                themesActive ? 'bg-white text-ink' : 'text-ink-soft hover:bg-white hover:text-ink'
+                themesActive
+                  ? 'bg-accent-soft text-ink'
+                  : 'text-ink-soft hover:bg-raised hover:text-ink'
               }`}>
-              <Icon name="settings" className="h-3.5 w-3.5 flex-none" />
+              <Icon
+                name="settings"
+                className={`h-3.5 w-3.5 flex-none ${themesActive ? 'text-accent' : ''}`}
+              />
               主题管理
             </button>
           </nav>
@@ -74,7 +79,7 @@ const Settings = () => {
             ? ({ '--page-header-inset': fullscreen ? '24px' : '96px' } as CSSProperties)
             : undefined
         }>
-        <div className="flex min-w-0 flex-1 flex-col overflow-hidden rounded-2xl bg-white shadow-[0_1px_2px_rgba(29,29,31,0.05)]">
+        <div className="flex min-w-0 flex-1 flex-col overflow-hidden rounded-2xl bg-white shadow-panel">
           <Outlet
             context={{
               themes: library.themes,

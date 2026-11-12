@@ -617,6 +617,14 @@ function testTheme(): void {
     previewCss.includes('.article-body') && previewCss.includes('--theme-primary')
   )
   check(
+    '1.1 内置主题预览与导出不依赖应用壳配色',
+    BUILTIN_THEMES.every((theme) =>
+      [buildPreviewCss(theme), buildExportCss(theme), buildExportRootStyle(theme)].every(
+        (css) => !css.includes('--color-')
+      )
+    )
+  )
+  check(
     '1.1 预览注入 quote 背景变量',
     previewCss.includes('--theme-quote-background-color') &&
       !previewCss.includes('--theme-background-color')

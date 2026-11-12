@@ -81,7 +81,7 @@ export const Sidebar = (props: SidebarProps) => {
           <button
             type="button"
             onClick={onNew}
-            className="flex w-full items-center gap-2 rounded-lg px-3 py-2.5 text-left text-body text-ink-soft transition-colors hover:bg-white hover:text-ink">
+            className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-body leading-5 text-ink-soft transition-colors hover:bg-raised">
             <Icon name="plus" className="h-3.5 w-3.5 flex-none" />
             新建
           </button>
@@ -115,12 +115,12 @@ export const Sidebar = (props: SidebarProps) => {
                     type="button"
                     aria-current={isActive ? 'page' : undefined}
                     onClick={() => onOpen(item)}
-                    className={`w-full rounded-lg px-3 py-2.5 pr-12 text-left transition-colors ${
+                    className={`w-full rounded-lg px-3 py-2 pr-12 text-left transition-colors ${
                       isActive
-                        ? 'bg-white text-ink'
-                        : 'text-ink-soft group-hover:bg-white group-hover:text-ink'
+                        ? 'bg-accent-soft text-ink group-hover:bg-accent-hover'
+                        : 'text-ink-soft group-hover:bg-raised'
                     }`}>
-                    <span className="block truncate text-body">{item.title}</span>
+                    <span className="block truncate text-body leading-5">{item.title}</span>
                   </button>
                   <button
                     type="button"
@@ -145,7 +145,7 @@ export const Sidebar = (props: SidebarProps) => {
           onClick={onSettings}
           aria-label="设置"
           title="设置"
-          className="flex h-7 w-7 items-center justify-center rounded-full text-ink-soft transition-colors hover:bg-white hover:text-ink">
+          className="flex h-7 w-7 items-center justify-center rounded-full text-ink-soft transition-colors hover:bg-raised hover:text-ink">
           <Icon name="settings" className="h-4 w-4 flex-none" />
         </button>
       </footer>

@@ -307,7 +307,7 @@ const ThemeList = () => {
                       <button
                         type="button"
                         onClick={openNew}
-                        className="flex-none text-body text-primary transition-colors hover:underline">
+                        className="flex-none text-body text-ink transition-colors hover:underline">
                         新建主题
                       </button>
                     )}

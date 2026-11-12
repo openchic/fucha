@@ -161,7 +161,7 @@ const ThemeEditor = (props: ThemeEditorProps) => {
 
   const header = (
     <div className="flex flex-none flex-col gap-2 px-6 pt-5">
-      <div className="flex w-full items-center gap-1.5 rounded-full border border-transparent bg-panel pl-3 pr-1.5 transition-colors focus-within:border-primary">
+      <div className="flex w-full items-center gap-1.5 rounded-full border border-transparent bg-panel pl-3 pr-1.5 transition-colors focus-within:border-accent">
         <input
           id={nameInputId}
           type="text"

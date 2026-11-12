@@ -16,7 +16,7 @@ export const SidebarToggle = ({ collapsed, onToggle, fullscreen }: SidebarToggle
         onClick={onToggle}
         aria-label={collapsed ? '展开侧栏' : '收起侧栏'}
         aria-expanded={!collapsed}
-        className="no-drag flex h-7 w-7 items-center justify-center rounded-full text-ink-soft transition-colors hover:bg-white hover:text-ink focus-visible:bg-white focus-visible:text-ink">
+        className="no-drag flex h-7 w-7 items-center justify-center rounded-full text-ink-soft transition-colors hover:bg-raised hover:text-ink focus-visible:bg-raised focus-visible:text-ink">
         <Icon
           name={collapsed ? 'sidebar-expand' : 'sidebar-collapse'}
           className="pointer-events-none h-3.5 w-3.5 flex-none translate-y-[1px]"

@@ -93,12 +93,12 @@ export const Dropdown = (props: DropdownProps) => {
       onClick={() => setIsOpen((open) => !open)}
       onKeyDown={handleTriggerKeyDown}
       className={`field-value flex h-7 max-w-40 items-center gap-1.5 rounded-full pr-2 pl-3 text-body transition-colors ${
-        isOpen ? 'bg-raised text-ink' : 'text-ink hover:bg-raised'
+        isOpen ? 'bg-accent-soft text-ink' : 'text-ink hover:bg-raised'
       }`}>
       <span className="truncate">{current?.label}</span>
       <Icon
         name="chevron-down"
-        className={`h-3.5 w-3.5 flex-none transition-transform ${isOpen ? 'rotate-180' : ''}`}
+        className={`h-3.5 w-3.5 flex-none transition-transform ${isOpen ? 'rotate-180 text-accent' : ''}`}
       />
     </button>
   )
@@ -137,8 +137,10 @@ export const Dropdown = (props: DropdownProps) => {
                 id={`${menuId}-option-${index}`}
                 aria-selected={isSelected}
                 onClick={() => handleSelect(option.value)}
-                className={`flex w-full items-center gap-3 rounded-lg px-2.5 py-1.5 text-left text-body transition-colors hover:bg-raised ${
-                  isSelected ? 'bg-raised text-ink' : 'text-ink-soft'
+                className={`flex w-full items-center gap-3 rounded-lg px-2.5 py-1.5 text-left text-body transition-colors ${
+                  isSelected
+                    ? 'bg-accent-soft text-ink hover:bg-accent-hover'
+                    : 'text-ink-soft hover:bg-raised'
                 }`}>
                 <span className="min-w-0 truncate">{option.label}</span>
                 <span className="ml-auto flex flex-none items-center gap-2">
@@ -148,7 +150,7 @@ export const Dropdown = (props: DropdownProps) => {
                     </span>
                   )}
                   <span className="flex h-3.5 w-3.5 flex-none items-center justify-center">
-                    {isSelected && <Icon name="check" className="h-3.5 w-3.5 text-primary" />}
+                    {isSelected && <Icon name="check" className="h-3.5 w-3.5 text-accent" />}
                   </span>
                 </span>
               </button>
