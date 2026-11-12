@@ -1,17 +1,16 @@
 import { join } from 'path'
 import { app, shell, BrowserWindow } from 'electron'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
-import icon from '../../resources/icon.png?asset'
-import { initLocalStore, LEGACY_USER_DATA_DIR, migrateLegacyUserData } from './db'
+import { initLocalStore } from './db'
 import { registerAppProtocol, registerIpcHandlers, serveAppProtocol } from './ipc'
 
 registerAppProtocol()
 
 const USER_DATA_OVERRIDDEN = process.argv.some((arg) => arg.startsWith('--user-data-dir'))
 // 显示名是中文，数据目录固定用 ASCII 名；测试实例以 --user-data-dir 覆盖时保持覆盖
-const USER_DATA_DIR = join(app.getPath('appData'), 'luozhi')
+const USER_DATA_DIR = join(app.getPath('appData'), 'fucha')
 
-app.setName('落纸')
+app.setName('浮槎')
 if (!USER_DATA_OVERRIDDEN) app.setPath('userData', USER_DATA_DIR)
 
 const EXTERNAL_PROTOCOLS = new Set(['http:', 'https:', 'mailto:'])
@@ -41,7 +40,6 @@ function createWindow(): void {
           acceptFirstMouse: true,
         }
       : {}),
-    ...(process.platform === 'linux' ? { icon } : {}),
     webPreferences: {
       preload: join(__dirname, '../preload/index.js'),
       sandbox: true,
@@ -74,10 +72,7 @@ function createWindow(): void {
 }
 
 app.whenReady().then(() => {
-  electronApp.setAppUserModelId('com.luozhi.app')
-  if (!USER_DATA_OVERRIDDEN) {
-    migrateLegacyUserData(join(app.getPath('appData'), LEGACY_USER_DATA_DIR), USER_DATA_DIR)
-  }
+  electronApp.setAppUserModelId('com.fucha.app')
   const localStore = initLocalStore()
   if (!localStore.available) {
     console.error(`[local-store] ${localStore.error ?? '数据库不可用'}`)

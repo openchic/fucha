@@ -9,7 +9,6 @@
 - 文章 `hash` 取 `SHA-256(finalUrl)` 前 32 位，与图片缓存目录同名。
 - 数据库读写只在主进程；渲染进程经 preload 暴露的领域方法使用存储，不直接执行 SQL。历史栏用 `listArticles` 读摘要，点击后用 `getArticle(hash)` 打开快照并 `touchArticle`；应用默认进入 Home 布局的 `/`（New 输入页），打开历史切换到 `/preview`，左侧历史栏常驻。
 - v1 是初始 schema，当前 schema 为 v11：v10 把内置页面左右留白归零，v11 把已存主题 CSS 的旧变量前缀 `--fucha-` 改写为 `--theme-`；迁移只处理本文件定义的旧版本。
-- 默认数据目录为 `appData/luozhi`（固定 ASCII 名，显示名「落纸」不参与路径）；首次启动从旧版 `appData/fucha` 复制数据库与图片缓存。
 
 ## 驱动选择
 

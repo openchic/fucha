@@ -22,7 +22,7 @@
   }
 
   ::selection {
-    background: color-mix(in srgb, var(--color-primary) 25%, transparent);
+    background: color-mix(in srgb, var(--color-ink) 12%, transparent);
   }
 
   input:focus-visible,

@@ -15,13 +15,7 @@ import {
   registerAppProtocol,
   serveAppProtocol,
 } from '../src/main/ipc'
-import {
-  closeLocalStore,
-  getDb,
-  getLocalStoreStatus,
-  initLocalStore,
-  migrateLegacyUserData,
-} from '../src/main/db'
+import { closeLocalStore, getDb, getLocalStoreStatus, initLocalStore } from '../src/main/db'
 import {
   clearHistory,
   createTheme,
@@ -455,32 +449,6 @@ async function main(): Promise<void> {
   )
   deleteTheme('legacy-css')
 
-  const legacyDataRoot = await fs.mkdtemp(join(app.getPath('temp'), 'legacy-data-'))
-  const freshDataRoot = await fs.mkdtemp(join(app.getPath('temp'), 'fresh-data-'))
-  const legacyFileDb = new DatabaseSync(join(legacyDataRoot, 'fucha.db'))
-  legacyFileDb.exec('CREATE TABLE note (value TEXT)')
-  legacyFileDb.close()
-  await fs.mkdir(join(legacyDataRoot, 'article-cache', 'sample'), { recursive: true })
-  await fs.writeFile(join(legacyDataRoot, 'article-cache', 'sample', 'a.png'), 'img')
-  migrateLegacyUserData(legacyDataRoot, freshDataRoot)
-  const movedDb = await fs
-    .stat(join(freshDataRoot, 'app.db'))
-    .then(() => true)
-    .catch(() => false)
-  const movedImage = await fs
-    .readFile(join(freshDataRoot, 'article-cache', 'sample', 'a.png'), 'utf8')
-    .catch(() => '')
-  check('6.3 旧数据目录搬运数据库', movedDb)
-  check('6.3 旧数据目录搬运图片缓存', movedImage === 'img')
-  await fs.writeFile(join(freshDataRoot, 'app.db'), 'marker')
-  migrateLegacyUserData(legacyDataRoot, freshDataRoot)
-  check(
-    '6.3 已迁移目录不再覆盖',
-    (await fs.readFile(join(freshDataRoot, 'app.db'), 'utf8')) === 'marker'
-  )
-  await fs.rm(legacyDataRoot, { recursive: true, force: true })
-  await fs.rm(freshDataRoot, { recursive: true, force: true })
-
   const higherPath = join(storeDir, 'higher.db')
   const higher = new DatabaseSync(higherPath)
   higher.exec('PRAGMA user_version = 12')
@@ -816,15 +784,6 @@ async function main(): Promise<void> {
         ])
       )
     )
-  )
-  const legacyCssPackage = createZip([
-    { name: 'theme.json', data: packageParts.get('theme.json')! },
-    { name: 'theme.css', data: Buffer.from('h1 { color: var(--fucha-primary); }', 'utf8') },
-  ])
-  const legacyParsed = parseThemePackage(legacyCssPackage)
-  check(
-    '2.8 旧主题包变量前缀自动改写',
-    legacyParsed.css.includes('var(--theme-primary)') && !legacyParsed.css.includes('--fucha-')
   )
 
   const corruptPath = join(storeDir, 'corrupt.db')

@@ -2,7 +2,7 @@
 
 ## 项目概览
 
-落纸 —— 基于 Electron + React + TypeScript 的桌面应用。
+浮槎 —— 基于 Electron + React + TypeScript 的桌面应用。
 
 代码标识与品牌解耦：图片协议 `app://`、preload 命名空间 `window.api`、主题变量 `--theme-*`、数据库 `app.db`、主题包 `.article-theme`；品牌名只出现在界面与安装包显示名。
 

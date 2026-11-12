@@ -37,7 +37,7 @@
   }
 
   .button-primary:enabled:hover {
-    background: color-mix(in srgb, var(--color-primary) 88%, var(--color-ink));
+    background: color-mix(in srgb, var(--color-primary) 92%, white);
   }
 
   .button-secondary {

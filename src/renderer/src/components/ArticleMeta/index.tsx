@@ -108,7 +108,7 @@ export const ArticleMeta = (props: ArticleMetaProps) => {
             aria-pressed={phonePreview}
             className={`flex h-7 w-7 flex-none items-center justify-center rounded-full transition-colors active:scale-95 ${
               phonePreview
-                ? 'bg-primary/30 text-primary hover:bg-primary/35'
+                ? 'bg-primary/10 text-primary hover:bg-primary/15'
                 : 'text-ink-soft hover:bg-raised hover:text-ink'
             }`}>
             <Icon name="smartphone" className="h-4 w-4 flex-none" />

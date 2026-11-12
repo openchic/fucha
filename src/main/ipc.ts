@@ -113,19 +113,22 @@ async function fetchWithTimeout(url: string, timeoutMs: number, headers?: Record
   }
 }
 
+function fetchErrorCode(error: unknown): string | undefined {
+  if (!error || typeof error !== 'object') return undefined
+  const source = 'code' in error ? error : 'cause' in error ? error.cause : undefined
+  if (!source || typeof source !== 'object' || !('code' in source)) return undefined
+  return String(source.code)
+}
+
 function classifyFetchError(error: unknown): FetchResult {
   if (error instanceof Error && error.name === 'AbortError') {
     return { ok: false, error: { kind: 'timeout', message: '目标服务器超时未响应' } }
   }
-  const code =
-    error && typeof error === 'object' && 'code' in error ? String(error.code) : undefined
+  const code = fetchErrorCode(error)
   if (code && ['ENOTFOUND', 'EAI_AGAIN', 'ECONNREFUSED', 'ECONNRESET'].includes(code)) {
     return { ok: false, error: { kind: 'network', message: '网络不可达或域名无法解析' } }
   }
-  return {
-    ok: false,
-    error: { kind: 'network', message: error instanceof Error ? error.message : String(error) },
-  }
+  return { ok: false, error: { kind: 'network', message: '网络请求失败，请稍后重试' } }
 }
 
 /** 抓取文章 HTML，失败按原因分类返回 */

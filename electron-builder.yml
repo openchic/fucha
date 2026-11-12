@@ -1,5 +1,5 @@
-appId: com.luozhi.app
-productName: 落纸
+appId: com.fucha.app
+productName: 浮槎
 directories:
   buildResources: build
 files:
@@ -14,7 +14,7 @@ files:
 asarUnpack:
   - resources/**
 win:
-  executableName: luozhi
+  executableName: fucha
 nsis:
   artifactName: ${name}-${version}-setup.${ext}
   shortcutName: ${productName}

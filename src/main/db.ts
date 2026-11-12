@@ -1,5 +1,5 @@
 import { DatabaseSync } from 'node:sqlite'
-import { copyFileSync, cpSync, existsSync, mkdirSync, renameSync, rmSync } from 'fs'
+import { mkdirSync } from 'fs'
 import { dirname, join } from 'path'
 import { app } from 'electron'
 
@@ -144,35 +144,6 @@ let storeError: string | null = null
 let storePath = ''
 
 const DB_FILE = 'app.db'
-export const LEGACY_USER_DATA_DIR = 'fucha'
-const LEGACY_DB_FILE = 'fucha.db'
-
-/** 旧版数据一次性搬运：复制数据库与图片缓存到新目录，失败只记录不阻断启动 */
-export function migrateLegacyUserData(legacyRoot: string, targetRoot: string): void {
-  try {
-    const legacyDb = join(legacyRoot, LEGACY_DB_FILE)
-    const targetDb = join(targetRoot, DB_FILE)
-    if (!existsSync(legacyDb) || existsSync(targetDb)) return
-
-    mkdirSync(targetRoot, { recursive: true })
-    for (const suffix of ['', '-wal', '-shm']) {
-      if (existsSync(`${legacyDb}${suffix}`)) {
-        copyFileSync(`${legacyDb}${suffix}`, `${targetDb}${suffix}`)
-      }
-    }
-
-    const legacyCache = join(legacyRoot, 'article-cache')
-    const targetCache = join(targetRoot, 'article-cache')
-    if (existsSync(legacyCache) && !existsSync(targetCache)) {
-      const staging = `${targetCache}.migrating`
-      rmSync(staging, { recursive: true, force: true })
-      cpSync(legacyCache, staging, { recursive: true })
-      renameSync(staging, targetCache)
-    }
-  } catch (error) {
-    console.error('[local-store] 旧数据迁移失败', error)
-  }
-}
 
 function readUserVersion(db: DatabaseSync): number {
   const row = db.prepare('PRAGMA user_version').get() as { user_version?: number } | undefined

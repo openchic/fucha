@@ -16,10 +16,6 @@ import { createZip, readZip } from './zip'
 
 const PACKAGE_VERSION = '1.0.0'
 const PACKAGE_EXTENSION = 'article-theme'
-const LEGACY_PACKAGE_EXTENSION = 'fucha-theme'
-// 旧主题包沿用 --fucha- 变量前缀，导入时统一改写为 --theme-
-const LEGACY_CSS_PREFIX = '--fucha-'
-const CSS_PREFIX = '--theme-'
 const PACKAGE_FILES = ['theme.json', 'theme.css'] as const
 
 type ThemePackageJson = {
@@ -108,9 +104,7 @@ export function parseThemePackage(buffer: Buffer): {
   }
 
   const { token, tokenVersion } = parseThemeJson(entries.get('theme.json')!)
-  const css = validateThemeCss(
-    entries.get('theme.css')!.toString('utf8').replaceAll(LEGACY_CSS_PREFIX, CSS_PREFIX)
-  )
+  const css = validateThemeCss(entries.get('theme.css')!.toString('utf8'))
   return { token, css, tokenVersion }
 }
 
@@ -151,7 +145,7 @@ export async function importThemePackage(parent?: BrowserWindow): Promise<ThemeI
     const options: OpenDialogOptions = {
       title: '导入主题包',
       properties: ['openFile'],
-      filters: [{ name: '主题包', extensions: [PACKAGE_EXTENSION, LEGACY_PACKAGE_EXTENSION] }],
+      filters: [{ name: '主题包', extensions: [PACKAGE_EXTENSION] }],
     }
     const result = parent
       ? await dialog.showOpenDialog(parent, options)

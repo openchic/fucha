@@ -1,5 +1,5 @@
 {
-  "name": "luozhi",
+  "name": "fucha",
   "version": "1.0.0",
   "description": "把一个链接，变成一篇可以直接发进公众号的文章",
   "main": "./out/main/index.js",
