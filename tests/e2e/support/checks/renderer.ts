@@ -1,32 +1,33 @@
-// 临时验证入口（渲染进程侧）：真 DOM 下验证提取、净化、图片路径映射、主题 CSS 与导出管道。
-import type { Article } from '../src/shared/types'
-import { extractArticle } from '../src/renderer/src/pipeline/extract'
-import { sanitizeHtml } from '../src/renderer/src/pipeline/sanitize'
-import { preserveSvgHeadings } from '../src/renderer/src/pipeline/svg'
-import { renderPreviewHtml, updatePreviewImages } from '../src/renderer/src/pipeline/images'
-import { buildExportHtml, exportHtmlToText } from '../src/renderer/src/pipeline/export'
+import type { Article } from '@shared/types'
+import { sanitizeHtml } from '@renderer/pipeline/sanitize'
+import { preserveSvgHeadings } from '@renderer/pipeline/svg'
+import { renderPreviewHtml, updatePreviewImages } from '@renderer/pipeline/images'
+import { extractArticle } from '@renderer/pipeline/extract'
+import { buildExportHtml, exportHtmlToText } from '@renderer/pipeline/export'
+import { highlightArticleHtml, highlightThemeCss } from '@renderer/theme/highlight'
 import {
-  exportRootStyle,
   buildExportCss,
   buildExportRootStyle,
   buildPreviewCss,
-  tokenVariables,
+  exportRootStyle,
   PLATFORM_SIDE_PADDING,
-} from '../src/renderer/src/theme/apply'
-import { highlightArticleHtml, highlightThemeCss } from '../src/renderer/src/theme/highlight'
-import { BUILTIN_THEMES, DEFAULT_THEME } from '../src/renderer/src/theme/presets'
-import { BUILTIN_THEME_CONTRACT } from '../src/shared/builtin-themes'
-import { THEME_RANGES, validateThemeToken } from '../src/renderer/src/theme/tokens'
+  tokenVariables,
+} from '@renderer/theme/apply'
+import { BUILTIN_THEMES, DEFAULT_THEME } from '@renderer/theme/presets'
+import { THEME_RANGES, validateThemeToken } from '@shared/theme'
+import { BUILTIN_THEME_CONTRACT } from '@shared/builtin-themes'
 import {
   resolveThemeVariables,
   scopeCss,
   themeRootDeclarations,
   validateThemeCss,
-} from '../src/shared/theme-css'
+} from '@shared/theme-css'
 
-const results: string[] = []
+export type CheckResult = { name: string; pass: boolean; detail?: string }
+
+const results: CheckResult[] = []
 function check(name: string, pass: boolean, detail = ''): void {
-  results.push(`${pass ? 'PASS' : 'FAIL'} ${name}${detail ? ` — ${detail}` : ''}`)
+  results.push({ name, pass, detail })
 }
 
 const SAMPLE_ARTICLE = `<!doctype html><html><head>
@@ -135,7 +136,7 @@ function testInlineSvg(): void {
       !article.html.includes('evil.example') &&
       !article.html.includes('theme.css')
   )
-  const preview = renderPreviewHtml(article, 'svg-preview', [])
+  const preview = renderPreviewHtml(article)
   check('3.4 预览保留内嵌 SVG', /<svg/i.test(preview) && /<path/i.test(preview))
   check('3.4 预览保留内联颜色', /fill="url\(#flowGradient\)"/i.test(preview))
   const legacySvgArticle = {
@@ -192,8 +193,8 @@ function testSvgHeadingLine(): void {
     '3.4 SVG 标题下划线沿用来源变量颜色',
     text?.textContent === '标题' &&
       ['#333', 'rgb(51, 51, 51)', 'rgb(51,51,51)'].includes(line?.getAttribute('stroke') ?? '') &&
-      line.getAttribute('x1') === '10' &&
-      line.getAttribute('x2') === '210',
+      line?.getAttribute('x1') === '10' &&
+      line?.getAttribute('x2') === '210',
     line?.outerHTML ?? 'missing'
   )
 
@@ -964,7 +965,7 @@ function testHighlightAndExport(): void {
   check('3.1 外链降级为文本', !/href="https?:/.test(html) && html.includes('外链'))
   check('3.1 微信不支持的属性已剔除', !/(position:|float:|display:\s*(grid|flex))/.test(html))
   const exportDoc = new DOMParser().parseFromString(html, 'text/html')
-  const exportedQuote = exportDoc.querySelector('section[style*="border-left"]')
+  const exportedQuote = exportDoc.querySelector<HTMLElement>('section[style*="border-left"]')
   check(
     '3.1 引用导出为 section 并保留主色左条',
     exportedQuote?.style.borderLeftStyle === 'solid' &&
@@ -1086,25 +1087,28 @@ function testHighlightAndExport(): void {
     buildExportHtml({ ...article, html: article.html + titledCodeHtml }, qingci),
     'text/html'
   )
-  const qingciHeading = qingciExport.querySelector('h2')
+  const qingciHeading = qingciExport.querySelector<HTMLElement>('h2')
   check(
     '3.1 青瓷导出使用浅苔底色与主题线色',
     qingciHeading?.style.borderLeftColor === 'rgb(143, 174, 150)' &&
       qingciHeading?.style.color === 'rgb(38, 38, 38)' &&
       !qingciHeading.style.backgroundColor &&
       !qingciHeading.style.paddingTop &&
-      qingciExport.querySelector('section[style*="border-left"]')?.style.borderLeftStyle ===
-        'none' &&
-      qingciExport.querySelector('section[style*="border-left"]')?.style.backgroundColor ===
+      qingciExport.querySelector<HTMLElement>('section[style*="border-left"]')?.style
+        .borderLeftStyle === 'none' &&
+      qingciExport.querySelector<HTMLElement>('section[style*="border-left"]')?.style
+        .backgroundColor === 'rgb(241, 245, 242)' &&
+      qingciExport.querySelector<HTMLElement>('.code-block')?.style.backgroundColor ===
         'rgb(241, 245, 242)' &&
-      qingciExport.querySelector('.code-block')?.style.backgroundColor === 'rgb(241, 245, 242)' &&
-      qingciExport.querySelector('th')?.style.backgroundColor === 'rgb(241, 245, 242)' &&
-      qingciExport.querySelector('.code-block figcaption')?.style.color === 'rgb(102, 102, 102)' &&
-      qingciExport.querySelector('figure.table-scroll')?.style.borderTopColor ===
+      qingciExport.querySelector<HTMLElement>('th')?.style.backgroundColor ===
+        'rgb(241, 245, 242)' &&
+      qingciExport.querySelector<HTMLElement>('.code-block figcaption')?.style.color ===
+        'rgb(102, 102, 102)' &&
+      qingciExport.querySelector<HTMLElement>('figure.table-scroll')?.style.borderTopColor ===
         'rgb(212, 224, 214)' &&
-      qingciExport.querySelector('.code-block figcaption')?.style.borderBottomColor ===
+      qingciExport.querySelector<HTMLElement>('.code-block figcaption')?.style.borderBottomColor ===
         'rgb(211, 224, 214)' &&
-      qingciExport.querySelector('hr')?.style.borderTopColor === 'rgb(211, 224, 214)'
+      qingciExport.querySelector<HTMLElement>('hr')?.style.borderTopColor === 'rgb(211, 224, 214)'
   )
 
   const titledExport = buildExportHtml({ ...article, html: titledCodeHtml }, DEFAULT_THEME)
@@ -1246,7 +1250,7 @@ function testDomParity(): void {
 
 function testImageMapping(): void {
   const article = extractArticle(SAMPLE_ARTICLE, 'https://example.com/post')
-  const hash = 'verify-renderer'
+  const hash = 'renderer-check'
   const pending = renderPreviewHtml(article)
   check('4.3 下载中图片显示加载占位', pending.includes('data:image/svg+xml'))
 
@@ -1277,90 +1281,37 @@ function testImageMapping(): void {
   )
 }
 
-/** 6.1 二十链接清单：2026-10-30 逐条复核 expect；站点结构会漂移，重跑前先复验 */
-const CHECKLIST: { url: string; kind: string; expect: 'ok' | 'fail' }[] = [
-  { url: 'https://developer.mozilla.org/zh-CN/docs/Web/API/Document', kind: '文档', expect: 'ok' },
-  { url: 'https://nodejs.org/api/fs.html', kind: '文档', expect: 'ok' },
-  { url: 'https://cn.vite.dev/guide/why.html', kind: '文档', expect: 'ok' },
-  { url: 'https://react.dev/learn/thinking-in-react', kind: '文档', expect: 'ok' },
-  {
-    url: 'https://docs.github.com/zh/get-started/start-your-journey/hello-world',
-    kind: '文档',
-    expect: 'ok',
-  },
-  {
-    url: 'https://docs.github.com/zh/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax',
-    kind: '文档',
-    expect: 'ok',
-  },
-  { url: 'https://overreacted.io/on-let-vs-const/', kind: '博客', expect: 'ok' },
-  { url: 'https://danluu.com/programming-blogs/', kind: '博客', expect: 'ok' },
-  {
-    url: 'https://www.ruanyifeng.com/blog/2024/01/weekly-issue-285.html',
-    kind: '博客',
-    expect: 'ok',
-  },
-  {
-    url: 'https://www.joshwcomeau.com/css/interactive-guide-to-flexbox/',
-    kind: '博客',
-    expect: 'ok',
-  },
-  { url: 'https://simonwillison.net/2024/Sep/15/', kind: '博客', expect: 'ok' },
-  { url: 'https://www.ifanr.com/app/1530197', kind: '科技媒体', expect: 'ok' },
-  { url: 'https://mp.weixin.qq.com/s/X-5kbBkedQ5Oct9byUunag', kind: '公众号', expect: 'ok' },
-  { url: 'https://mp.weixin.qq.com/s/Xur-QQuUy9itmiHyznR8xg', kind: '公众号', expect: 'ok' },
-  { url: 'https://mp.weixin.qq.com/s/QtfAJ-I5KZfWSBmCwEam3A', kind: '公众号', expect: 'ok' },
-  { url: 'https://sspai.com/post/92763', kind: '科技媒体（反爬）', expect: 'fail' },
-  { url: 'https://zhuanlan.zhihu.com/p/683100237', kind: '社区（反爬）', expect: 'fail' },
-  { url: 'https://juejin.cn/post/7355328681385193509', kind: '社区（404）', expect: 'fail' },
-  { url: 'https://example.invalid/none', kind: '不可达域名', expect: 'fail' },
-  { url: 'https://example.com/404', kind: '404', expect: 'fail' },
-]
+export const CHECK_GROUPS = {
+  sanitize: ['sanitize'],
+  svg: ['inlineSvg', 'svgHeading'],
+  extract: ['extract'],
+  rspress: ['rspress'],
+  images: ['images'],
+  theme: ['theme'],
+  export: ['highlight', 'domParity'],
+} as const
 
-async function testChecklist(): Promise<void> {
-  const rows: string[] = []
-  let ok = 0
-  for (const item of CHECKLIST) {
-    const fetched = await window.api.fetchArticle(item.url)
-    if (!fetched.ok) {
-      rows.push(
-        `  ${item.expect === 'fail' ? '·' : 'X'} [${item.kind}] ${fetched.error.kind} — ${item.url}`
-      )
-      if (item.expect === 'fail') ok += 1
-      continue
-    }
-    try {
-      const article: Article = extractArticle(fetched.html, fetched.finalUrl)
-      rows.push(
-        `  ${item.expect === 'ok' ? '✓' : 'X'} [${item.kind}] ${article.title.slice(0, 30)} (${article.images.length} 图) — ${item.url}`
-      )
-      if (item.expect === 'ok') ok += 1
-    } catch (error) {
-      rows.push(
-        `  ${item.expect === 'fail' ? '·' : 'X'} [${item.kind}] 提取失败：${(error as Error).message} — ${item.url}`
-      )
-      if (item.expect === 'fail') ok += 1
+export type CheckGroup = keyof typeof CHECK_GROUPS
+
+const RUNNERS: Record<string, () => void> = {
+  sanitize: testSanitize,
+  inlineSvg: testInlineSvg,
+  svgHeading: testSvgHeadingLine,
+  extract: testExtract,
+  rspress: testRspressCodeBlocks,
+  images: testImageMapping,
+  theme: testTheme,
+  highlight: testHighlightAndExport,
+  domParity: testDomParity,
+}
+
+/** 在真实 Chromium 中执行指定分组的断言，返回逐条结果 */
+export function runChecks(groups: CheckGroup[]): CheckResult[] {
+  results.length = 0
+  for (const group of groups) {
+    for (const runner of CHECK_GROUPS[group]) {
+      RUNNERS[runner]?.()
     }
   }
-  check('6.1 清单符合预期', ok === CHECKLIST.length, `${ok}/${CHECKLIST.length}`)
-  results.push('--- 二十链接清单明细 ---', ...rows)
+  return [...results]
 }
-
-async function run(): Promise<void> {
-  testSanitize()
-  testInlineSvg()
-  testSvgHeadingLine()
-  testExtract()
-  testRspressCodeBlocks()
-  testTheme()
-  testHighlightAndExport()
-  testDomParity()
-  testImageMapping()
-  if (new URLSearchParams(window.location.search).get('checklist') === '1') await testChecklist()
-  ;(window as unknown as { __verifyResults: string[] }).__verifyResults = results
-}
-
-void run().catch((error) => {
-  results.push(`FAIL 验证入口异常 — ${error instanceof Error ? error.message : String(error)}`)
-  ;(window as unknown as { __verifyResults: string[] }).__verifyResults = results
-})

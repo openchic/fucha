@@ -2,7 +2,7 @@ import type { HeadingDecoration, HeadingToken, ThemeToken } from './types'
 
 export const THEME_TOKEN_VERSION = 1
 
-/** 内置主题 id 与名称；主进程据此拒绝同 id/重名的自定义主题，契约与渲染层预设由 harness 校验一致 */
+/** 内置主题 id 与名称；主进程据此拒绝同 id/重名的自定义主题，契约与渲染层预设由测试用例校验一致 */
 export { BUILTIN_THEME_IDS, BUILTIN_THEME_NAMES } from './builtin-themes'
 
 /** 代码语法主题白名单；值必须与 renderer theme/highlight.ts 的 THEME_CSS 对齐 */

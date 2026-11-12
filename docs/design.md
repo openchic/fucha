@@ -310,7 +310,7 @@ src/
         app.css           样式入口与公共规则：base、布局、拖动、减弱动效
         tokens.css        应用壳设计 token 与动画关键帧
   shared/
-    builtin-themes.ts 主进程校验用的内置主题保留 id/名称契约，由 harness 与预设对齐
+    builtin-themes.ts 主进程校验用的内置主题保留 id/名称契约，由测试用例与预设对齐
     pageBridge.ts      Home/Preview 页面桥接：活动 hash 与历史刷新（仅渲染层）
     theme.ts           ThemeToken 范围常量与校验（主进程/渲染层共用）
     theme-css.ts       主题 CSS 契约校验、作用域与变量解析

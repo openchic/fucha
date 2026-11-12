@@ -10,6 +10,8 @@ registerAppProtocol()
 const USER_DATA_OVERRIDDEN = process.argv.some((arg) => arg.startsWith('--user-data-dir'))
 // 显示名是中文，数据目录固定用 ASCII 名；测试实例以 --user-data-dir 覆盖时保持覆盖
 const USER_DATA_DIR = join(app.getPath('appData'), 'fucha')
+// 集成测试连续拉起多个实例；隐藏窗口避免抢占焦点与反复闪窗
+const HIDDEN_WINDOW = process.argv.includes('--hidden-window')
 
 app.setName('浮槎')
 if (!USER_DATA_OVERRIDDEN) app.setPath('userData', USER_DATA_DIR)
@@ -48,8 +50,8 @@ function createWindow(): void {
   })
 
   mainWindow.on('ready-to-show', () => {
-    mainWindow.show()
-    if (is.dev && process.env['OPEN_DEVTOOLS'] !== '0') {
+    if (!HIDDEN_WINDOW) mainWindow.show()
+    if (is.dev && process.env['OPEN_DEVTOOLS'] !== '0' && !HIDDEN_WINDOW) {
       mainWindow.webContents.openDevTools({ mode: 'detach' })
     }
   })

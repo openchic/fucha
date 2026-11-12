@@ -1,7 +1,11 @@
 node_modules
 dist
 out
+coverage
 .taste-skill/
 .DS_Store
 .eslintcache
 *.log*
+test-results
+playwright-report
+blob-report

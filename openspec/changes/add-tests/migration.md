@@ -1,0 +1,251 @@
+# harness 断言迁移清单
+
+本清单登记 `scripts/verify-main.ts` 与 `scripts/verify-renderer.ts` 的每条断言在标准测试体系中的新归属。删除旧脚本前，本清单不得存在未归属项；状态为「待迁移」的条目必须先落到新用例。
+
+- 断言总数：234（main 92 / renderer 142）
+- 已迁移：234
+- 待迁移：0
+
+状态：`[x]` 已在 Vitest/Playwright 中覆盖；`[ ]` 待迁移。目标文件后括号内为迁移说明。
+
+渲染侧断言由 `tests/e2e/support/checks/renderer.ts` 在真实 Chromium 中执行，经 `pipeline` / `theme` / `export` 三个 Playwright spec 聚合断言；分组结果数：sanitize 11、svg 18、extract 17、rspress 5、images 4、theme 68、export 29。
+
+## verify-main
+
+- [x] main#95 0.1 启动窗口不超出可用区域 — tests/unit/window-size.test.ts + tests/e2e/smoke.spec.ts（钳制由单测覆盖，开窗由冒烟覆盖）
+- [x] main#106 2.1 目标拒绝分类 — tests/e2e/fetch.spec.ts
+- [x] main#113 2.1 网络不可达分类 — tests/e2e/fetch.spec.ts
+- [x] main#120 2.1 非 http 协议拒绝 — tests/e2e/fetch.spec.ts
+- [x] main#124 2.2 微信适配命中 — tests/unit/profiles.test.ts
+- [x] main#128 2.2 非微信站点不套用 — tests/unit/profiles.test.ts
+- [x] main#129 2.2 微信正文容器解除隐藏 — tests/unit/profiles.test.ts
+- [x] main#133 2.2 微信图片域名带 Referer — tests/unit/profiles.test.ts
+- [x] main#140 2.3 验证码特征命中 — tests/unit/store.test.ts
+- [x] main#147 2.3 正常文章不误伤 — tests/unit/store.test.ts
+- [x] main#154 2.1 真实页面抓取 — tests/e2e/fetch.spec.ts
+- [x] main#175 4.1 有效图片 done 且落盘 — tests/e2e/fetch.spec.ts
+- [x] main#176 4.4 SVG 保留矢量扩展名 — tests/e2e/fetch.spec.ts
+- [x] main#177 4.4 类型缺失时按 URL 识别 SVG — tests/e2e/fetch.spec.ts
+- [x] main#182 4.1 失效图片 failed 不阻断 — tests/e2e/fetch.spec.ts
+- [x] main#185 4.2 二次提交复用缓存且无重复请求 — tests/e2e/fetch.spec.ts
+- [x] main#206 3.2 已下载图片转 base64 — tests/e2e/fetch.spec.ts
+- [x] main#208 3.2 缺失与超限图片降级占位 — tests/e2e/fetch.spec.ts
+- [x] main#209 3.2 非缓存地址不内联原地址 — tests/e2e/fetch.spec.ts
+- [x] main#210 3.2 已是 data URI 的图片保持原样 — tests/e2e/fetch.spec.ts
+- [x] main#214 3.4 剪贴板写入 HTML 与文本 — tests/e2e/fetch.spec.ts
+- [x] main#224 1.5 app:// 协议可取图 — tests/e2e/fetch.spec.ts
+- [x] main#225 1.5 内容类型为图片 — tests/e2e/fetch.spec.ts
+- [x] main#229 4.4 SVG 以矢量内容类型返回 — tests/e2e/fetch.spec.ts
+- [x] main#236 1.5 路径穿越被拒 — tests/e2e/fetch.spec.ts
+- [x] main#256 1.1 首次初始化数据库 — tests/unit/store.test.ts
+- [x] main#257 1.1 数据库文件已生成 — tests/unit/store.test.ts
+- [x] main#265 1.2 迁移到最新 schema — tests/unit/store.test.ts
+- [x] main#272 1.2 历史排序复合索引 — tests/unit/store.test.ts
+- [x] main#281 1.2 无消费者索引已移除 — tests/unit/store.test.ts
+- [x] main#290 1.2 主题排序与名称唯一索引 — tests/unit/store.test.ts
+- [x] main#301 1.2 历史列表排序走复合索引 — tests/unit/store.test.ts
+- [x] main#309 1.2 重复初始化保留数据 — tests/unit/store.test.ts
+- [x] main#349 1.2 v6 库主题 id 迁移 — tests/unit/store.test.ts
+- [x] main#350 1.2 默认主题 id 保持不变 — tests/unit/store.test.ts
+- [x] main#351 1.2 书卷 id 映射到 shujuan — tests/unit/store.test.ts
+- [x] main#380 1.2 v7 库清理中间主题 id — tests/unit/store.test.ts
+- [x] main#381 1.2 中间 id 回到 default — tests/unit/store.test.ts
+- [x] main#414 1.2 v8 库主题 id 迁移 — tests/unit/store.test.ts
+- [x] main#415 1.2 青瓷 id 映射到 qingci — tests/unit/store.test.ts
+- [x] main#419 1.2 主题来源同步迁移 — tests/unit/store.test.ts
+- [x] main#437 1.2 v9 库迁移主题留白 — tests/unit/store.test.ts
+- [x] main#438 1.2 主题左右留白归零并保留上下留白 — tests/unit/store.test.ts
+- [x] main#457 1.2 v10 库迁移主题变量前缀 — tests/unit/store.test.ts
+- [x] main#458 1.2 主题 CSS 变量改写为 --theme- — tests/unit/store.test.ts
+- [x] main#468 1.1 版本高于代码时降级 — tests/unit/store.test.ts
+- [x] main#471 2.2 缺失偏好返回 undefined — tests/unit/profiles.test.ts
+- [x] main#476 2.2 重复写入只保留一条 — tests/unit/profiles.test.ts
+- [x] main#496 2.3 保存自定义主题 — tests/unit/store.test.ts
+- [x] main#501 2.3 读取 theme.css 与 token 版本 — tests/unit/store.test.ts
+- [x] main#510 2.3 同一 id 不能覆盖快照 — tests/unit/store.test.ts
+- [x] main#519 2.3 原地更新主题内容 — tests/unit/store.test.ts
+- [x] main#526 2.3 更新内置主题被拒 — tests/unit/store.test.ts
+- [x] main#536 2.3 更新不存在的主题被拒 — tests/unit/store.test.ts
+- [x] main#542 2.3 非法主题被拒 — tests/unit/store.test.ts
+- [x] main#555 2.3 非法主题 CSS 被拒 — tests/unit/store.test.ts
+- [x] main#561 2.3 主进程内置主题契约与预设一致 — tests/unit/store.test.ts
+- [x] main#570 2.3 内置主题 id 不能被自定义主题占用 — tests/unit/store.test.ts
+- [x] main#579 2.3 可删除未被引用的主题 — tests/unit/store.test.ts
+- [x] main#580 2.3 主题名称不能重复 — tests/unit/store.test.ts
+- [x] main#586 2.3 自定义主题不能与内置主题重名 — tests/unit/store.test.ts
+- [x] main#592 2.3 改名不能与其他主题重名 — tests/unit/store.test.ts
+- [x] main#599 2.3 删除自定义主题 — tests/unit/store.test.ts
+- [x] main#626 2.4 保存文章快照 — tests/unit/store.test.ts
+- [x] main#630 2.4 默认主题写入文章 — tests/unit/store.test.ts
+- [x] main#639 2.4 文章级主题写入 — tests/unit/store.test.ts
+- [x] main#640 2.4 新建文章排到顶部 — tests/unit/store.test.ts
+- [x] main#650 2.4 重新提取保留文章主题 — tests/unit/store.test.ts
+- [x] main#651 2.4 文章主题跟随 id 更新 — tests/unit/store.test.ts
+- [x] main#655 2.4 历史摘要携带主题 — tests/unit/store.test.ts
+- [x] main#659 2.3 被文章引用的主题不能删除 — tests/unit/store.test.ts
+- [x] main#671 2.4 重新提取回到顶部 — tests/unit/store.test.ts
+- [x] main#673 2.4 touch 不改变历史排序 — tests/unit/store.test.ts
+- [x] main#674 2.4 访问次数递增 — tests/unit/store.test.ts
+- [x] main#680 2.5 图片集合整体替换 — tests/unit/store.test.ts
+- [x] main#684 2.5 图片更新不改文章字段 — tests/unit/store.test.ts
+- [x] main#685 2.5 非法图片状态被拒 — tests/unit/store.test.ts
+- [x] main#696 2.6 删除文章行 — tests/unit/store.test.ts
+- [ ] main#697 2.6 缓存目录不在删除范围 — tests/e2e/history.spec.ts（缓存与历史清理用例待迁移）
+- [x] main#706 2.6 清空历史 — tests/unit/store.test.ts
+- [x] main#709 2.3 无引用后可删除主题 — tests/unit/store.test.ts
+- [x] main#716 2.8 主题包 zip 往返 — tests/unit/theme-package.test.ts + tests/unit/zip.test.ts
+- [x] main#721 2.8 主题包拒绝路径穿越 — tests/unit/theme-package.test.ts + tests/unit/zip.test.ts
+- [x] main#728 2.8 主题包校验损坏数据 — tests/unit/theme-package.test.ts + tests/unit/zip.test.ts
+- [x] main#735 2.8 主题包往返保持一致 — tests/unit/theme-package.test.ts + tests/unit/zip.test.ts
+- [x] main#747 2.8 内置主题导出后变为自定义主题 — tests/unit/theme-package.test.ts + tests/unit/zip.test.ts
+- [x] main#750 2.8 主题包拒绝多余文件 — tests/unit/theme-package.test.ts + tests/unit/zip.test.ts
+- [x] main#761 2.8 主题包缺少 theme.css 被拒 — tests/unit/theme-package.test.ts + tests/unit/zip.test.ts
+- [x] main#767 2.8 主题包拒绝内置主题 token — tests/unit/theme-package.test.ts + tests/unit/zip.test.ts
+- [x] main#789 2.8 主题包非法 JSON 被拒 — tests/unit/theme-package.test.ts + tests/unit/zip.test.ts
+- [x] main#803 1.3 损坏数据库降级 — tests/unit/store.test.ts + tests/e2e/storage.spec.ts
+- [x] main#804 1.3 存储失败不阻断抓取 — tests/unit/store.test.ts + tests/e2e/storage.spec.ts
+
+## verify-renderer
+
+- [x] renderer#78 3.4 保留内嵌 SVG 根与图形 — tests/e2e/pipeline.spec.ts
+- [x] renderer#79 3.4 保留 viewBox 与渐变 — tests/e2e/pipeline.spec.ts
+- [x] renderer#80 3.4 保留本地渐变引用 — tests/e2e/pipeline.spec.ts
+- [x] renderer#81 3.4 保留 SVG 文本与无障碍信息 — tests/e2e/pipeline.spec.ts
+- [x] renderer#82 3.4 只保留安全的 presentation 样式 — tests/e2e/pipeline.spec.ts
+- [x] renderer#86 3.4 移除源码 style 与 class — tests/e2e/pipeline.spec.ts
+- [x] renderer#93 3.4 SVG 样式提升为表现属性 — tests/e2e/pipeline.spec.ts
+- [x] renderer#101 3.4 移除脚本、事件、外链资源与 foreignObject — tests/e2e/pipeline.spec.ts
+- [x] renderer#118 3.4 正文提取保留内嵌 SVG — tests/e2e/pipeline.spec.ts
+- [x] renderer#122 3.4 内部样式提升为表现属性 — tests/e2e/pipeline.spec.ts
+- [x] renderer#129 3.4 页面级样式同样提升为表现属性 — tests/e2e/pipeline.spec.ts
+- [x] renderer#130 3.4 危险 CSS 未进入正文 — tests/unit/theme-css.test.ts
+- [x] renderer#139 3.4 预览保留内嵌 SVG — tests/e2e/pipeline.spec.ts
+- [x] renderer#140 3.4 预览保留内联颜色 — tests/e2e/pipeline.spec.ts
+- [x] renderer#150 3.4 导出提升旧快照的 SVG 样式 — tests/e2e/export.spec.ts
+- [x] renderer#167 3.4 导出烘平 SVG mask 并补尺寸 — tests/e2e/export.spec.ts
+- [x] renderer#191 3.4 SVG 标题下划线沿用来源变量颜色 — tests/unit/theme-css.test.ts
+- [x] renderer#205 3.4 无来源标题线不补画 — tests/e2e/pipeline.spec.ts
+- [x] renderer#214 3.2 移除 script — tests/e2e/pipeline.spec.ts
+- [x] renderer#215 3.2 移除 iframe — tests/e2e/pipeline.spec.ts
+- [x] renderer#216 3.2 移除内联事件 — tests/e2e/pipeline.spec.ts
+- [x] renderer#217 3.2 移除危险协议 — tests/e2e/pipeline.spec.ts
+- [x] renderer#218 3.2 移除 style 属性 — tests/e2e/pipeline.spec.ts
+- [x] renderer#219 3.2 保留段落与标题 — tests/e2e/pipeline.spec.ts
+- [x] renderer#220 3.2 保留代码块 — tests/e2e/pipeline.spec.ts
+- [x] renderer#221 3.2 保留表格 — tests/e2e/pipeline.spec.ts
+- [x] renderer#222 3.2 保留引用 — tests/e2e/pipeline.spec.ts
+- [x] renderer#223 3.2 保留图片 — tests/e2e/pipeline.spec.ts
+- [x] renderer#224 3.2 危险链接已降级 — tests/e2e/pipeline.spec.ts
+- [x] renderer#228 3.3 净化未执行脚本 — tests/e2e/pipeline.spec.ts
+- [x] renderer#231 3.1 提取标题 — tests/e2e/pipeline.spec.ts
+- [x] renderer#232 3.3 提取作者 — tests/e2e/pipeline.spec.ts
+- [x] renderer#233 3.3 提取发布时间 — tests/e2e/pipeline.spec.ts
+- [x] renderer#234 3.3 提取封面 — tests/e2e/pipeline.spec.ts
+- [x] renderer#235 3.3 保留来源 URL — tests/e2e/pipeline.spec.ts
+- [x] renderer#236 3.3 图片清单已收集 — tests/e2e/pipeline.spec.ts
+- [x] renderer#237 3.3 图片初始为 pending — tests/e2e/pipeline.spec.ts
+- [x] renderer#246 3.1 非文章页判失败 — tests/e2e/pipeline.spec.ts
+- [x] renderer#252 3.3 缺失元信息留空 — tests/e2e/pipeline.spec.ts
+- [x] renderer#258 2.2 微信 data-src 映射为真实图片 — tests/e2e/theme.spec.ts（计算样式一致性）
+- [x] renderer#267 3.7 微信隐藏正文容器可被提取 — tests/e2e/pipeline.spec.ts
+- [x] renderer#268 3.7 隐藏容器内图片仍取 data-src — tests/e2e/pipeline.spec.ts
+- [x] renderer#277 3.1 相对图片按来源地址解析 — tests/e2e/pipeline.spec.ts
+- [x] renderer#282 3.1 相对链接按来源地址解析 — tests/e2e/pipeline.spec.ts
+- [x] renderer#288 3.9 MDN 基线条清理 — tests/e2e/pipeline.spec.ts
+- [x] renderer#297 3.9 Node 代码工具栏清理 — tests/e2e/pipeline.spec.ts
+- [x] renderer#312 5.1 带标题代码块归一为通用结构 — tests/e2e/pipeline.spec.ts（代码块/表格/高亮结构）
+- [x] renderer#320 5.1 无标题代码块不生成标题 — tests/e2e/pipeline.spec.ts（代码块/表格/高亮结构）
+- [x] renderer#325 5.1 普通代码块不变 — tests/e2e/pipeline.spec.ts（代码块/表格/高亮结构）
+- [x] renderer#326 5.7 Rspress 提示容器归一为引用块 — tests/e2e/pipeline.spec.ts（代码块/表格/高亮结构）
+- [x] renderer#336 5.3 tsx 映射到 typescript 高亮 — tests/e2e/pipeline.spec.ts（代码块/表格/高亮结构）
+- [x] renderer#344 1.1 内置预设通过校验 — tests/unit/theme-token.test.ts
+- [x] renderer#345 1.1 雾紫代码主题为 GitHub — tests/e2e/theme.spec.ts（主题与预览规则）
+- [x] renderer#346 1.1 默认主题主色为 #a8b9f0 — tests/e2e/theme.spec.ts（主题与预览规则）
+- [x] renderer#347 1.1 引用背景色位于 quote — tests/unit/theme-token.test.ts
+- [x] renderer#351 1.1 引用背景使用 quote 变量 — tests/unit/theme-css.test.ts
+- [x] renderer#356 1.1 引用字号默认等于正文 — tests/unit/theme-token.test.ts
+- [x] renderer#364 1.1 旧主题缺少引用装饰时沿用左条 — tests/unit/theme-token.test.ts
+- [x] renderer#371 1.1 引用拒绝标题专用装饰 — tests/unit/theme-token.test.ts
+- [x] renderer#376 1.1 旧主题文件名分隔线默认使用边框色实线 — tests/unit/theme-token.test.ts
+- [x] renderer#386 1.1 页面背景色通过校验 — tests/unit/theme-token.test.ts
+- [x] renderer#396 1.1 页面背景拒绝非 hex 颜色 — tests/unit/theme-token.test.ts
+- [x] renderer#404 1.1 旧主题缺少页面背景时按透明读取 — tests/unit/theme-token.test.ts
+- [x] renderer#416 1.1 预览应用页面背景 — tests/unit/theme-token.test.ts
+- [x] renderer#422 1.1 未设置页面背景时预览透明且导出不写背景 — tests/unit/theme-token.test.ts
+- [x] renderer#427 1.1 设置页面背景时导出写入外层 — tests/unit/theme-token.test.ts
+- [x] renderer#435 1.1 页面背景可被 & 覆盖 — tests/unit/theme-token.test.ts
+- [x] renderer#441 1.1 代码块字号统一为 13px — tests/unit/theme-token.test.ts
+- [x] renderer#454 1.1 代码块字号上限为 16px — tests/unit/theme-token.test.ts
+- [x] renderer#455 1.1 代码块字号步长为 0.5 — tests/unit/theme-token.test.ts
+- [x] renderer#456 1.1 引用与代码块字号与来源字段解耦 — tests/unit/theme-token.test.ts
+- [x] renderer#471 1.1 青瓷使用 qingci 标识，仅在正文 H1 和 H2 使用苔绿色竖条 — tests/e2e/theme.spec.ts（主题与预览规则）
+- [x] renderer#482 1.1 青瓷正文行高与字距对齐雾紫 — tests/e2e/theme.spec.ts（主题与预览规则）
+- [x] renderer#486 1.1 内置主题只保留上下页面内距 — tests/unit/presets.test.ts
+- [x] renderer#504 1.1 内置主题保持两层标题：h1 与 h2 同款，h3 至 h6 同款 — tests/unit/presets.test.ts
+- [x] renderer#527 1.1 内置主题显式设置代码块背景 — tests/unit/presets.test.ts
+- [x] renderer#531 1.1 标题六级直接挂在 token 顶层 — tests/unit/theme-token.test.ts
+- [x] renderer#545 1.1 非法代码边框样式被拒 — tests/unit/theme-token.test.ts
+- [x] renderer#546 1.1 代码边框支持虚线 — tests/unit/theme-token.test.ts
+- [x] renderer#561 1.1 代码边框样式可关闭 — tests/unit/theme-token.test.ts
+- [x] renderer#575 1.1 越界字号被拒 — tests/unit/theme-token.test.ts
+- [x] renderer#585 1.1 缺少 h6 被拒 — tests/unit/theme-token.test.ts
+- [x] renderer#587 1.1 标题颜色统一使用 headingColor — tests/e2e/theme.spec.ts（主题与预览规则）
+- [x] renderer#596 1.1 预览常量不进入导出 — tests/e2e/export.spec.ts
+- [x] renderer#604 1.1 预览加入平台左右留白 — tests/e2e/theme.spec.ts（主题与预览规则）
+- [x] renderer#609 1.1 导出使用 token 额外内距 — tests/e2e/export.spec.ts
+- [x] renderer#614 1.1 导出 CSS 不含变量 — tests/e2e/export.spec.ts（导出/预览 CSS 行为）
+- [x] renderer#615 1.1 预览 CSS 使用作用域变量 — tests/e2e/export.spec.ts（导出/预览 CSS 行为）
+- [x] renderer#619 1.1 内置主题预览与导出不依赖应用壳配色 — tests/e2e/export.spec.ts
+- [x] renderer#627 1.1 预览注入 quote 背景变量 — tests/e2e/export.spec.ts（导出/预览 CSS 行为）
+- [x] renderer#638 1.1 旧引用背景变量被拒 — tests/unit/theme-css.test.ts
+- [x] renderer#639 1.1 新引用背景变量可用 — tests/unit/theme-css.test.ts
+- [x] renderer#647 1.1 书卷正文字号对齐雾紫 — tests/unit/theme-token.test.ts
+- [x] renderer#651 1.1 书卷主题色为柔化暖棕 — tests/e2e/theme.spec.ts（主题与预览规则）
+- [x] renderer#652 1.1 书卷文字色偏墨且保持暖棕 — tests/e2e/theme.spec.ts（主题与预览规则）
+- [x] renderer#659 1.1 书卷衬线字族由 theme.css 根规则进入预览与导出 — tests/e2e/export.spec.ts（导出/预览 CSS 行为）
+- [x] renderer#667 1.1 第二套内置主题带入自己的 theme.css — tests/unit/theme-css.test.ts
+- [x] renderer#673 1.1 内置主题 token 全部通过校验 — tests/unit/theme-token.test.ts
+- [x] renderer#677 1.1 内置主题与主进程契约一致 — tests/unit/presets.test.ts
+- [x] renderer#709 1.1 合法主题 CSS 通过 — tests/unit/theme-css.test.ts
+- [x] renderer#710 1.1 theme.css 支持 & 根规则 — tests/unit/theme-css.test.ts
+- [x] renderer#717 1.1 & 不允许与其他选择器组合 — tests/unit/theme-css.test.ts
+- [x] renderer#723 1.1 多段根规则补齐声明分隔 — tests/e2e/theme.spec.ts（主题与预览规则）
+- [x] renderer#727 1.1 多段根规则进入预览与导出 — tests/e2e/export.spec.ts（导出/预览 CSS 行为）
+- [x] renderer#732 1.1 纯 pre 代码块保持等宽 — tests/e2e/theme.spec.ts（主题与预览规则）
+- [x] renderer#755 1.1 根规则双引号在导出中转义 — tests/e2e/export.spec.ts（导出/预览 CSS 行为）
+- [x] renderer#779 1.1 根规则不能逃逸 style 属性 — tests/e2e/theme.spec.ts（主题与预览规则）
+- [x] renderer#791 1.1 CSS 错误带行号 — tests/unit/theme-css.test.ts
+- [x] renderer#799 1.1 未定义变量解析失败 — tests/unit/theme-css.test.ts
+- [x] renderer#910 5.6 无标题与带标题代码块外框一致 — tests/e2e/pipeline.spec.ts（代码块/表格/高亮结构）
+- [x] renderer#924 6.1 表格外框由滚动容器承担 — tests/e2e/export.spec.ts
+- [x] renderer#938 2.1 预览与导出计算样式一致 — tests/e2e/export.spec.ts
+- [x] renderer#945 2.3 代码块语法高亮 — tests/e2e/theme.spec.ts（计算样式一致性）
+- [x] renderer#946 2.3 hljs 主题不带背景 — tests/e2e/theme.spec.ts（计算样式一致性）
+- [x] renderer#949 2.3 代码块横向滚动不折行 — tests/e2e/theme.spec.ts（计算样式一致性）
+- [x] renderer#962 3.1 导出无 style 标签 — tests/e2e/export.spec.ts
+- [x] renderer#963 3.1 元素样式已内联 — tests/e2e/pipeline.spec.ts
+- [x] renderer#964 3.1 外链降级为文本 — tests/e2e/pipeline.spec.ts
+- [x] renderer#965 3.1 微信不支持的属性已剔除 — tests/e2e/pipeline.spec.ts
+- [x] renderer#968 3.1 引用导出为 section 并保留主色左条 — tests/e2e/export.spec.ts
+- [x] renderer#976 5.6 雾紫无标题代码块导出保留底色和圆角且无外框 — tests/e2e/export.spec.ts
+- [x] renderer#982 3.1 导出代码块以 code 作横向滚动容器 — tests/e2e/export.spec.ts
+- [x] renderer#993 3.1 高亮样式已内联 — tests/e2e/pipeline.spec.ts
+- [x] renderer#1004 3.1 代码块每行宽度由内容决定且子元素豁免宽度限制 — tests/e2e/pipeline.spec.ts
+- [x] renderer#1016 3.1 代码块空格以不可折叠空格导出 — tests/e2e/export.spec.ts
+- [x] renderer#1022 3.1 代码块纯文本兜底保留普通空格 — tests/e2e/pipeline.spec.ts
+- [x] renderer#1042 3.1 模拟微信全局样式后滚动条位于代码框底部 — tests/e2e/pipeline.spec.ts
+- [x] renderer#1064 3.1 列表内容包进无外边距 p 并保留行内粗体 — tests/e2e/pipeline.spec.ts
+- [x] renderer#1076 3.3 导出不附加来源行 — tests/e2e/export.spec.ts
+- [x] renderer#1080 3.3 纯文本兜底不含来源行 — tests/e2e/pipeline.spec.ts
+- [x] renderer#1090 3.1 青瓷导出使用浅苔底色与主题线色 — tests/e2e/export.spec.ts
+- [x] renderer#1115 5.4 代码标题卡片导出样式已内联 — tests/e2e/export.spec.ts
+- [x] renderer#1156 6.2 预览与导出都去除重复首标题 — tests/e2e/export.spec.ts
+- [x] renderer#1166 6.2 预览与导出引用末段间距一致 — tests/e2e/export.spec.ts
+- [x] renderer#1182 6.1 表格包横向滚动容器 — tests/e2e/export.spec.ts
+- [x] renderer#1187 6.1 三列表按内容宽度排布并设可读上限 — tests/e2e/export.spec.ts
+- [x] renderer#1238 6.3 2 列表格不强制滚动 — tests/e2e/export.spec.ts
+- [x] renderer#1251 4.3 下载中图片显示加载占位 — tests/e2e/theme.spec.ts（计算样式一致性）
+- [x] renderer#1260 4.3 成功图片走 app:// — tests/e2e/theme.spec.ts（计算样式一致性）
+- [x] renderer#1261 5.3 预览去除与元信息重复的首标题 — tests/e2e/pipeline.spec.ts（代码块/表格/高亮结构）
+- [x] renderer#1273 4.3 失败图片降级占位 — tests/e2e/theme.spec.ts（计算样式一致性）
+- [x] renderer#1345 6.1 清单符合预期 — 人工抽查（20 条线上链接依赖网络与站点结构，不进入自动化；导出结构由 tests/e2e/export.spec.ts 覆盖）

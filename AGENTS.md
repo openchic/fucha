@@ -16,6 +16,8 @@
 
 ## 开发调试
 
+测试分层与命令：`pnpm test` 跑 `tests/unit`（node）与 `tests/dom`（jsdom + Testing Library）；`pnpm verify` 先构建应用，再用 Playwright 启动真实 Electron 跑 `tests/e2e`（以隐藏窗口运行，不闪窗、不抢焦点）；`pnpm check` 串起类型检查、lint 与单元/组件测试。推送前自动执行 `pnpm test`。
+
 验证界面与交互一律启动本地应用（`pnpm dev`）在真实窗口里操作，不用浏览器打开 dev server 页面替代：那里没有 preload 暴露的 IPC，抓取、预览与错误态都跑不通。
 
 代码改动后先确认本地应用是否在运行：没启动就主动启动 `pnpm dev`；已启动则依靠它自动热更新或重启，在真实窗口里验证后再收尾，不等用户提醒。

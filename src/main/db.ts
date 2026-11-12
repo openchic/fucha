@@ -125,7 +125,8 @@ type Migration = {
   sql: string
 }
 
-const MIGRATIONS: Migration[] = [
+/** 迁移序列按版本升序执行；测试用它构造历史版本数据库 */
+export const MIGRATIONS: Migration[] = [
   { version: 1, sql: V1_SCHEMA },
   { version: 2, sql: V2_SCHEMA },
   { version: 3, sql: V3_SCHEMA },

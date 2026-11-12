@@ -1,6 +1,6 @@
 /**
  * 主进程校验用的内置主题保留 id 与名称；主进程无法引用渲染层预设，
- * 这份契约必须与 renderer/src/theme/presets 保持一致，由 harness 校验。
+ * 这份契约必须与 renderer/src/theme/presets 保持一致，由测试用例校验。
  */
 export const BUILTIN_THEME_CONTRACT: ReadonlyArray<{ id: string; name: string }> = [
   { id: 'default', name: '雾紫' },
