@@ -1,8 +1,9 @@
 import { join } from 'path'
-import { app, shell, BrowserWindow } from 'electron'
+import { app, shell, BrowserWindow, screen } from 'electron'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import { initLocalStore } from './db'
 import { registerAppProtocol, registerIpcHandlers, serveAppProtocol } from './ipc'
+import { fitWindowSize } from './window-size'
 
 registerAppProtocol()
 
@@ -25,9 +26,9 @@ function openExternal(url: string): void {
 }
 
 function createWindow(): void {
+  const windowSize = fitWindowSize(screen.getPrimaryDisplay().workAreaSize)
   const mainWindow = new BrowserWindow({
-    width: 1180,
-    height: 800,
+    ...windowSize,
     minWidth: 1000,
     minHeight: 700,
     show: false,

@@ -34,6 +34,7 @@ import {
   upsertArticle,
 } from '../src/main/store'
 import { buildThemePackage, parseThemePackage } from '../src/main/theme-package'
+import { fitWindowSize } from '../src/main/window-size'
 import { createZip, readZip } from '../src/main/zip'
 import { BUILTIN_THEMES, DEFAULT_THEME } from '../src/renderer/src/theme/presets'
 import { BUILTIN_THEME_CONTRACT } from '../src/shared/builtin-themes'
@@ -88,6 +89,17 @@ async function main(): Promise<void> {
   const address = server.address()
   if (!address || typeof address === 'string') throw new Error('本地验证服务器启动失败')
   const base = `http://127.0.0.1:${address.port}`
+
+  const largeWorkArea = fitWindowSize({ width: 2560, height: 1410 })
+  const smallWorkArea = fitWindowSize({ width: 1024, height: 720 })
+  check(
+    '0.1 启动窗口不超出可用区域',
+    largeWorkArea.width === 1200 &&
+      largeWorkArea.height === 800 &&
+      smallWorkArea.width === 1024 &&
+      smallWorkArea.height === 720,
+    JSON.stringify({ largeWorkArea, smallWorkArea })
+  )
 
   // 2.1 错误分类
   const notFound = await fetchArticle(`${base}/404`)
