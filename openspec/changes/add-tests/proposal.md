@@ -11,7 +11,7 @@
 - 把现有 `verify-main` / `verify-renderer` 断言按领域迁移到 Vitest 或 Playwright，Parity 达成后删除自建 runner；迁移期间保留双通路且都保持绿色。
 - 补齐零覆盖模块与交互：`normalizeArticleDom`、`normalizeRspress*`、`parseCssRules`、`withoutThemeRootRules`、`previewStyleVariables`、全部 hooks、全部组件。
 - 为主进程增加仅测试可用的 userData 路径覆盖缝，供 E2E 隔离数据库，生产行为不变。
-- 新增 pre-push 执行 `pnpm test`；CI 可选接入，Electron 用例在 Linux 上以 `xvfb-run` 运行。
+- 新增 pre-commit 执行 `pnpm test`；集成测试不进提交钩子。
 - **BREAKING**（仅开发流程）：`scripts/verify-main.ts`、`scripts/verify-renderer.ts`、`verify-runtime.ts`、`build-verify.mjs` 最终删除，手动 `npx electron out/verify-*.cjs` 的用法由 `pnpm verify` 取代。
 
 ## Capabilities
@@ -26,6 +26,6 @@
 ## Impact
 
 - 依赖：新增 `vitest`、`@vitest/coverage-v8`、`jsdom`、`@testing-library/react`、`@testing-library/dom`、`@testing-library/user-event`、`@testing-library/jest-dom`、`@playwright/test`。
-- 配置：新增 `vitest.config.ts`、`playwright.config.ts`、`tsconfig.test.json`；`package.json` 增加脚本；`.husky/pre-push`。
+- 配置：新增 `vitest.config.ts`、`playwright.config.ts`、`tsconfig.test.json`；`package.json` 增加脚本；`.husky/pre-commit` 增加测试门禁。
 - 代码：测试落点新增 `tests/`；`src/main/db.ts` 与 `src/main/index.ts` 增加测试路径覆盖；`scripts/verify-*` 迁移完成后删除。
 - 文档：`README.md` 或 `AGENTS.md` 增加测试命令说明；`docs/` 不新增产品行为描述。

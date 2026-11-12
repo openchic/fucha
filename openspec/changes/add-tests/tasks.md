@@ -46,7 +46,7 @@
 
 ## 5. 收尾
 
-- [x] 5.1 新增 `.husky/pre-push` 执行 `pnpm test`，不运行集成测试；验证：故意让一个用例失败后推送被阻止
+- [x] 提交门禁：`.husky/pre-commit` 执行 lint-staged 后跑 `pnpm test`，不运行集成测试；验证：用例失败时提交被阻止
 - [x] 5.2 更新 `README.md` 与 `AGENTS.md` 的测试命令与分层说明；验证：文档中的命令逐条可执行
 - [x] 5.3 全量验证：`pnpm check` 通过（Vitest 585 条 / 3.7 秒），`pnpm verify` 通过（Playwright 30 条 / 14.2 秒），均在预算内
 - [x] 5.4 决定不接入 CI：本机 `pnpm verify` 作为集成回归入口；Playwright 已具备无头运行条件，需要时再补工作流

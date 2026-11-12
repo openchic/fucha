@@ -37,7 +37,7 @@ $ pnpm verify
 $ pnpm check
 ```
 
-测试分层：`tests/unit`（纯逻辑）、`tests/dom`（jsdom + Testing Library）、`tests/e2e`（Playwright 启动真实 Electron）。推送前会自动执行 `pnpm test`。
+测试分层：`tests/unit`（纯逻辑）、`tests/dom`（jsdom + Testing Library）、`tests/e2e`（Playwright 启动真实 Electron）。提交前会自动执行 lint 与 `pnpm test`。
 
 ### Build
 
