@@ -43,8 +43,8 @@ jobs:
           version: ${{ steps.base.outputs.version }}
           version-type: ${{ inputs.version_type }}
         env:
-          GH_TOKEN: ${{ github.token }}
-          SHIPKIT_GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GITHUB_TOKEN: ${{ github.token }}
+          LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
       - name: Summarize the notes PR
         env:
           PR_URL: ${{ steps.changelog.outputs.pr-url }}

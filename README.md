@@ -74,7 +74,7 @@ GitHub 仓库需允许 Actions 创建 PR，并允许发布机器人向 `main` �
 
 | Secret                              | 内容                                                         |
 | ----------------------------------- | ------------------------------------------------------------ |
-| `GEMINI_API_KEY`                    | Gemini API Key，供 release-bits action 生成增量中英文日志    |
+| `LLM_API_KEY`                       | Gemini API Key，供 release-bits action 生成增量中英文日志    |
 | `DEVELOPER_ID_CERTIFICATE_P12`      | 含私钥的 Developer ID Application 证书（P12 的 Base64）      |
 | `DEVELOPER_ID_CERTIFICATE_PASSWORD` | P12 导出密码                                                 |
 | `APPLE_API_KEY`                     | App Store Connect API 的 `.p8` 私钥内容（不是路径或 Base64） |
