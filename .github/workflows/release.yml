@@ -38,7 +38,7 @@ jobs:
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
       - name: Generate or reuse the release notes PR
         id: changelog
-        uses: openchic/shipkit/actions/changelog@v1
+        uses: openchic/release-bits/actions/changelog@v1
         with:
           version: ${{ steps.base.outputs.version }}
           version-type: ${{ inputs.version_type }}
@@ -74,7 +74,7 @@ jobs:
           PR_BRANCH: ${{ github.event.pull_request.head.ref }}
         run: |
           test "$(git rev-parse HEAD)" = "$(git rev-parse origin/main)"
-          node scripts/changelog.mjs confirm-merge "${PR_BRANCH#changelogs/v}"
+          node scripts/release.mjs confirm-merge "${PR_BRANCH#changelogs/v}"
       - uses: pnpm/action-setup@v4
       - run: pnpm install --frozen-lockfile
       - run: pnpm check

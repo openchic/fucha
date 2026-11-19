@@ -14,7 +14,6 @@ import { fileURLToPath } from 'node:url'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
 const RELEASE = fileURLToPath(new URL('../../scripts/release.mjs', import.meta.url))
-const CHANGELOG = fileURLToPath(new URL('../../scripts/changelog.mjs', import.meta.url))
 const VERSION = '1.2.4'
 const ASSET_NAMES = [
   `fucha-${VERSION}-mac-universal.dmg`,
@@ -100,20 +99,29 @@ if (state) writeFileSync(file, JSON.stringify(state))
   git('init', '--bare', '--initial-branch=main', join(root, 'origin.git'))
   git('remote', 'add', 'origin', join(root, 'origin.git'))
   copyFileSync(RELEASE, join(repo, 'scripts', 'release.mjs'))
-  copyFileSync(CHANGELOG, join(repo, 'scripts', 'changelog.mjs'))
   writeFileSync(
     join(repo, 'package.json'),
     JSON.stringify({ name: 'fucha', version: '1.2.3' }, null, 2) + '\n'
   )
   writeFileSync(join(repo, 'changelogs.json'), '[]\n')
-  git('add', 'package.json', 'changelogs.json', 'scripts/release.mjs', 'scripts/changelog.mjs')
+  git('add', 'package.json', 'changelogs.json', 'scripts/release.mjs')
   git('commit', '-m', 'feat: application')
   git('checkout', '-b', 'changelogs/v1.2.4')
-  execFileSync(process.execPath, ['scripts/changelog.mjs', 'prepare', 'patch'], {
-    cwd: repo,
-    env,
-    input: JSON.stringify({ notes: { 'zh-CN': ['改进文章预览。'], en: ['Improved previews.'] } }),
-  })
+  writeFileSync(
+    join(repo, 'changelogs.json'),
+    JSON.stringify(
+      [
+        {
+          version: VERSION,
+          version_type: 'patch',
+          source_sha: git('rev-parse', 'HEAD'),
+          notes: { 'zh-CN': ['改进文章预览。'], en: ['Improved previews.'] },
+        },
+      ],
+      null,
+      2
+    ) + '\n'
+  )
   git('add', 'changelogs.json')
   git('commit', '-m', 'docs: release notes')
   git('checkout', 'main')

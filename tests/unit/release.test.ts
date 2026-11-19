@@ -16,14 +16,6 @@ import { fileURLToPath } from 'node:url'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
 const CLI = fileURLToPath(new URL('../../scripts/release.mjs', import.meta.url))
-const CHANGELOG = fileURLToPath(new URL('../../scripts/changelog.mjs', import.meta.url))
-const CHANGELOG_COMMANDS = new Set([
-  'next-version',
-  'notes',
-  'prepare',
-  'confirm-merge',
-  'draft-body',
-])
 const VERSION = '1.2.4'
 const PACKAGE = {
   name: 'release-fixture',
@@ -70,9 +62,9 @@ const BAD_NOTES = [
 
 type Draft = {
   version: string
-  reviewed: boolean
+  reviewed?: boolean
   source_sha: string
-  version_type: string
+  version_type?: string
   notes: unknown
 }
 type Asset = { name: string; size: number; sha256: string }
@@ -107,8 +99,7 @@ function commit(subject: string): string {
 }
 
 function run(args: string[], options: RunOptions = {}) {
-  const cli = CHANGELOG_COMMANDS.has(args[0]) ? CHANGELOG : CLI
-  return spawnSync(process.execPath, [cli, ...args], {
+  return spawnSync(process.execPath, [CLI, ...args], {
     cwd: repo,
     encoding: 'utf8',
     input: options.input ?? JSON.stringify({ notes: NOTES }),
@@ -147,7 +138,11 @@ function fail(args: string[], message: string, options: RunOptions = {}): void {
 
 function prepareDraft(): string {
   const source = git('rev-parse', 'HEAD')
-  succeed('prepare', 'patch')
+  const entries = readJson<unknown[]>('changelogs.json')
+  writeJson('changelogs.json', [
+    { version: VERSION, version_type: 'patch', source_sha: source, notes: NOTES },
+    ...entries,
+  ])
   return source
 }
 
@@ -223,210 +218,30 @@ afterEach(() => {
   rmSync(repo, { recursive: true, force: true })
 })
 
-describe('release CLI: version and arguments', () => {
-  it.each([
-    ['major', '2.0.0'],
-    ['minor', '1.3.0'],
-    ['patch', VERSION],
-  ])('calculates %s without writing files', (type, expected) => {
-    const before = snapshot()
-    expect(succeed('next-version', type)).toBe(`${expected}\n`)
-    expect(snapshot()).toEqual(before)
-  })
-
-  it('calculates the next version independently of malformed changelogs', () => {
-    writeFileSync(join(repo, 'changelogs.json'), 'not JSON')
-    expect(succeed('next-version', 'patch')).toBe(`${VERSION}\n`)
-  })
-
-  it('increments arbitrary-length semver components without rounding', () => {
-    writeJson('package.json', { ...PACKAGE, version: '0.0.9007199254740993' })
-    expect(succeed('next-version', 'patch')).toBe('0.0.9007199254740994\n')
-  })
-
-  it.each([
-    'v1.2.3',
-    '01.2.3',
-    '1.02.3',
-    '1.2.03',
-    '1.2',
-    '1.2.3-beta.1',
-    '1.2.3+build',
-    '1.2.3\n',
-    '-1.2.3',
-    123,
-    null,
-  ])('rejects invalid package semver %j', (version) => {
-    writeJson('package.json', { ...PACKAGE, version })
-    fail(['next-version', 'patch'], 'Invalid stable semver')
-  })
-
-  it.each(['next-version', 'prepare'])('rejects invalid type in %s', (command) => {
-    fail([command, 'prerelease'], 'Release type must be major, minor or patch')
-  })
-
-  it.each(
-    [
-      ['prepare'],
-      ['prepare', 'patch', 'extra'],
-      ['finalize', VERSION],
-      ['verify-final', VERSION, '/missing'],
-      ['body', VERSION, 'extra'],
-    ].map((args) => ({ args }))
-  )('rejects invalid argv $args', ({ args }) => {
-    fail(args, 'Usage:')
-  })
-
-  it.each([[], ['unknown', 'patch'], ['__proto__', VERSION]].map((args) => ({ args })))(
-    'rejects unknown command $args',
-    ({ args }) => fail(args, 'Unknown command')
+describe('release CLI: arguments', () => {
+  it.each([{ args: [] }, { args: ['unknown'] }, { args: ['prepare', 'patch'] }])(
+    'rejects invalid command $args',
+    ({ args }) => {
+      fail(args, 'Unknown command')
+    }
   )
 
-  it.each(['body', 'draft-body', 'confirm-merge', 'stage-version'])(
-    'validates version arguments for %s',
+  it.each(['body', 'confirm-merge', 'stage-version'])('requires a version for %s', (command) => {
+    fail([command], 'Usage:')
+  })
+
+  it.each(['body', 'confirm-merge', 'stage-version', 'finalize', 'verify-final'])(
+    'validates the version for %s',
     (command) => {
-      fail([command, 'v1.2.4'], 'Invalid stable semver')
+      const extra =
+        command === 'finalize'
+          ? ['/missing']
+          : command === 'verify-final'
+            ? ['/missing', 'a'.repeat(40)]
+            : []
+      fail([command, 'v1.2.4', ...extra], 'Invalid stable semver')
     }
   )
-})
-
-describe('release CLI: prepare and PR preview', () => {
-  it.each([
-    ['major', '2.0.0'],
-    ['minor', '1.3.0'],
-    ['patch', VERSION],
-  ])('prepares only bilingual changelogs for a %s release', (type, version) => {
-    const before = snapshot()
-    const sourceSha = git('rev-parse', 'HEAD')
-    succeed('prepare', type)
-    expect(readJson('package.json')).toEqual(PACKAGE)
-    expect(snapshot().files[0]).toEqual(before.files[0])
-    expect(readJson('changelogs.json')).toEqual([
-      { version, reviewed: false, source_sha: sourceSha, version_type: type, notes: NOTES },
-      ...HISTORY,
-    ])
-    expect(git('rev-parse', 'HEAD')).toBe(sourceSha)
-    expect(git('diff', '--name-only')).toBe('changelogs.json')
-    expect(git('tag', '--list')).toBe('')
-    commit('chore: release notes PR')
-    succeed('confirm-merge', version)
-  })
-
-  it('supports a first release without a catalog or previous tag', () => {
-    git('rm', '--', 'changelogs.json')
-    commit('chore: remove catalog fixture')
-    prepareDraft()
-    expect(readJson<unknown[]>('changelogs.json')).toHaveLength(1)
-    commit('chore: first release notes')
-    succeed('confirm-merge', VERSION)
-  })
-
-  it('renders bilingual PR notes without bumping package or needing a commit', () => {
-    prepareDraft()
-    const before = snapshot()
-    expect(succeed('draft-body', VERSION)).toBe(
-      '## 简体中文\n\n- 改进预览\n- 修复导出\n\n## English\n\n- Improve preview\n- Fix export\n'
-    )
-    expect(snapshot()).toEqual(before)
-  })
-
-  it.each(['', '{', 'not JSON', 'null', '[]', '{"en":["text"]}'])(
-    'rejects invalid stdin %j without writes',
-    (input) => {
-      fail(
-        ['prepare', 'patch'],
-        input === 'null' || input.startsWith('[') || input.startsWith('{"')
-          ? 'notes.'
-          : 'stdin must contain valid JSON',
-        { input }
-      )
-    }
-  )
-
-  it.each(BAD_NOTES.map((notes) => ({ notes })))(
-    'rejects invalid stdin notes $notes without writes',
-    ({ notes }) => {
-      fail(['prepare', 'patch'], 'notes', { input: JSON.stringify({ notes }) })
-    }
-  )
-
-  it.each([false, true, null])('never overwrites a draft with reviewed=%j', (reviewed) => {
-    prepareDraft()
-    const entries = readJson<Record<string, unknown>[]>('changelogs.json')
-    entries[0].reviewed = reviewed
-    entries[0].notes = { 'zh-CN': ['人工润色'], en: ['Human edits'] }
-    writeJson('changelogs.json', entries)
-    commit('chore: preserve edited draft')
-    fail(['prepare', 'patch'], 'A release draft already exists')
-  })
-
-  it('rejects an existing tag before writing', () => {
-    git('tag', `v${VERSION}`)
-    fail(['prepare', 'patch'], `Tag v${VERSION} already exists`)
-  })
-
-  it('rejects uncommitted tracked edits before writing', () => {
-    writeFileSync(join(repo, 'app.js'), 'local edits\n')
-    fail(['prepare', 'patch'], 'Tracked files must match HEAD')
-  })
-
-  it.each(['{', '{}'])('rejects invalid catalog JSON %j', (text) => {
-    writeFileSync(join(repo, 'changelogs.json'), text)
-    fail(['prepare', 'patch'], text === '{' ? 'valid JSON' : 'must be an array')
-  })
-
-  it('rejects duplicate package versions before writing', () => {
-    writeFileSync(join(repo, 'package.json'), '{"version":"1.2.3","version":"1.2.3"}')
-    commit('chore: duplicate versions')
-    fail(['prepare', 'patch'], 'exactly one top-level version')
-  })
-
-  it('preserves historical assets unchanged', () => {
-    const { assets } = createArtifacts('1.2.3')
-    writeJson('changelogs.json', [{ ...HISTORY[0], assets }, HISTORY[1]])
-    commit('chore: existing published assets')
-    prepareDraft()
-    expect(readJson<unknown[]>('changelogs.json').slice(1)).toEqual([
-      { ...HISTORY[0], assets },
-      HISTORY[1],
-    ])
-  })
-
-  it.each([
-    undefined,
-    null,
-    '',
-    'yesterday',
-    '2026-11-01',
-    '2026-11-01T04:01:18',
-    '2026-02-30T04:01:18Z',
-    '2026-11-31T04:01:18Z',
-    '2026-11-01T24:00:00Z',
-    '2026-11-01T04:01:18Z\n',
-    '2026-11-01T04:01:18+24:00',
-  ])('rejects unpublished or invalid historical date %j', (publishedAt) => {
-    writeJson('changelogs.json', [{ ...HISTORY[0], published_at: publishedAt }])
-    commit('chore: invalid history date')
-    fail(['prepare', 'patch'], 'published_at must be a valid ISO timestamp')
-  })
-
-  it('rejects duplicate historical versions', () => {
-    writeJson('changelogs.json', [HISTORY[0], HISTORY[0]])
-    commit('chore: duplicate history')
-    fail(['prepare', 'patch'], 'Duplicate catalog version')
-  })
-
-  it('rejects unpublished history disguised without reviewed', () => {
-    writeJson('changelogs.json', [{ ...HISTORY[0], source_sha: git('rev-parse', 'HEAD') }])
-    commit('chore: disguised draft')
-    fail(['prepare', 'patch'], 'published records, not drafts')
-  })
-
-  it('rejects candidates not newer than all published history', () => {
-    writeJson('changelogs.json', [HISTORY[0], { ...HISTORY[1], version: '9.0.0' }])
-    commit('chore: newer published history')
-    fail(['prepare', 'patch'], 'newer than every published catalog version')
-  })
 })
 
 describe('release CLI: read-only merge validation and staging', () => {
@@ -456,16 +271,16 @@ describe('release CLI: read-only merge validation and staging', () => {
     }
   )
 
-  it('confirms a shipkit draft without review or version_type', () => {
+  it('confirms a release-bits draft without review or version_type', () => {
     git('checkout', '-b', 'release')
     const sourceSha = prepareDraft()
     const entries = readJson<Record<string, unknown>[]>('changelogs.json')
     delete entries[0].reviewed
     delete entries[0].version_type
     writeJson('changelogs.json', entries)
-    commit('chore: shipkit release notes')
+    commit('chore: release-bits release notes')
     git('checkout', 'main')
-    git('merge', '--no-ff', 'release', '-m', 'Merge shipkit notes')
+    git('merge', '--no-ff', 'release', '-m', 'Merge release-bits notes')
     succeed('confirm-merge', VERSION)
     expect(readJson<Record<string, unknown>[]>('changelogs.json')[0]).toMatchObject({
       source_sha: sourceSha,
@@ -639,7 +454,6 @@ describe('release CLI: read-only merge validation and staging', () => {
         entry.notes = notes
       })
       commit('chore: invalid notes')
-      fail(['draft-body', VERSION], notes === undefined ? 'release draft' : 'notes')
       fail(['confirm-merge', VERSION], notes === undefined ? 'release draft' : 'notes')
     }
   )
@@ -979,6 +793,5 @@ describe('release CLI: English GitHub Release body', () => {
     fail(['body', VERSION], 'version and argument must match')
     writeJson('changelogs.json', [])
     fail(['body', VERSION], 'version and argument must match')
-    fail(['draft-body', VERSION], 'first changelog version')
   })
 })

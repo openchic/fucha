@@ -57,9 +57,9 @@ pnpm dev
 
 [发布工作流](.github/workflows/release.yml) 参考 clean-mac，采用「手动准备 → 更新日志 PR 审核 → 合并后发布」，不由标签推送触发。
 
-日志生成和草稿 PR 使用 [shipkit changelog action](https://github.com/openchic/shipkit)。项目脚本负责其余发布环节：`scripts/changelog.mjs` 提供本地草稿与合并校验工具，`scripts/release.mjs` 负责临时版本、调用 electron-builder 完成 macOS 签名与公证、三端产物核验、版本提交与发布重试。Artifact 上传下载使用官方 `actions/upload-artifact` 和 `actions/download-artifact`，GitHub Release 使用 `gh` CLI。
+日志生成和草稿 PR 使用 [release-bits changelog action](https://github.com/openchic/release-bits)。项目只保留一个发布脚本 `scripts/release.mjs`，负责合并校验、临时版本、调用 electron-builder 完成 macOS 签名与公证、三端产物核验、版本提交与发布重试。Artifact 上传下载使用官方 `actions/upload-artifact` 和 `actions/download-artifact`，GitHub Release 使用 `gh` CLI。
 
-1. 在 `main` 上点击运行 Release，选择 `major`、`minor` 或 `patch`。工作流读取 `package.json` 的基础版本，交给 shipkit 按最近发布标签生成中英文增量说明；首次发布使用完整历史，不发送源码或 diff。
+1. 在 `main` 上点击运行 Release，选择 `major`、`minor` 或 `patch`。工作流读取 `package.json` 的基础版本，交给 release-bits 按最近发布标签生成中英文增量说明；首次发布使用完整历史，不发送源码或 diff。
 2. action 自动创建 `changelogs/v<版本>` 草稿 PR，**只修改根目录 `changelogs.json`，不修改应用版本或创建标签**。重复点击幂等复用已有 PR、分支和草稿，不覆盖人工编辑或重复调用 Gemini；PR 关闭后自动删除发布分支。
 3. 审核双语内容，将 PR 标为 ready 并合并。**合并即批准构建发布**。日志生成后如有应用代码变化，需关闭旧 PR 后重新准备；关闭时发布分支会自动删除。
 4. 校验代码快照，运行 `pnpm check` 与真实 Electron 集成测试。仅在各构建工作目录临时设置候选版本，打包 macOS Universal DMG（Apple Silicon / Intel 通用）、Windows x64 NSIS 安装包、Linux x64 AppImage。macOS 使用 electron-builder 内置流程：临时钥匙串导入 Developer ID 证书，开启 hardened runtime 签名 App 和 DMG，再通过 `@electron/notarize` 提交 Apple 公证并装订 App 票据；脚本只写临时 API Key 文件，并用 `codesign`、`stapler validate`、`spctl` 验签。
@@ -68,13 +68,13 @@ pnpm dev
 
 Artifact 保留 30 天。上传 Release 失败时选择 **Re-run failed jobs**，复用成功构建的精确 Artifact ID；若最终提交和标签已存在，先核对来源与产物校验值，只补齐 Release，不重复提交或移动标签。不要重新构建后覆盖同版本的已记录安装包。
 
-`changelogs.json` 与 clean-mac 一样是按版本倒序的数组，正式条目使用 `version`、`published_at`、`notes.zh-CN`、`notes.en`；为容纳三端，将单个 `asset` 扩展为 `assets.macos/windows/linux`，每项仍为 `name`、`size`、`sha256`。shipkit 草稿包含 `version`、`notes`、`source_sha`，递增模式另含 `version_type`，不写审核字段；合并 PR 即确认，正式发布时去除草稿字段，历史条目保持不变。
+`changelogs.json` 与 clean-mac 一样是按版本倒序的数组，正式条目使用 `version`、`published_at`、`notes.zh-CN`、`notes.en`；为容纳三端，将单个 `asset` 扩展为 `assets.macos/windows/linux`，每项仍为 `name`、`size`、`sha256`。release-bits 草稿包含 `version`、`notes`、`source_sha`，递增模式另含 `version_type`，不写审核字段；合并 PR 即确认，正式发布时去除草稿字段，历史条目保持不变。
 
 GitHub 仓库需允许 Actions 创建 PR，并允许发布机器人向 `main` 写入最终发布提交；若分支保护不允许，该步骤会停止，不会强制推送或绕过规则。准备任务使用 `contents: write`、`pull-requests: write`，发布任务仅使用 `contents: write`；其余任务只读。凭据沿用 clean-mac 的 Secret 命名，需在本仓库单独配置或授予组织 Secret 访问权：
 
 | Secret                              | 内容                                                         |
 | ----------------------------------- | ------------------------------------------------------------ |
-| `GEMINI_API_KEY`                    | Gemini API Key，供 shipkit action 生成增量中英文日志         |
+| `GEMINI_API_KEY`                    | Gemini API Key，供 release-bits action 生成增量中英文日志    |
 | `DEVELOPER_ID_CERTIFICATE_P12`      | 含私钥的 Developer ID Application 证书（P12 的 Base64）      |
 | `DEVELOPER_ID_CERTIFICATE_PASSWORD` | P12 导出密码                                                 |
 | `APPLE_API_KEY`                     | App Store Connect API 的 `.p8` 私钥内容（不是路径或 Base64） |
