@@ -12,12 +12,12 @@
 #### Scenario: 导出主题
 
 - **WHEN** 用户导出自定义主题
-- **THEN** 生成包含两个文件的 zip，token 与 css 与保存时一致
+- **THEN** 生成包含两个文件的 zip，保存主题 token 与 CSS，且 `builtin` 为 `false`
 
-#### Scenario: 内置主题导出
+#### Scenario: 从内置主题创建可导出的副本
 
-- **WHEN** 用户导出内置主题
-- **THEN** 包内 token 的 `builtin` 为 false，导入后成为普通自定义主题
+- **WHEN** 用户要导出内置主题的排版
+- **THEN** 先「另存为」自定义主题，再从自定义主题行导出
 
 #### Scenario: 不导出文章
 

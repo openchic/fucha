@@ -90,7 +90,7 @@
 - [x] main#684 2.5 图片更新不改文章字段 — tests/unit/store.test.ts
 - [x] main#685 2.5 非法图片状态被拒 — tests/unit/store.test.ts
 - [x] main#696 2.6 删除文章行 — tests/unit/store.test.ts
-- [ ] main#697 2.6 缓存目录不在删除范围 — tests/e2e/history.spec.ts（缓存与历史清理用例待迁移）
+- [x] main#697 2.6 缓存目录不在删除范围 — tests/e2e/history.spec.ts
 - [x] main#706 2.6 清空历史 — tests/unit/store.test.ts
 - [x] main#709 2.3 无引用后可删除主题 — tests/unit/store.test.ts
 - [x] main#716 2.8 主题包 zip 往返 — tests/unit/theme-package.test.ts + tests/unit/zip.test.ts

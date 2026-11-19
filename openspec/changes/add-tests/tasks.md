@@ -33,9 +33,9 @@
 
 - [x] 4.1 安装 `@playwright/test`，新增 `playwright.config.ts` 与 `pnpm verify` 脚本，`testDir` 限定 `tests/e2e`，`verify` 先构建再启动 `out/main/index.js`；验证：`tests/e2e/smoke.spec.ts` 5 条通过，`pnpm verify` 先构建再启动
 - [x] 4.2 复用主进程已有的 `--user-data-dir` 覆盖（`src/main/index.ts:10-15`），未设置时行为不变；验证：smoke 断言 `app.getPath('userData')` 等于测试临时目录
-- [x] 4.3 建立迁移清单 `openspec/changes/add-tests/migration.md`，逐条登记 234 条旧断言与新用例归属；验证：当前 131 条已迁移、103 条待迁移，无未归属项
+- [x] 4.3 建立迁移清单 `openspec/changes/add-tests/migration.md`，逐条登记 234 条旧断言与新用例归属；验证：全部迁移且无未归属项
 - [x] 4.4 迁移抓取与协议断言：抓取分类、图片下载与缓存复用、`app://` 取图与路径穿越、导出内联与占位、剪贴板；站点适配与验证码判定归入 `tests/unit/profiles.test.ts`；验证：main 相关断言已勾选，`tests/e2e/fetch.spec.ts` 16 条通过
-- [x] 4.5 迁移主进程存储断言到 `tests/unit/store.test.ts`（schema 与索引、v6–v11 迁移、偏好、主题 CRUD 与引用保护、文章历史与级联删除），主题包到 `tests/unit/theme-package.test.ts`，损坏降级与抓取不阻断到 `tests/e2e/storage.spec.ts`；验证：37 + 15 + 1 条通过，缓存目录清理项转 4.12
+- [x] 4.5 迁移主进程存储断言到 `tests/unit/store.test.ts`（schema 与索引、偏好、主题 CRUD 与引用保护、文章历史与级联删除），主题包到 `tests/unit/theme-package.test.ts`，损坏降级与抓取不阻断到 `tests/e2e/storage.spec.ts`；验证：存储与主题包单测及故障降级 E2E
 - [x] 4.6 迁移渲染管线断言到 `tests/e2e/support/checks/renderer.ts` 的 sanitize/svg/extract/rspress/images 五组，由 `tests/e2e/pipeline.spec.ts` 聚合断言；验证：5 个 spec 通过，组内结果 11/18/17/5/4 条
 - [x] 4.7 迁移主题与导出断言到 theme/export 两组，由 `tests/e2e/theme.spec.ts` 与 `tests/e2e/export.spec.ts` 聚合；验证：68 + 29 条结果通过，计算样式一致性断言包含在内
 - [x] 补齐零覆盖模块用例：`normalizeArticleDom`（8 条）、`normalizeRspress*`（5 条）、`previewStyleVariables`（5 条）新增用例；`parseCssRules` / `withoutThemeRootRules` 已由 `tests/unit/theme-css.test.ts` 覆盖；验证：18 条新用例通过

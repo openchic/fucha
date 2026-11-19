@@ -5,8 +5,11 @@ import tailwindcss from '@tailwindcss/vite'
 
 const sharedAlias = { '@shared': resolve('src/shared') }
 
-export default defineConfig({
+export default defineConfig(({ mode }) => ({
   main: {
+    define: {
+      'process.env.APP_CHANNEL': JSON.stringify(mode === 'debug' ? 'development' : 'production'),
+    },
     resolve: {
       alias: sharedAlias,
     },
@@ -25,4 +28,4 @@ export default defineConfig({
     },
     plugins: [react(), tailwindcss()],
   },
-})
+}))

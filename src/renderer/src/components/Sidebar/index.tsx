@@ -100,10 +100,7 @@ export const Sidebar = (props: SidebarProps) => {
         {!ready && <p className="px-3 py-6 text-body text-ink-soft">正在读取历史…</p>}
         {ready && error && <p className="px-3 py-6 text-body text-danger">{error}</p>}
         {ready && !error && items.length === 0 && (
-          <div className="px-3 py-8 text-center text-body text-ink-soft">
-            <p>还没有历史记录</p>
-            <p className="mt-1 text-description">提取成功的文章会自动保存在这里</p>
-          </div>
+          <p className="px-3 py-8 text-center text-body text-ink-soft">暂无记录</p>
         )}
         {ready && !error && items.length > 0 && (
           <ul className="flex flex-col gap-0.5">

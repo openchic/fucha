@@ -7,14 +7,15 @@ import { fitWindowSize } from './window-size'
 
 registerAppProtocol()
 
-const USER_DATA_OVERRIDDEN = process.argv.some((arg) => arg.startsWith('--user-data-dir'))
-// 显示名是中文，数据目录固定用 ASCII 名；测试实例以 --user-data-dir 覆盖时保持覆盖
-const USER_DATA_DIR = join(app.getPath('appData'), 'fucha')
+const IS_DEVELOPMENT = is.dev || process.env.APP_CHANNEL === 'development'
+const APP_NAME = IS_DEVELOPMENT ? '浮槎 Debug' : '浮槎'
+const APP_ID = IS_DEVELOPMENT ? 'com.ls63cc.fucha.dev' : 'com.ls63cc.fucha'
+const USER_DATA_DIR = join(app.getPath('appData'), IS_DEVELOPMENT ? 'fucha-dev' : 'fucha')
 // 集成测试连续拉起多个实例；隐藏窗口避免抢占焦点与反复闪窗
 const HIDDEN_WINDOW = process.argv.includes('--hidden-window')
 
-app.setName('浮槎')
-if (!USER_DATA_OVERRIDDEN) app.setPath('userData', USER_DATA_DIR)
+app.setName(APP_NAME)
+if (!app.commandLine.hasSwitch('user-data-dir')) app.setPath('userData', USER_DATA_DIR)
 
 const EXTERNAL_PROTOCOLS = new Set(['http:', 'https:', 'mailto:'])
 
@@ -75,7 +76,7 @@ function createWindow(): void {
 }
 
 app.whenReady().then(() => {
-  electronApp.setAppUserModelId('com.fucha.app')
+  electronApp.setAppUserModelId(APP_ID)
   const localStore = initLocalStore()
   if (!localStore.available) {
     console.error(`[local-store] ${localStore.error ?? '数据库不可用'}`)

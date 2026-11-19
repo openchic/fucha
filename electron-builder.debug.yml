@@ -1,0 +1,9 @@
+extends: ./electron-builder.yml
+appId: com.ls63cc.fucha.dev
+productName: 浮槎 Debug
+directories:
+  output: dist/debug
+extraMetadata:
+  name: fucha-dev
+win:
+  executableName: fucha-dev

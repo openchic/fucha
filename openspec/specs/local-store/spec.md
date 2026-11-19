@@ -1,57 +1,41 @@
 # local-store Specification
 
 ## Purpose
-在主进程用 Electron 内置 `node:sqlite` 持久化文章快照、图片、主题与偏好，管理 schema 版本迁移；数据库损坏或版本高于代码支持范围时降级为不可用，且不阻断抓取与预览主链路。
+在主进程用 Electron 内置 `node:sqlite` 持久化文章快照、图片元数据、主题与偏好，并保护不兼容的数据库。存储故障不阻断抓取与预览。
 
 ## Requirements
 
-### Requirement: 本地数据库初始化与版本迁移
+### Requirement: 开发版与生产版数据隔离
 
-系统 SHALL 在主进程使用 Electron 自带 `node:sqlite` 打开 `userData/app.db`，以 `PRAGMA user_version` 管理 schema 版本；首次创建 SHALL 建立当前 schema（v8），已有 v1–v7 库 SHALL 顺序迁移补齐文章主题字段、统一默认主题 id、增加主题字段、切换历史排序索引、收敛索引、统一书卷主题 id 并清理中间主题 id。数据库打开、迁移失败或 `user_version` 高于代码支持版本时，系统 SHALL 将存储标记为不可用，且不阻断抓取、提取与预览主链路。
+正式打包版 SHALL 默认使用 `appData/fucha`。未打包运行和独立 Debug 打包版 SHALL 默认使用 `appData/fucha-dev`，Debug 身份由构建时确定，不依赖用户启动时的环境变量。数据库、偏好和图片缓存 SHALL 归各自的数据目录管理。启动参数 `--user-data-dir` SHALL 允许测试显式指定隔离目录。
 
-#### Scenario: 首次创建当前数据库
+#### Scenario: 两个版本同时运行
 
-- **WHEN** 用户数据目录中尚不存在 `app.db`
-- **THEN** 系统创建数据库与当前四张表，并把 `user_version` 设置为 8
+- **WHEN** 开发版和正式版按默认配置启动
+- **THEN** 开发版读写 `appData/fucha-dev`，正式版读写 `appData/fucha`，彼此不迁移、覆盖或删除数据
 
-#### Scenario: v1 库升级
+#### Scenario: 测试隔离
 
-- **WHEN** 数据库已有文章且 `user_version = 1`
-- **THEN** 系统在事务中为 `articles` 增加 `theme_id` 与主题索引，保留原有文章数据并升级到 8
+- **WHEN** 启动时传入 `--user-data-dir`
+- **THEN** 应用使用指定目录
 
-#### Scenario: v2 库升级默认主题 id
+### Requirement: 本地数据库初始化与版本保护
 
-- **WHEN** 数据库为 v2，文章或偏好使用 `technical`
-- **THEN** 系统把默认主题 id 统一为 `default`，保留自定义主题 id 与文章数据，并继续升级到 v8
+系统 SHALL 在主进程使用 `node:sqlite` 打开 `userData/app.db`。首次打开 SHALL 在同一事务内创建完整 schema 并设置 `PRAGMA user_version`。
 
-#### Scenario: v4 库升级排序索引
+#### Scenario: 首次建库
 
-- **WHEN** 数据库为 v4，使用旧的访问活动排序索引
-- **THEN** v5 迁移删除旧索引并建立 `articles_updated_idx`，文章数据保留
+- **WHEN** 正式版数据库尚不存在
+- **THEN** 系统创建四张表和索引，版本设置为 1，文章、主题与偏好均为空
 
-#### Scenario: v5 库升级索引
+#### Scenario: 重复初始化
 
-- **WHEN** 数据库为 v5
-- **THEN** v6 迁移把 `articles_updated_idx` 扩为 `(updated_at DESC, created_at DESC)`，新增 `themes_sort_idx` 与唯一 `themes_name_idx`，删除 `articles_final_url_idx` 与 `article_images_url_idx`，文章与主题数据保留
-
-#### Scenario: v6 库升级书卷主题 id
-
-- **WHEN** 数据库为 v6，文章或偏好仍引用 `serif`
-- **THEN** v7 迁移把书卷引用改为 `shujuan`，默认主题保持 `default`，同步来源主题与 `theme.active`，文章与主题数据保留
-
-#### Scenario: v7 库清理中间主题 id
-
-- **WHEN** 数据库为 v7，文章或偏好仍引用 `xueqing`
-- **THEN** v8 迁移把这些引用统一回 `default`，文章与主题数据保留
-
-#### Scenario: 重复初始化不重复建表
-
-- **WHEN** 已存在 `user_version = 1` 的数据库再次初始化
-- **THEN** 系统不重复创建表或索引，已有数据保持不变
+- **WHEN** 已初始化的数据库再次打开
+- **THEN** 系统保留已有数据，不重复执行建表操作
 
 #### Scenario: 数据库不可用
 
-- **WHEN** 数据库无法打开或迁移失败
+- **WHEN** 数据库无法打开或初始化失败
 - **THEN** 系统记录存储不可用状态，抓取与预览仍可正常进行
 
 #### Scenario: 数据库版本高于代码

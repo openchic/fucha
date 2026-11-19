@@ -10,7 +10,6 @@ import {
   getLocalStoreStatus,
   initLocalStore,
   LOCAL_STORE_SCHEMA_VERSION,
-  MIGRATIONS,
 } from '../../src/main/db'
 import {
   clearHistory,
@@ -68,18 +67,6 @@ function save(hash: string, options: { themeId?: string; title?: string } = {}) 
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms))
 
-async function createLegacyDb(path: string, version: number, seed?: (db: DatabaseSync) => void) {
-  const db = new DatabaseSync(path)
-  db.exec('PRAGMA foreign_keys = ON')
-  for (const migration of MIGRATIONS) {
-    if (migration.version > version) break
-    db.exec(migration.sql)
-    db.exec(`PRAGMA user_version = ${migration.version}`)
-  }
-  seed?.(db)
-  db.close()
-}
-
 beforeEach(async () => {
   dir = await mkdtemp(join(tmpdir(), 'fucha-store-'))
   dbPath = join(dir, 'app.db')
@@ -99,11 +86,12 @@ describe('数据库初始化', () => {
     expect(getPreference('theme.active')).toBe('default')
   })
 
-  it('schema 版本为当前值且索引齐全', () => {
+  it('首发 schema 版本为 1 且索引齐全', () => {
     initLocalStore(dbPath)
     const db = new DatabaseSync(dbPath)
     const version = db.prepare('PRAGMA user_version').get() as { user_version: number }
-    expect(version.user_version).toBe(LOCAL_STORE_SCHEMA_VERSION)
+    expect(LOCAL_STORE_SCHEMA_VERSION).toBe(1)
+    expect(version.user_version).toBe(1)
 
     const indexes = (
       db.prepare("SELECT name FROM sqlite_master WHERE type = 'index'").all() as {
@@ -111,10 +99,13 @@ describe('数据库初始化', () => {
       }[]
     ).map((row) => row.name)
     expect(indexes).toEqual(
-      expect.arrayContaining(['articles_updated_idx', 'themes_sort_idx', 'themes_name_idx'])
+      expect.arrayContaining([
+        'articles_updated_idx',
+        'articles_theme_idx',
+        'themes_sort_idx',
+        'themes_name_idx',
+      ])
     )
-    expect(indexes).not.toContain('articles_activity_idx')
-    expect(indexes).not.toContain('articles_final_url_idx')
 
     const plan = db
       .prepare(
@@ -128,10 +119,12 @@ describe('数据库初始化', () => {
   it('重复初始化保留已有数据', () => {
     initLocalStore(dbPath)
     setPreference('theme.active', 'custom')
+    save('a'.repeat(32))
     closeLocalStore()
 
     expect(initLocalStore(dbPath).available).toBe(true)
     expect(getPreference('theme.active')).toBe('custom')
+    expect(getArticle('a'.repeat(32))?.title).toBe('文章 aaaa')
   })
 
   it('版本高于代码支持时降级为不可用', async () => {
@@ -152,99 +145,6 @@ describe('数据库初始化', () => {
     await writeFile(dbPath, 'broken')
     initLocalStore(dbPath)
     expect(() => getPreference('x')).toThrow('本地数据库不可用')
-  })
-})
-
-describe('历史版本迁移', () => {
-  it('v6 把 serif 映射为 shujuan 并更新偏好', async () => {
-    await createLegacyDb(dbPath, 6, (db) => {
-      db.prepare(
-        `INSERT INTO themes (id, name, token, css, token_version, source_theme_id, sort, created_at, updated_at)
-         VALUES ('derived', '派生', ?, '', 1, 'serif', 0, '2026-01-01', '2026-01-01')`
-      ).run(JSON.stringify(customToken('derived', '派生')))
-      db.prepare(
-        `INSERT INTO articles (hash, source_url, final_url, theme_id, title, html, created_at, updated_at, visit_count)
-         VALUES (?, ?, ?, 'serif', '书卷文章', '<p>x</p>', '2026-01-01', '2026-01-01', 0)`
-      ).run('b'.repeat(32), 'https://e.test/b', 'https://e.test/b')
-      db.prepare(
-        `INSERT INTO preferences (key, value, updated_at) VALUES ('theme.active', '"serif"', '2026-01-01')`
-      ).run()
-    })
-    expect(initLocalStore(dbPath).available).toBe(true)
-    expect(getArticle('b'.repeat(32))?.themeId).toBe('shujuan')
-    expect(getTheme('derived')?.sourceThemeId).toBe('shujuan')
-    expect(getPreference('theme.active')).toBe('shujuan')
-  })
-
-  it('v7 清理 xueqing 中间主题 id', async () => {
-    await createLegacyDb(dbPath, 7, (db) => {
-      db.prepare(
-        `INSERT INTO articles (hash, source_url, final_url, theme_id, title, html, created_at, updated_at, visit_count)
-         VALUES (?, ?, ?, 'xueqing', '旧文章', '<p>x</p>', '2026-01-01', '2026-01-01', 0)`
-      ).run('c'.repeat(32), 'https://e.test/c', 'https://e.test/c')
-    })
-    initLocalStore(dbPath)
-    expect(getArticle('c'.repeat(32))?.themeId).toBe('default')
-  })
-
-  it('v9 把 danxia 统一为 qingci', async () => {
-    await createLegacyDb(dbPath, 8, (db) => {
-      db.prepare(
-        `INSERT INTO articles (hash, source_url, final_url, theme_id, title, html, created_at, updated_at, visit_count)
-         VALUES (?, ?, ?, 'danxia', '旧文章', '<p>x</p>', '2026-01-01', '2026-01-01', 0)`
-      ).run('a'.repeat(32), 'https://e.test/a', 'https://e.test/a')
-      db.prepare(
-        `INSERT INTO themes (id, name, token, css, token_version, source_theme_id, sort, created_at, updated_at)
-         VALUES ('legacy', '旧主题', ?, '', 1, 'danxia', 0, '2026-01-01', '2026-01-01')`
-      ).run(JSON.stringify(customToken('legacy', '旧主题')))
-      db.prepare(
-        `INSERT INTO preferences (key, value, updated_at) VALUES ('theme.active', '"danxia"', '2026-01-01')`
-      ).run()
-    })
-    initLocalStore(dbPath)
-    expect(getArticle('a'.repeat(32))?.themeId).toBe('qingci')
-    expect(getTheme('legacy')?.sourceThemeId).toBe('qingci')
-    expect(getPreference('theme.active')).toBe('qingci')
-  })
-
-  it('v10 把页面左右内距归零并保留上下内距', async () => {
-    await createLegacyDb(dbPath, 9, (db) => {
-      const token = {
-        ...customToken(),
-        page: { paddingTop: 24, paddingRight: 12, paddingBottom: 24, paddingLeft: 12 },
-      }
-      db.prepare(
-        `INSERT INTO themes (id, name, token, css, token_version, sort, created_at, updated_at)
-         VALUES ('legacy', '旧主题', ?, '', 1, 0, '2026-01-01', '2026-01-01')`
-      ).run(JSON.stringify(token))
-    })
-    initLocalStore(dbPath)
-    const theme = getTheme('legacy')
-    expect(theme?.token.page).toEqual({
-      paddingTop: 24,
-      paddingRight: 0,
-      paddingBottom: 24,
-      paddingLeft: 0,
-    })
-  })
-
-  it('v11 把旧变量前缀改写为 --theme-', async () => {
-    await createLegacyDb(dbPath, 10, (db) => {
-      db.prepare(
-        `INSERT INTO themes (id, name, token, css, token_version, sort, created_at, updated_at)
-         VALUES ('legacy', '旧主题', ?, 'h1 { color: var(--fucha-primary); }', 1, 0, '2026-01-01', '2026-01-01')`
-      ).run(JSON.stringify(customToken()))
-    })
-    initLocalStore(dbPath)
-    expect(getTheme('legacy')?.css).toBe('h1 { color: var(--theme-primary); }')
-  })
-
-  it('迁移只执行一次：重复打开不改变数据', async () => {
-    initLocalStore(dbPath)
-    save('a'.repeat(32))
-    closeLocalStore()
-    initLocalStore(dbPath)
-    expect(getArticle('a'.repeat(32))?.title).toBe('文章 aaaa')
   })
 })
 

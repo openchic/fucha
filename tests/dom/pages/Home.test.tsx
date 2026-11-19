@@ -63,8 +63,8 @@ function renderHome(items: ArticleSummary[] = []) {
 describe('Home 布局', () => {
   it('没有历史时展示空态', async () => {
     renderHome()
-    expect(await screen.findByText('还没有历史记录')).toBeInTheDocument()
-    expect(screen.getByRole('navigation', { name: '最近文章' })).toBeInTheDocument()
+    expect(await screen.findByText('暂无记录')).toBeInTheDocument()
+    expect(screen.getByRole('navigation', { name: '最近文章' })).toHaveTextContent(/^暂无记录$/)
   })
 
   it('展示历史标题与篇数', async () => {

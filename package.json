@@ -1,14 +1,20 @@
 {
   "name": "fucha",
-  "version": "1.0.0",
-  "description": "把一个链接，变成一篇可以直接发进公众号的文章",
+  "version": "0.1.0",
+  "description": "把一个网页链接变成一篇可直接发布的公众号文章。",
   "main": "./out/main/index.js",
+  "packageManager": "pnpm@11.9.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/openchic/fucha.git"
+  },
   "scripts": {
     "build": "npm run typecheck && electron-vite build",
-    "build:linux": "electron-vite build && electron-builder --linux",
-    "build:mac": "electron-vite build && electron-builder --mac",
-    "build:unpack": "npm run build && electron-builder --dir",
-    "build:win": "npm run build && electron-builder --win",
+    "build:linux": "pnpm build && electron-builder --linux --publish never",
+    "build:mac": "pnpm build && electron-builder --mac --publish never",
+    "build:mac:debug": "pnpm typecheck && electron-vite build --mode debug && electron-builder --config electron-builder.debug.yml --mac --publish never",
+    "build:unpack": "pnpm build && electron-builder --dir --publish never",
+    "build:win": "pnpm build && electron-builder --win --publish never",
     "changelog": "conventional-changelog -p angular -i CHANGELOG.md -s",
     "dev": "electron-vite dev --watch",
     "format": "prettier --write .",

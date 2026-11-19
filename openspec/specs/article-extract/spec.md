@@ -77,7 +77,7 @@
 
 ### Requirement: 内嵌 SVG 安全保留
 
-正文中的内嵌 SVG SHALL 保留静态矢量结构，包括图形、路径、文本、渐变与本地引用；SVG SHALL 可正常显示且不超出正文宽度。SVG 内部及页面级 `<style>` 中匹配 SVG 的安全 presentation 属性 SHALL 在提取前内联到对应图形，并与元素原有内联样式按属性合并；最终正文 SHALL 不保留这些 `style` 标签或 class。净化 SHALL 移除 SVG 内的脚本、事件属性、动画、`foreignObject`、嵌套位图、`use`、外部 `href`、非本地 `url()` 与不安全 CSS。曾因白名单整体禁止 `svg` 导致图形消失，后续又因 Readability 清理 `<style>` 与 class、以及内联样式覆盖已计算颜色，导致 `rect` 回落默认黑色；最终实现 SHALL 使用独立 SVG 白名单，在提取前完成安全样式合并。
+正文中的内嵌 SVG SHALL 保留静态矢量结构，包括图形、路径、文本、渐变与本地引用；SVG SHALL 可正常显示且不超出正文宽度。SVG 内部及页面级 `<style>` 中匹配 SVG 的安全 presentation 属性 SHALL 在提取前内联到对应图形，并与元素原有内联样式按属性合并；最终正文 SHALL 不保留这些 `style` 标签或 class。净化 SHALL 移除 SVG 内的脚本、事件属性、动画、`foreignObject`、嵌套位图、`use`、外部 `href`、非本地 `url()` 与不安全 CSS。缺少独立白名单会丢失图形，Readability 清理样式会使图形回退到默认色。
 
 #### Scenario: 静态图形保留
 

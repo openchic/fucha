@@ -1,16 +1,13 @@
-# 主题系统方案
+# 排版主题
 
-主题系统分两层：token 是可调接口，theme.css 是主题自己的样式实现。内置主题只读；自定义主题可在设置页原地编辑，所有引用文章同步更新，也可以另存为或从默认 token 新建。主题配置页用内置示例文章实时预览，文章页只负责选择主题。
+排版主题由可调整的 ThemeToken 和实现主题样式的 `theme.css` 组成。
 
 ## 目标与非目标
 
 **目标**
 
-- A/B 主题各自拥有排版与装饰，但共用同一套 token 接口。
-- 内置主题只读；自定义主题可原地编辑，编辑同步到所有引用文章；另存为与新建生成新主题。
-- 用户可以在设置页调整字号、行高、间距、颜色、边框与圆角，示例预览实时生效。
-- 自定义主题可以带自己的 CSS 和 token 默认值，按固定规则接入。
-- 预览与导出共用同一套 token 和 theme.css，导出仍能落到微信可接受的内联样式。
+- 不同主题共享可调整的排版接口，各自定义默认值与装饰。
+- 应用预览与公众号导出共享主题样式，导出时转换为微信可接受的内联样式。
 
 **非目标**
 
@@ -32,13 +29,13 @@ Theme A                          Theme B
               用户简单调整 token
 ```
 
-- token 是稳定的公共接口，约 20 个字段。
-- theme.css 是主题实现，负责 token 表达不了的布局与逐元素盒模型。
-- 文章只保存 `theme_id`；自定义主题原地编辑时，引用它的文章同步使用新内容；内置主题只读，升级时新增 id。
+`theme.css` 负责 token 表达不了的布局与逐元素盒模型。三套内置主题由 [预设目录](../src/renderer/src/theme/presets)提供，主进程用 [保留 id 与名称](../src/shared/builtin-themes.ts)做冲突校验，两处由测试保证一致。
+
+- [雾紫（`default`）](../src/renderer/src/theme/presets/default.ts)提供新建主题的默认 token。
+- [书卷（`shujuan`）](../src/renderer/src/theme/presets/shujuan.ts)使用暖棕色与衬线字族，通过 `&` 根规则指定字体。
+- [青瓷（`qingci`）](../src/renderer/src/theme/presets/qingci.ts)用浅苔色区分引用、代码和表头，配绿色标题竖条。
 
 ## 主题编辑与保存
-
-自定义主题在设置页编辑；数据层保存当前内容，配置页用内存草稿和内置示例文章实时预览。
 
 ```text
 data layer                         settings editor
@@ -50,22 +47,16 @@ article.theme_id = A                 示例预览使用 A'
                              new -> 新建 theme C（默认 token、无来源）
 ```
 
-规则：
-
-- 编辑 token 只改渲染进程内存草稿，不写数据库。
-- 配置页用内置示例文章实时预览，不读取当前文章；文章页不再内联编辑主题。
-- 保存自定义主题原地更新 `token`、`css` 与 `updated_at`：所有 `theme_id` 指向它的文章同步换样，不生成新主题。
-- 另存为从当前草稿创建新主题并记录来源；新建从默认 token 起、来源为空。两者都不自动切换当前文章，回到文章后通过主题下拉选择。
-- 内置主题只读，只能另存为；主题列表的内置行不提供编辑。
-- 主题列表只展示已落库主题；草稿只存在于配置页，离开未保存时确认丢弃。
-- 文章页的主题下拉只负责选择和打开主题管理；主题编辑、新建与删除都在设置页。
-- v1 不生成主题版本；重复编辑更新同一主题。
+- 配置页用内存草稿和固定示例文章实时预览，离开时会确认是否丢弃未保存的改动。
+- 保存自定义主题沿用原 id，各篇引用文章在下次渲染时使用更新后的样式。改名随保存提交。
+- 另存为从当前草稿创建新主题并记录来源。新建从默认 token 起，来源为空。文章仍使用原来选中的主题，回到文章后可在下拉菜单切换。
+- 内置主题只读，用户可以另存为自定义主题。发布后的内置主题需要升级样式时，新增 id 并保留旧 id，以维持历史文章原有的排版。
 
 ## Token 契约
 
 ### 顶层结构
 
-标题不再有 `heading` 包装，h1–h6 直接放在 Token 顶层。每个标题层级结构一致：
+h1–h6 直接放在 token 顶层，字段名与对应的 CSS 属性对齐。每个标题层级的结构如下。
 
 ```ts
 type HeadingLevel = {
@@ -79,129 +70,7 @@ type HeadingLevel = {
 }
 ```
 
-完整默认值：
-
-```json
-{
-  "id": "default",
-  "name": "雾紫",
-  "builtin": true,
-  "text": {
-    "fontSize": 14,
-    "secondaryFontSize": 12,
-    "lineHeight": 1.8,
-    "letterSpacing": 0.02,
-    "marginBottom": 14,
-    "color": "#333333",
-    "secondaryColor": "#6b7280"
-  },
-  "primary": "#a8b9f0",
-  "borderColor": "#e3e6f0",
-  "headingColor": "#333333",
-  "page": {
-    "paddingTop": 40,
-    "paddingRight": 0,
-    "paddingBottom": 40,
-    "paddingLeft": 0
-  },
-  "h1": {
-    "fontSize": 20,
-    "fontWeight": 700,
-    "lineHeight": 1.4,
-    "textAlign": "left",
-    "decoration": "none",
-    "marginTop": 24,
-    "marginBottom": 10
-  },
-  "h2": {
-    "fontSize": 20,
-    "fontWeight": 700,
-    "lineHeight": 1.4,
-    "textAlign": "left",
-    "decoration": "none",
-    "marginTop": 24,
-    "marginBottom": 10
-  },
-  "h3": {
-    "fontSize": 16,
-    "fontWeight": 600,
-    "lineHeight": 1.5,
-    "textAlign": "left",
-    "decoration": "none",
-    "marginTop": 18,
-    "marginBottom": 8
-  },
-  "h4": {
-    "fontSize": 16,
-    "fontWeight": 600,
-    "lineHeight": 1.5,
-    "textAlign": "left",
-    "decoration": "none",
-    "marginTop": 18,
-    "marginBottom": 8
-  },
-  "h5": {
-    "fontSize": 16,
-    "fontWeight": 600,
-    "lineHeight": 1.5,
-    "textAlign": "left",
-    "decoration": "none",
-    "marginTop": 18,
-    "marginBottom": 8
-  },
-  "h6": {
-    "fontSize": 16,
-    "fontWeight": 600,
-    "lineHeight": 1.5,
-    "textAlign": "left",
-    "decoration": "none",
-    "marginTop": 18,
-    "marginBottom": 8
-  },
-  "quote": {
-    "backgroundColor": "#f7f8fe",
-    "fontSize": 14,
-    "decoration": "bar",
-    "paddingBlock": 14,
-    "paddingInline": 14,
-    "borderRadius": 4
-  },
-  "code": {
-    "hljsTheme": "github",
-    "backgroundColor": "#f6f7fa",
-    "fontSize": 13,
-    "inlineBackgroundColor": "#f3f4f8",
-    "lineHeight": 1.6,
-    "paddingBlock": 14,
-    "paddingInline": 14,
-    "borderRadius": 4,
-    "inlineBorderRadius": 4,
-    "borderStyle": "none",
-    "captionDivider": {
-      "borderBottomStyle": "solid",
-      "borderBottomColor": "#eceef4"
-    }
-  },
-  "table": {
-    "headerBackgroundColor": "#f7f8fb",
-    "paddingBlock": 8,
-    "paddingInline": 8
-  },
-  "image": {
-    "marginTop": 14,
-    "marginBottom": 14,
-    "borderRadius": 4
-  },
-  "divider": {
-    "borderTopStyle": "solid",
-    "borderTopColor": "#ccd4e6",
-    "marginTop": 18,
-    "marginBottom": 18
-  }
-}
-```
-
-`page.backgroundColor` 为可选字段，示例默认省略；缺省表示透明/跟随页面。
+完整结构见 [ThemeToken 类型](../src/shared/types.ts)，默认值见 [雾紫预设](../src/renderer/src/theme/presets/default.ts)。
 
 ### 字段与范围
 
@@ -232,6 +101,7 @@ type HeadingLevel = {
 | `quote.paddingInline`                   | 14px                                    | 0–40                             | 引用块左右内边距                                  |
 | `quote.borderRadius`                    | 4px                                     | 0–20                             | 引用块圆角                                        |
 | `code.hljsTheme`                        | github                                  | github / atom-one-light / xcode  | highlight.js 语法色主题，未知值拒绝               |
+| `code.backgroundColor`                  | #f6f7fa                                 | 颜色或缺省                       | 代码块背景色，缺省跟随语法主题                    |
 | `code.fontSize`                         | 13px                                    | 10–16, step 0.5                  | 代码块文字字号；三套内置主题统一 13px，之后独立   |
 | `code.lineHeight`                       | 1.6                                     | 1–3                              | 代码块行高                                        |
 | `code.paddingBlock`                     | 14px                                    | 0–40                             | 代码块上下内边距                                  |
@@ -328,7 +198,7 @@ type HeadingLevel = {
 
 ## 样式归属与元素盒模型
 
-应用维护一份 `base.css`，覆盖正文默认排版、引用、代码、表格、图片、分割线与微信安全属性；行内代码与表格按正文 0.875 倍取字号，代码块与引用使用各自字号 token，其余样式只引用 token 变量。正文代码块统一使用 `borderColor` 外框、`code.borderStyle` 边框样式与 `code.borderRadius` 圆角；带标题的代码块使用 `figure.code-block` + `figcaption`，在卡片顶部增加标题条（复用 `code.paddingBlock` / `code.paddingInline`、`text.secondaryColor` / `text.secondaryFontSize` 与等宽字体），标题下的 1px 分隔线由 `code.captionDivider` 控制，可用实线、虚线或隐藏。颜色缺省跟随 `borderColor`，旧主题缺少该组时继续用边框色实线。主题用 `pre`、`.code-block` / `.code-block figcaption` 覆盖。预览与导出均保留代码块横向滚动；导出把代码按行拆成 `width: max-content` 的块，`code` 撑到最宽行使滚动条落在 `pre` 底部，空格用不可折叠空格，`pre` 及其子元素豁免微信全局 `max-width`，微信保存后触摸滑动是否保留待实机复核，若被裁切再改为自动换行。导出的引用块使用 section 承载同样的内联样式，避免微信叠加 blockquote 默认左条；预览仍使用 blockquote。正文表格在预览与导出中由 `figure.table-scroll` 承担 1px `borderColor` 外框与代码块圆角。一至两列表格铺满容器并允许换行；三列及以上的表格额外标记 `table-scroll-wide`，按内容自然宽度排布，用 `min-width: 100%` 在内容较少时铺满容器，单元格限制在 `5em` 至 `18em`，超长内容在单元格内换行。内容放得下时不出现滚动条，放不下时在边框内显示原生横向滚动条。
+应用维护一份 `base.css`，覆盖正文默认排版、引用、代码、表格、图片、分割线与微信安全属性；行内代码与表格按正文 0.875 倍取字号，代码块与引用使用各自字号 token，其余样式只引用 token 变量。正文代码块统一使用 `borderColor` 外框、`code.borderStyle` 边框样式与 `code.borderRadius` 圆角；带标题的代码块使用 `figure.code-block` + `figcaption`，在卡片顶部增加标题条（复用 `code.paddingBlock` / `code.paddingInline`、`text.secondaryColor` / `text.secondaryFontSize` 与等宽字体），标题下的 1px 分隔线由 `code.captionDivider` 控制，可用实线、虚线或隐藏。颜色缺省跟随 `borderColor`，旧主题缺少该组时继续用边框色实线。主题用 `pre`、`.code-block` / `.code-block figcaption` 覆盖。预览与导出均保留代码块横向滚动；导出把代码按行拆成 `width: max-content` 的块，`code` 撑到最宽行使滚动条落在 `pre` 底部，空格用不可折叠空格，`pre` 及其子元素豁免微信全局 `max-width`，微信保存后的触摸滑动见 [兼容性清单](wechat-checklist.md)。导出的引用块使用 section 承载同样的内联样式，避免微信叠加 blockquote 默认左条；预览仍使用 blockquote。正文表格在预览与导出中由 `figure.table-scroll` 承担 1px `borderColor` 外框与代码块圆角。一至两列表格铺满容器并允许换行；三列及以上的表格额外标记 `table-scroll-wide`，按内容自然宽度排布，用 `min-width: 100%` 在内容较少时铺满容器，单元格限制在 `5em` 至 `18em`，超长内容在单元格内换行。内容放得下时不出现滚动条，放不下时在边框内显示原生横向滚动条。
 
 标题中的 `strong` 和 `b` 继承标题字重和颜色。图注紧跟图片或带链接的图片时，两者相隔 8px，`image.marginBottom` 用于图注下方。
 
@@ -393,10 +263,8 @@ my-theme.article-theme
 }
 ```
 
-- 内置主题与自定义主题共用同一结构。当前内置「雾紫」（id `default`）、「书卷」（id `shujuan`）与「青瓷」（id `qingci`），均为只读。发布后的视觉升级通过新增 id 保留旧版本。三套主题均显式写入代码块背景，且均未设置页面背景。雾紫与青瓷的页面内距为 40/0/40/0，书卷为 32/0/40/0；左右内距默认 0，只表达额外的页面缩进。预览画布在四边内距之外固定加 20px 平台左右留白，模拟公众号阅读页；导出外层原样输出 token 内距，左右基础留白由微信正文提供，默认不会重复叠加。三套主题的标题分两层：正文 H1 与 H2 同样式，H3 至 H6 统一为 16px 子标题样式。雾紫与青瓷的 H1、H2 使用 700 字重，其余标题用 600；书卷六级标题均用 600。青瓷的正文色为 `#2f2f2f`，标题色为 `#262626`，次级文字为 `#666666`；H1、H2 通过 token 使用 `#8fae96` 竖条，引用、代码块、行内代码与表头共享 `#f1f5f2` 浅苔底色，边框与线条使用同族浅绿 `#d4e0d6` / `#d3e0d6`。书卷通过 `&` 根规则使用衬线字族；正文 `#221e1b`、标题 `#1e1a18`、次级文字 `#5f564e`，保持暖棕色系。内置主题按主题分文件放在 `src/renderer/src/theme/presets/`（`default.ts`、`shujuan.ts`、`qingci.ts`，`index.ts` 汇总）。主进程做冲突校验所需的保留 id 和名称放在 `src/shared/builtin-themes.ts`，由测试用例校验两边一致。
-- 自定义主题导入后，token 与 CSS 存入本地 SQLite；同一 id 或内置 id 已存在时拒绝导入。导入后的自定义主题可原地编辑，也可另存为或新建。
-- 导出主题时把当前 token 和 CSS 重新打包成同样的 zip；内置主题导出时 token 的 `builtin` 置为 false，导入后成为普通自定义主题。不导出文章内容。
-- 自定义主题只允许 CSS 与 token，不允许注入 HTML 或脚本。
+- 导入会校验主题包与 `tokenVersion`，拒绝不受支持的版本或与已有主题冲突的 id。成功后新增一条自定义主题记录，当前文章继续使用原主题。
+- 设置页可以导出自定义主题。需要导出内置主题时，先另存为自定义主题再导出。包内保存 token 与 CSS，序列化时将 `builtin` 设为 `false`。
 
 ## 预览与导出
 
@@ -414,30 +282,16 @@ export:
 
 - 预览不解析 `var()`，直接用浏览器变量。
 - 导出必须把所有 `var(--theme-*)` 替换成具体值，再交给 juice；juice 不解析 CSS 变量。
-- 预览和复制使用当前文章选中的已落库主题；配置页的示例预览使用编辑草稿，保存后回到文章自然加载。
-- 导出前仍执行正文归一：去重复首标题、清引用末段距、外链降级。
 - 预览注入时统一加 `.article-body` 作用域；导出由 juice 直接作用于正文子树。
-- 页面四内边距由 `page.padding*` 控制：预览作用于 `.article-body` 的 padding 与外层宽度，导出写入外层 section 的 padding。
+- 预览把 `page.padding*` 应用到 `.article-body`，左右各加 20px 模拟公众号的基础留白。导出只把 token 内边距写入外层 `section`，基础留白由微信提供。
 - 页面背景由 `page.backgroundColor` 控制：设置时预览作用在 `.article-body` 并至少铺满阅读区，导出写入外层 section 的 `background-color`；未设置时不写背景，保留宿主深色模式。
 
 ## 正文结构与导出边界
 
 ```text
-任意来源页面 HTML
+Article.html 语义快照（由提取管线生成）
         |
-        v
-站点 profile（微信 / MDN / Node.js / Josh / Rspress 特判）
-        |  data-src 映射、隐藏容器解锁、站点组件删除
-        v
-Readability 提取正文（正文不足 200 字视为非文章页）
-        |
-        v
-DOMPurify 白名单（语义标签 + 静态 SVG；style 只保留在 SVG 上）
-        |
-        v
-Article.html 语义快照（落库，按文章冻结）
-        |
-        +-- normalize：去重复标题 / 表格包滚动容器 / 引用末段距
+        +-- normalize：去重复标题 / 表格包滚动容器 / 清引用末段距
         +-- highlight：代码高亮
         |
         +--------------------------+
@@ -450,15 +304,13 @@ Article.html 语义快照（落库，按文章冻结）
    手机预览                    公众号 HTML
 ```
 
-不同来源在提取阶段被归一成同一套语义结构，后续换主题、预览与导出都基于这份快照；原始页面的布局、class 样式和交互组件不进入快照。预览与导出共享归一与高亮，但各自做目标投影，所以语义和文本一致、DOM 不完全相同。
+预览与导出都读取 [提取与净化](design.md#提取与净化)生成的 `Article.html`。两端共用 `normalizeArticleDom` 与代码高亮。归一时清除引用末段的段后距，避免与引用块内边距叠加。导出将正文外链转为普通文本，来源地址由预览工具栏展示。
 
 **快照边界**
 
 - 提取阶段的规则——Readability 正文判定、站点 profile、标签与属性白名单、SVG 内联、Rspress 代码块归一——在抓取时写入 `Article.html`；之后修改这些规则只影响新抓取的文章，旧快照保持原样，不自动迁移或重写。
 - 渲染与导出阶段的规则——`normalizeArticleDom`、语法高亮、引用转 section、列表包 p、代码逐行拆块、微信属性过滤、SVG 表现属性提升——在读取快照时执行，对所有文章生效，且不改写快照。
-- 主题 token 与 theme.css 变更对所有文章生效，不需要重新提取。
-- 判断一条规则属于哪一层，标准是它是否写入 `Article.html`。
-- 旧文章需要新结构时，通过重新抓取或显式刷新快照完成，而不是数据库迁移。
+- 旧文章需要应用新提取规则时，使用「重新提取」更新快照。
 
 **内容覆盖**
 
@@ -477,7 +329,7 @@ Article.html 语义快照（落库，按文章冻结）
 | 富文本内联样式（彩色提示、标注）                                         | 丢失          | 非 SVG 的 `style` 不保留，只按主题排版             |
 | 脚注与目录锚点                                                           | 不完整        | `sup` 保留，但外链降级为文本，锚点不可点击         |
 | 懒加载图片                                                               | 仅微信适配    | 其他站点依赖 `src`，`data-src` 不映射              |
-| 深色模式                                                                 | 未适配        | 依赖微信客户端处理，尚未实机验收                   |
+| 深色模式                                                                 | 未适配        | 依赖微信客户端处理，见兼容性清单                   |
 
 **当前非目标**
 
@@ -486,48 +338,14 @@ Article.html 语义快照（落库，按文章冻结）
 
 ## 存储
 
-文章只保存 `theme_id`。`themes` 表保存：
-
-| 字段              | 用途                                              |
-| ----------------- | ------------------------------------------------- |
-| `id`              | 主题 id，全局唯一；不能与内置主题 id 冲突         |
-| `name`            | 显示名，可改名                                    |
-| `token`           | 该主题的 token                                    |
-| `css`             | theme.css 全文                                    |
-| `token_version`   | token 接口版本，当前为 1                          |
-| `source_theme_id` | 来源主题 id，可空；只作血缘记录，不参与渲染与导出 |
-| `sort`            | 自定义主题排序                                    |
-| `created_at`      | 主题创建时间                                      |
-| `updated_at`      | 最近修改时间；编辑内容、改名与排序会更新此字段    |
-
-`source_theme_id` 在从主题包直接导入、来源主题已被删除或新建时未指定来源时为空；来源可以是内置主题 id，因此不做外键，删除来源主题时由应用把引用置空。它只回答「这个主题从哪个主题调整而来」，预览、复制与导出都不读取该字段。
-
-内置主题不写入 `themes`，继续由代码提供且只读。自定义主题的 token 与 CSS 进库，通过 `updateTheme` 原地更新；另存为与新建通过 `createTheme` 生成新行。删除主题前检查 `articles.theme_id` 引用：有引用时拒绝删除或要求先迁移文章，不静默回退。
+渲染与导出按文章的 `theme_id` 解析主题。主题字段、名称约束和删除规则见 [本地存储](local-store.md#themes)。
 
 ## 设置页与主题管理
 
-- 主题管理在独立的 `/settings` 布局：左侧设置导航（当前只有主题管理），右侧是主题列表与配置页；文章页的主题下拉只负责选择与打开主题管理。
-- 列表页分内置与自定义：内置只读，只能另存为；自定义可编辑（含改名）、另存为、导出与删除；顶部提供新建与导入。
-- 主题名称全局唯一（含内置主题，不区分英文大小写）；新建、另存为、导入或改名遇到重名时拒绝，并保留表单内容。
-- 配置页左侧是固定示例文章预览，右侧是 token 控件；示例文章覆盖标题、正文、列表、引用、行内代码、代码块、表格、图片、图注、上下标与分割线，改动实时反映。
-- 配置页顶部工具栏放返回、标题与保存状态；主题名称在右侧检查器顶部，取消/保存固定在检查器底部，中间从 tab 开始；另存为从主题列表操作。
+- 文章页的主题下拉用于选择主题和打开主题管理。主题列表按内置与自定义分组，顶部有新建与导入入口，另存为从列表发起。自定义主题另外提供编辑、导出和删除。
+- 配置页左侧是示例文章，覆盖标题、正文、列表、引用、行内代码、代码块、表格、图片、图注、上下标与分割线。右侧检查器依次是主题名称、分组控件和固定于底部的取消与保存。
+- 顶部工具栏显示返回、标题与保存状态。打开另存为或新建时，底部主操作为「创建主题」。名称冲突时保留表单内容并提示。
 - 控件偏离打开编辑器时的保存值时提供恢复入口：有右对齐值的字段在值左侧显示重置图标，分段与复选框放在标签行右侧；代码块背景保留「重置」清空为跟随语法主题，保存值本身带背景色时额外显示恢复图标。恢复只影响该字段。
 - 颜色行不常驻显示色值；点击色块打开取色弹层，使用 `@uiw/react-color` 的 Sketch，含饱和度/色相、3/6 位 Hex 与 RGB 输入；关闭 alpha，只产生不透明 hex。
 - 正文色与标题色对白底、引用背景色、行内代码背景色、表头背景色，以及次级文字色与白底的对比度低于 4.5:1 时，在该行说明位显示最低的一对与具体比值，不增加行高、不阻止保存；装饰色与代码语法色不参与校验。
 - 颜色与数值控件的说明通过 `aria-describedby` 关联到输入，读屏会同时读出用途说明和对比度提示。
-- 配置页不读取当前文章，也不做跨页同步；保存后返回文章时 Preview 重新挂载并加载已落库主题。
-- 自定义主题编辑保存原地更新，所有引用文章同步换样；另存为/新建生成新主题但不自动切换当前文章，应用仍走文章页主题下拉。
-- 内置主题不提供编辑入口；从内置另存为时配置页只提供「另存为新主题」。
-- 未保存离开配置页或设置页时提示丢弃。
-- 面板不提供逐元素 margin/padding/border 编辑，也不提供 CSS 编辑器。
-- 自定义主题通过导入/导出主题包完成；导入只创建新主题，不覆盖已有 id 或内置 id。
-
-## 风险与待确认
-
-- 原地编辑当前主题会同步所有引用文章，历史文章样式会随主题更新；这是明确选择的行为，编辑前需确认理解。
-- 内置主题升级必须新增 id，旧 id 保留；否则历史文章会换样。
-- 删除被文章引用的主题必须拒绝或先迁移文章，不做静默回退。
-- 主题 CSS 的静态校验成本较高；v1 先限定最小选择器与属性集合，后续按需求扩展。
-- 自定义主题 CSS 可能破坏微信兼容性；导入时 fail-closed，运行时不静默修正。
-- `tokenVersion` 用于接口升级；版本不匹配的主题包拒绝导入。
-- 主题是否允许新增 HTML 包装结构：当前方案不允许，只允许 CSS；如果以后要支持布局模板，需要单独设计 HTML 模板契约。
