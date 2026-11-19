@@ -1,1 +1,65 @@
-[]
+[
+  {
+    "version": "0.2.0",
+    "version_type": "minor",
+    "source_sha": "13b5a45520fee9037ccbf3d1642bfd1b44653414",
+    "notes": {
+      "zh-CN": [
+        "应用已更名为落纸并调整内部标识。",
+        "启动窗口可自动适应屏幕工作区。",
+        "侧边栏支持折叠、状态共享、全屏及底部操作区。",
+        "新增可折叠侧边栏状态、动画、工具提示及快捷键。",
+        "更新主页输入框文案、禁用状态及聚焦光晕并添加名称来源脚注。",
+        "优化壳层调色板与侧边栏密度。",
+        "优化预览体验与本地存储机制。",
+        "微信导出中的代码块保持单行不换行并支持底部滚动条。",
+        "微信导出中的代码块保留空格及宽度设置。",
+        "调整主题边距，将平台页面边距与主题内边距分离。",
+        "优化微信导出中的引用及列表结构。",
+        "优化表格滚动条及三列以上表格的显示效果。",
+        "新增页面背景色及页面标签颜色控制。",
+        "增强微信导出的 SVG 样式及尺寸。",
+        "青瓷主题标识及文本层颜色已更新。",
+        "太清主题的辅助背景填充色已更新。",
+        "标题样式已拆分为标题与副标题层级。",
+        "更新秋日夕阳插图。",
+        "更新书卷预设样式并刷新样本预览。",
+        "支持主题 CSS 的根规则。",
+        "优化面板布局与手机预览样机。",
+        "新增字号控制及内置主题优化。",
+        "新增丹霞预设并精简本地存储。",
+        "扩展主题令牌并优化编辑器布局。",
+        "优化主题编辑器控件及预览效果。",
+        "新增带有可编辑自定义主题的主题设置。"
+      ],
+      "en": [
+        "Renamed the application to Luozhi and adjusted internal identifiers.",
+        "Fit the startup window to the screen work area.",
+        "Supported collapsible sidebars with state sharing, fullscreen, and a footer action area.",
+        "Added sidebar collapse state, animation, tooltip, and shortcut.",
+        "Refined the home input copy, disabled state, and focus halo, and added the name's origin footnote.",
+        "Refined the shell palette and sidebar density.",
+        "Refined the preview experience and local store.",
+        "Kept WeChat code blocks on one line with bottom scrollbars.",
+        "Preserved spaces and widths in WeChat code export.",
+        "Split platform page margins from theme padding.",
+        "Hardened WeChat structures for quotes and lists.",
+        "Improved table scrolling for wide tables.",
+        "Added page background color and page-tab color control.",
+        "Hardened SVG export styles and sizes for WeChat.",
+        "Updated Qingci theme ID and text layer colors.",
+        "Updated auxiliary surface fill colors for the Taiqing theme.",
+        "Split headings into title and subtitle tiers.",
+        "Refined the autumn sunset illustration.",
+        "Refined the Shujuan preset and refreshed the sample preview.",
+        "Supported theme CSS root rules.",
+        "Refined panel layout and phone preview mockup.",
+        "Added font size controls and refined built-in themes.",
+        "Added the Danxia preset and streamlined local storage.",
+        "Expanded theme tokens and refined editor layout.",
+        "Refined theme editor controls and preview.",
+        "Added theme settings with editable custom themes."
+      ]
+    }
+  }
+]
