@@ -1,1 +1,19 @@
-[]
+[
+  {
+    "version": "0.1.0",
+    "version_type": "minor",
+    "source_sha": "f83324d5b565d11b3a6a04f5c3a591c1cdca05ad",
+    "notes": {
+      "zh-CN": [
+        "实现了初始版本。",
+        "修复了 Mac 平台应用显示名称的本地化问题。",
+        "修复了历史记录错误状态的问题。"
+      ],
+      "en": [
+        "Added the initial release.",
+        "Fixed the localization of the app display name on Mac.",
+        "Fixed the history error state."
+      ]
+    }
+  }
+]
