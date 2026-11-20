@@ -26,6 +26,15 @@ mac:
     - zip
   entitlementsInherit: build/entitlements.mac.plist
   notarize: false
+  extendInfo:
+    CFBundleDevelopmentRegion: zh-Hans
+  extraResources:
+    - from: build/lproj/zh-Hans.lproj
+      to: zh-Hans.lproj
+    - from: build/lproj/zh_CN.lproj
+      to: zh_CN.lproj
+    - from: build/lproj/en.lproj
+      to: en.lproj
 linux:
   target:
     - AppImage

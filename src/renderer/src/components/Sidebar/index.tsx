@@ -98,7 +98,11 @@ export const Sidebar = (props: SidebarProps) => {
 
       <nav className="min-h-0 flex-1 overflow-y-auto px-2 pb-4" aria-label="最近文章">
         {!ready && <p className="px-3 py-6 text-body text-ink-soft">正在读取历史…</p>}
-        {ready && error && <p className="px-3 py-6 text-body text-danger">{error}</p>}
+        {ready && error && (
+          <p role="alert" className="px-3 py-8 text-center text-body text-danger">
+            {error}
+          </p>
+        )}
         {ready && !error && items.length === 0 && (
           <p className="px-3 py-8 text-center text-body text-ink-soft">暂无记录</p>
         )}
