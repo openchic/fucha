@@ -1,1 +1,15 @@
-[]
+[
+  {
+    "version": "0.1.0",
+    "version_type": "minor",
+    "source_sha": "b870b0033594421ac11cd735995fb54bcaa3267f",
+    "notes": {
+      "zh-CN": [
+        "完成了初次发布。"
+      ],
+      "en": [
+        "Added initial release."
+      ]
+    }
+  }
+]
