@@ -1,8 +1,7 @@
 [
   {
     "version": "0.1.0",
-    "version_type": "minor",
-    "source_sha": "f83324d5b565d11b3a6a04f5c3a591c1cdca05ad",
+    "published_at": "2026-11-20T12:43:36.320Z",
     "notes": {
       "zh-CN": [
         "实现了初始版本。",
@@ -14,6 +13,23 @@
         "Fixed the localization of the app display name on Mac.",
         "Fixed the history error state."
       ]
+    },
+    "assets": {
+      "macos": {
+        "name": "fucha-0.1.0-macos.dmg",
+        "size": 209254498,
+        "sha256": "465203f996e618cef4ad9dd2a9c2951a51268abe32881f8bc7b5849422339031"
+      },
+      "windows": {
+        "name": "fucha-0.1.0-windows-x64.exe",
+        "size": 104787064,
+        "sha256": "e9864fe46fce0c9cd19af625c379e0b7d648104bd5076d703cf32765f488690e"
+      },
+      "linux": {
+        "name": "fucha-0.1.0-linux-x64.AppImage",
+        "size": 119814503,
+        "sha256": "eca5a4f9e0651892cd24d4eea3b86acc6de499b8901d70da5d61e6d65df83595"
+      }
     }
   }
 ]
