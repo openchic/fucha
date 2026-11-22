@@ -94,23 +94,30 @@ function installApplicationMenu(): void {
   Menu.setApplicationMenu(
     Menu.buildFromTemplate([
       {
-        label: app.name,
+        label: '浮槎',
         submenu: [
-          { label: '关于浮槎', click: showAboutWindow },
+          { label: '关于', click: showAboutWindow },
           { type: 'separator' },
-          { role: 'services' },
-          { type: 'separator' },
-          { role: 'hide' },
-          { role: 'hideOthers' },
-          { role: 'unhide' },
-          { type: 'separator' },
-          { role: 'quit' },
+          { role: 'hide', label: '隐藏' },
+          { role: 'quit', label: '退出' },
         ],
       },
-      { role: 'fileMenu' },
-      { role: 'editMenu' },
-      { role: 'viewMenu' },
-      { role: 'windowMenu' },
+      {
+        label: '窗口',
+        submenu: [
+          { role: 'minimize', label: '最小化' },
+          { role: 'zoom', label: '缩放' },
+          { type: 'separator' },
+          {
+            label: '切换全屏',
+            accelerator: 'Control+Command+F',
+            click: () => {
+              const window = BrowserWindow.getFocusedWindow() ?? BrowserWindow.getAllWindows()[0]
+              if (window) window.setFullScreen(!window.isFullScreen())
+            },
+          },
+        ],
+      },
     ])
   )
 }
