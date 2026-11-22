@@ -14,7 +14,8 @@
     "noEmit": true,
     "jsx": "react-jsx",
     "types": [
-      "node"
+      "node",
+      "electron-vite/node"
     ],
     "baseUrl": ".",
     "paths": {

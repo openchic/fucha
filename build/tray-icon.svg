@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="-36 -31 72 62" preserveAspectRatio="xMidYMid meet">
+  <defs>
+    <path id="ripple" d="M -33 12 C -33 6 -34 -1 -34 -8 A 16 16 0 0 1 -18 -24 C -12 -24 -8 -23 -3 -23 A 3 3 0 0 1 -3 -17 C -8 -17 -12 -16 -18 -16 A 8 8 0 0 0 -26 -8 C -26 -1 -27 6 -27 12 A 3 3 0 0 1 -33 12 Z"/>
+  </defs>
+  <g fill="#000000" transform="rotate(-32)">
+    <path transform="scale(.86 1)" d="M -19 -8 L 19 -6 Q 23 -5.8 23 -2 L 23 2 Q 23 5.8 19 6 L -19 8 Q -23 8.2 -23 4 L -23 -4 Q -23 -8.2 -19 -8 Z"/>
+    <use href="#ripple"/>
+    <use href="#ripple" transform="rotate(180)"/>
+  </g>
+</svg>

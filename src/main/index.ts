@@ -1,9 +1,12 @@
 import { join } from 'path'
-import { app, shell, BrowserWindow, screen } from 'electron'
+import { app, shell, BrowserWindow, Menu, nativeImage, screen } from 'electron'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
+import { showAboutWindow } from './about'
 import { initLocalStore } from './db'
 import { registerAppProtocol, registerIpcHandlers, serveAppProtocol } from './ipc'
+import { createTray } from './tray'
 import { fitWindowSize } from './window-size'
+import appIconPath from '../../resources/app-icon.png?asset'
 
 registerAppProtocol()
 
@@ -75,8 +78,52 @@ function createWindow(): void {
   }
 }
 
+function showOrCreateMainWindow(): void {
+  const [mainWindow] = BrowserWindow.getAllWindows()
+  if (!mainWindow) {
+    createWindow()
+  } else {
+    if (mainWindow.isMinimized()) mainWindow.restore()
+    mainWindow.show()
+    mainWindow.focus()
+  }
+  app.focus({ steal: true })
+}
+
+function installApplicationMenu(): void {
+  Menu.setApplicationMenu(
+    Menu.buildFromTemplate([
+      {
+        label: app.name,
+        submenu: [
+          { label: '关于浮槎', click: showAboutWindow },
+          { type: 'separator' },
+          { role: 'services' },
+          { type: 'separator' },
+          { role: 'hide' },
+          { role: 'hideOthers' },
+          { role: 'unhide' },
+          { type: 'separator' },
+          { role: 'quit' },
+        ],
+      },
+      { role: 'fileMenu' },
+      { role: 'editMenu' },
+      { role: 'viewMenu' },
+      { role: 'windowMenu' },
+    ])
+  )
+}
+
 app.whenReady().then(() => {
   electronApp.setAppUserModelId(APP_ID)
+  if (process.platform === 'darwin') {
+    if (IS_DEVELOPMENT) {
+      const icon = nativeImage.createFromPath(appIconPath)
+      if (!icon.isEmpty()) app.dock?.setIcon(icon)
+    }
+    installApplicationMenu()
+  }
   const localStore = initLocalStore()
   if (!localStore.available) {
     console.error(`[local-store] ${localStore.error ?? '数据库不可用'}`)
@@ -89,9 +136,10 @@ app.whenReady().then(() => {
   })
 
   createWindow()
+  if (process.platform === 'darwin' && !HIDDEN_WINDOW) createTray(showOrCreateMainWindow)
 
   app.on('activate', () => {
-    if (BrowserWindow.getAllWindows().length === 0) createWindow()
+    showOrCreateMainWindow()
   })
 })
 
