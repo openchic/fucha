@@ -1,8 +1,7 @@
 [
   {
     "version": "0.1.0",
-    "version_type": "minor",
-    "source_sha": "207ecd42423db13dad7c25dd7420c38e27c17792",
+    "published_at": "2026-11-22T08:16:33.000Z",
     "notes": {
       "zh-CN": [
         "恢复了 macOS 端打包后的中文显示名称。",
@@ -18,6 +17,23 @@
         "Localized the application display name and refined the history error state on macOS.",
         "Completed the initial release."
       ]
+    },
+    "assets": {
+      "macos": {
+        "name": "fucha-0.1.0-macos.dmg",
+        "size": 209279704,
+        "sha256": "831b92643bb1a0aa1c0a4965f954f2cfd735e8d9896abe9264da22f4aec77eb2"
+      },
+      "windows": {
+        "name": "fucha-0.1.0-windows-x64.exe",
+        "size": 104804891,
+        "sha256": "c9edd6a267d0f6757b8cb772ea0313d344cdc296f145e9b7f5daab0f2aef3f31"
+      },
+      "linux": {
+        "name": "fucha-0.1.0-linux-x64.AppImage",
+        "size": 119831090,
+        "sha256": "b8757a47cbf56a6eef05d44bdad66884fa6d6ab66f3e4cb3dcb63619d46903a9"
+      }
     }
   }
 ]
