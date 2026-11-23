@@ -36,3 +36,5 @@
 
 - [x] 6.1 托盘「关于」调用 `app.showAboutPanel()`，通过 `app.setAboutPanelOptions()` 设置名称与版本；删除自绘 About 窗口，并在真实开发窗口确认「浮槎 Dev」与 Electron 图标
 - [x] 6.2 将独立 macOS 开发包配置、构建模式、命令和输出目录统一改为 `dev`，同步 README、发布说明、数据目录文档与主规格
+- [x] 6.3 修复原生 About 面板重复显示应用版本与构建版本的问题，保留应用版本并显式清空构建版本；主进程类型检查通过
+- [x] 6.4 在普通 `pnpm dev` 的原生 About 面板确认版本只显示一次

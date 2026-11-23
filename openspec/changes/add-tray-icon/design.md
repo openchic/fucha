@@ -57,7 +57,7 @@ e2e 以 `--hidden-window` 参数连续拉起多个实例（`tests/e2e/fixtures.t
 
 菜单采用原生 NSMenu 并按参考版式分组：「打开」一组，分隔线后为「关于」「退出 ⌘Q」。退出项显式设置 `Command+Q` accelerator 显示快捷键提示。菜单项只用动作词，不重复品牌名；tooltip 使用应用显示名，正式版为「浮槎」、开发版为「浮槎 Dev」。
 
-「关于」使用 macOS 原生 About 面板，通过 `app.setAboutPanelOptions()` 设置应用名称与版本。面板图标来自应用包：`pnpm dev` 运行 Electron.app，因此显示 Electron 图标；打包版使用应用包内的品牌图标。接受本地开发的图标差异，删除自绘 BrowserWindow 实现。开发版仍用 `app.dock.setIcon()` 换成品牌图标；顶部应用菜单在 macOS 重建为中文精简菜单（见决策 7）。
+「关于」使用 macOS 原生 About 面板，通过 `app.setAboutPanelOptions()` 设置应用名称与版本。macOS 会在应用版本后追加应用包中的构建版本，因此显式将 `version` 设为空字符串，避免版本重复。面板图标来自应用包：`pnpm dev` 运行 Electron.app，因此显示 Electron 图标；打包版使用应用包内的品牌图标。接受本地开发的图标差异，删除自绘 BrowserWindow 实现。开发版仍用 `app.dock.setIcon()` 换成品牌图标；顶部应用菜单在 macOS 重建为中文精简菜单（见决策 7）。
 
 底色与宽度不由应用设置：原生菜单底色跟随系统外观（参考图的深色即系统深色菜单材质），宽度由最长菜单项决定。不为了凑宽加入本应用没有的入口；若要固定宽度或自定义底色，只能换成自绘 HTML 菜单，代价是失去原生键盘导航、辅助功能与系统材质，本次不做。
 

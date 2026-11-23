@@ -132,6 +132,7 @@ app.whenReady().then(() => {
     app.setAboutPanelOptions({
       applicationName: APP_DISPLAY_NAME,
       applicationVersion: app.getVersion(),
+      version: '',
     })
     if (IS_DEVELOPMENT) {
       const icon = nativeImage.createFromPath(appIconPath)

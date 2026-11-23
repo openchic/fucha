@@ -37,6 +37,13 @@ macOS 菜单栏常驻一枚应用图标，让关窗后仍在运行的应用有�
 - **WHEN** 用户点击「关于」
 - **THEN** 打开 macOS 原生 About 面板，展示应用名称与版本；图标来自应用包，因此 `pnpm dev` 显示 Electron 图标，打包版显示应用图标
 
+#### Scenario: About 版本号只显示一次
+
+- **WHEN** macOS 原生 About 面板展示应用版本
+- **THEN** 只显示一次应用版本，不附加应用包中的构建版本号
+
+原生 About 面板当前重复显示相同版本号，是因为应用设置了 `applicationVersion`，但未显式设置 `version`；macOS 随后从应用包读取构建版本并追加显示。处理时 SHALL 保留原生 About 面板、显示应用版本，并显式清空构建版本。
+
 #### Scenario: 不提供额外动作
 
 - **WHEN** 菜单展开
