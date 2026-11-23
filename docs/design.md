@@ -10,7 +10,7 @@
 
 浮槎，读音 fú chá。出自晋代张华《博物志》：天河与海相通，海边有人年年八月见浮槎往来，从不错期。取「从此岸渡到彼岸」之意，把一篇文章从它原本所在的地方，渡到它要去的地方。
 
-正式安装包与单独打包的开发版均使用 `fucha` 作为应用包与主可执行文件名；正式版显示为「浮槎」，开发版显示为「浮槎 Dev」。Bundle ID 分别为 `com.ls63cc.fucha` 和 `com.ls63cc.fucha.dev`；`pnpm dev` 继续运行 Electron.app，本地开发窗口、原生 About 面板名称和托盘提示显示「浮槎 Dev」，About 图标、Dock 与 macOS 原生应用标签沿用 Electron 运行时图标和名称。开发运行与开发版安装包共用开发版 [数据目录](local-store.md#存储边界)，与正式版隔离。macOS 的基础 `CFBundleDisplayName` 匹配 `fucha.app`，`CFBundleName` 保持与 electron-builder 的产品名一致，本地化名称由各版本随包的 `InfoPlist.strings` 提供。
+正式安装包与单独打包的开发版均使用 `fucha` 作为应用包与主可执行文件名；正式版显示为「浮槎」，开发版显示为「浮槎 Dev」。Bundle ID 分别为 `com.ls63cc.fucha` 和 `com.ls63cc.fucha.dev`；`pnpm dev` 继续运行 Electron.app，本地开发窗口、原生 About 面板名称和托盘提示显示「浮槎 Dev」，About 图标、Dock 与 macOS 原生应用标签沿用 Electron 运行时图标和名称。开发运行与开发版安装包共用开发版 [数据目录](local-store.md#存储边界)，与正式版隔离。macOS 的 `CFBundleDisplayName` 与 `CFBundleName` 均跟随 electron-builder 的产品名，正式版为「浮槎」、开发版为「浮槎 Dev」；应用包目录和主可执行文件仍为 `fucha`，本地化名称由各版本随包的 `InfoPlist.strings` 提供。
 
 图标用斜放的浮木和两道水纹表现「渡」。槎字生僻，README 标题标注读音。图形见 [SVG 源文件](../build/macos-icon.svg)。
 

@@ -27,10 +27,12 @@
 ## 5. 应用文件名与显示名
 
 - [x] 5.1 正式版与开发版的包名、主可执行文件统一为 `fucha`；正式版显示「浮槎」、开发版显示「浮槎 Dev」，保留不同 Bundle ID 与数据目录
-- [x] 5.2 macOS 基础 `CFBundleDisplayName` 匹配 `fucha.app`，保持 `CFBundleName` 与产品名一致；同步更新各版本本地化名称、菜单/关于/托盘文案、名称断言与设计文档
+- [x] 5.2 macOS `CFBundleDisplayName`、`CFBundleName` 与各版本本地化名称跟随产品名；应用包目录及可执行文件保持 `fucha`
 - [x] 5.3 重建正式版与开发版 macOS 包，核对 `.app` 目录和主可执行文件均为 `fucha`，检查两版的 Bundle ID、基础及本地化显示名称；检查 Windows / Linux 配置中的应用显示名、可执行文件名与安装包名
 - [x] 5.4 本地开发窗口、原生 About 面板和托盘提示使用「浮槎 Dev」；`pnpm dev` 保持普通 electron-vite 启动，不复制或重签 Electron.app
 - [x] 5.5 在普通 `pnpm dev` 真实窗口确认窗口与 About 名称为「浮槎 Dev」；About 图标、macOS 系统应用名保留 Electron，并保持开发进程运行
+- [x] 5.6 统一 macOS 基础与本地化显示名；已确认正式版为「浮槎」、开发版为「浮槎 Dev」，应用包目录和可执行文件仍为 `fucha`
+- [ ] 5.7 在 Spotlight 可用的 macOS 环境确认安装新包后只显示一个中文应用结果
 
 ## 6. 原生 About 面板
 

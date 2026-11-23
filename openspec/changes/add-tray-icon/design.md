@@ -73,7 +73,7 @@ macOS 顶部只保留应用名称菜单，顺序为隐藏、分隔线、最小�
 
 - `fucha` 是包名、应用包名和主可执行文件名；正式版与单独打包的开发版共用该命名。开发版仍以 Bundle ID `.dev` 和 `appData/fucha-dev` 与正式版隔离。
 - 正式版用户看到的名称为「浮槎」，开发版为「浮槎 Dev」，包括 Dock、Finder、安装包、菜单与 About 面板；`Dev` 是唯一的开发构建标识。
-- macOS 的应用包目录名为 `fucha.app`。基础 `CFBundleDisplayName` 设为 `fucha`，匹配磁盘上的包名；`CFBundleName` 保持与 electron-builder 的产品名一致，避免影响 Electron Helper 查找。`InfoPlist.strings` 为正式版提供「浮槎」，开发版提供「浮槎 Dev」。Apple [说明](https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html)：Finder 在基础显示名与包目录名相同时才采用本地化名称；原构建二者不匹配，因此回退显示目录名 `fucha`。
+- macOS 的应用包目录名与主可执行文件名均为 `fucha`。基础 `CFBundleDisplayName`、`CFBundleName` 和 `InfoPlist.strings` 均使用产品名：正式版为「浮槎」，开发版为「浮槎 Dev」。旧安装包的基础显示名为 `fucha`、本地化名称为中文，与 Spotlight 同时出现两个名称的截图相对应；统一基础与本地化显示名后，文件名仍保持 `fucha.app`。
 - electron-builder 的 `productName` 正式版为「浮槎」、开发版为「浮槎 Dev」，用于安装器及其他平台的展示；`package.json` 的 `name` 与开发版 `extraMetadata.name` 均为 `fucha`，决定应用文件和分发文件名。
 
 ### 9. 开发包统一使用 Dev 命名

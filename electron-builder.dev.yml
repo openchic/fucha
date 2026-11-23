@@ -4,6 +4,8 @@ productName: 浮槎 Dev
 directories:
   output: dist/dev
 mac:
+  extendInfo:
+    CFBundleDisplayName: 浮槎 Dev
   extraResources:
     - from: build/lproj-dev/zh-Hans.lproj
       to: zh-Hans.lproj

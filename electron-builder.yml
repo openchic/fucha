@@ -28,7 +28,7 @@ mac:
   notarize: false
   extendInfo:
     CFBundleDevelopmentRegion: zh-Hans
-    CFBundleDisplayName: fucha
+    CFBundleDisplayName: 浮槎
     LSHasLocalizedDisplayName: true
   extraResources:
     - from: build/lproj/zh-Hans.lproj
