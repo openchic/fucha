@@ -1,7 +1,6 @@
 import { join } from 'path'
 import { app, shell, BrowserWindow, Menu, nativeImage, screen } from 'electron'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
-import { showAboutWindow } from './about'
 import { initLocalStore } from './db'
 import { registerAppProtocol, registerIpcHandlers, serveAppProtocol } from './ipc'
 import { createTray } from './tray'
@@ -11,13 +10,13 @@ import appIconPath from '../../resources/app-icon.png?asset'
 registerAppProtocol()
 
 const IS_DEVELOPMENT = is.dev || process.env.APP_CHANNEL === 'development'
-const APP_NAME = IS_DEVELOPMENT ? '浮槎 Debug' : '浮槎'
+const APP_DISPLAY_NAME = IS_DEVELOPMENT ? '浮槎 Dev' : '浮槎'
 const APP_ID = IS_DEVELOPMENT ? 'com.ls63cc.fucha.dev' : 'com.ls63cc.fucha'
 const USER_DATA_DIR = join(app.getPath('appData'), IS_DEVELOPMENT ? 'fucha-dev' : 'fucha')
 // 集成测试连续拉起多个实例；隐藏窗口避免抢占焦点与反复闪窗
 const HIDDEN_WINDOW = process.argv.includes('--hidden-window')
 
-app.setName(APP_NAME)
+app.setName(APP_DISPLAY_NAME)
 if (!app.commandLine.hasSwitch('user-data-dir')) app.setPath('userData', USER_DATA_DIR)
 
 const EXTERNAL_PROTOCOLS = new Set(['http:', 'https:', 'mailto:'])
@@ -35,6 +34,7 @@ function createWindow(): void {
   const windowSize = fitWindowSize(screen.getPrimaryDisplay().workAreaSize)
   const mainWindow = new BrowserWindow({
     ...windowSize,
+    title: APP_DISPLAY_NAME,
     minWidth: 1000,
     minHeight: 700,
     show: false,
@@ -51,6 +51,16 @@ function createWindow(): void {
       preload: join(__dirname, '../preload/index.js'),
       sandbox: true,
     },
+  })
+
+  mainWindow.webContents.on('page-title-updated', (event) => {
+    event.preventDefault()
+  })
+
+  mainWindow.webContents.on('did-finish-load', () => {
+    void mainWindow.webContents.executeJavaScript(
+      `document.title = ${JSON.stringify(APP_DISPLAY_NAME)}`
+    )
   })
 
   mainWindow.on('ready-to-show', () => {
@@ -94,20 +104,12 @@ function installApplicationMenu(): void {
   Menu.setApplicationMenu(
     Menu.buildFromTemplate([
       {
-        label: '浮槎',
+        label: APP_DISPLAY_NAME,
         submenu: [
-          { label: '关于', click: showAboutWindow },
-          { type: 'separator' },
           { role: 'hide', label: '隐藏' },
-          { role: 'quit', label: '退出' },
-        ],
-      },
-      {
-        label: '窗口',
-        submenu: [
+          { type: 'separator' },
           { role: 'minimize', label: '最小化' },
           { role: 'zoom', label: '缩放' },
-          { type: 'separator' },
           {
             label: '切换全屏',
             accelerator: 'Control+Command+F',
@@ -116,6 +118,8 @@ function installApplicationMenu(): void {
               if (window) window.setFullScreen(!window.isFullScreen())
             },
           },
+          { type: 'separator' },
+          { role: 'quit', label: '退出' },
         ],
       },
     ])
@@ -125,6 +129,10 @@ function installApplicationMenu(): void {
 app.whenReady().then(() => {
   electronApp.setAppUserModelId(APP_ID)
   if (process.platform === 'darwin') {
+    app.setAboutPanelOptions({
+      applicationName: APP_DISPLAY_NAME,
+      applicationVersion: app.getVersion(),
+    })
     if (IS_DEVELOPMENT) {
       const icon = nativeImage.createFromPath(appIconPath)
       if (!icon.isEmpty()) app.dock?.setIcon(icon)
@@ -143,7 +151,9 @@ app.whenReady().then(() => {
   })
 
   createWindow()
-  if (process.platform === 'darwin' && !HIDDEN_WINDOW) createTray(showOrCreateMainWindow)
+  if (process.platform === 'darwin' && !HIDDEN_WINDOW) {
+    createTray(showOrCreateMainWindow, APP_DISPLAY_NAME)
+  }
 
   app.on('activate', () => {
     showOrCreateMainWindow()

@@ -35,12 +35,12 @@ The renderer hot-reloads; main-process and preload changes restart Electron auto
 
 ## Packaging
 
-| Platform    | Command                |
-| ----------- | ---------------------- |
-| macOS       | `pnpm build:mac`       |
-| macOS Debug | `pnpm build:mac:debug` |
-| Windows     | `pnpm build:win`       |
-| Linux       | `pnpm build:linux`     |
+| Platform  | Command              |
+| --------- | -------------------- |
+| macOS     | `pnpm build:mac`     |
+| macOS Dev | `pnpm build:mac:dev` |
+| Windows   | `pnpm build:win`     |
+| Linux     | `pnpm build:linux`   |
 
 ## Release
 
@@ -51,7 +51,6 @@ See the [release guide](docs/release.md) for the review-gated workflow, signing 
 - [Design and architecture](docs/design.md)
 - [Typography themes](docs/theme-system.md)
 - [Local storage](docs/local-store.md)
-- [Development conventions and agent rules](AGENTS.md)
 
 ## License
 

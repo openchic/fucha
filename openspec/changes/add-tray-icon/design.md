@@ -55,9 +55,9 @@ e2e 以 `--hidden-window` 参数连续拉起多个实例（`tests/e2e/fixtures.t
 
 ### 5. 菜单结构与文案固定品牌名
 
-菜单采用原生 NSMenu 并按参考版式分组：「打开」一组，分隔线后为「关于」「退出 ⌘Q」。退出项显式设置 `Command+Q` accelerator 显示快捷键提示。菜单项只用动作词，不重复品牌名；tooltip 固定为「浮槎」，不拼接开发版 `浮槎 Debug`。
+菜单采用原生 NSMenu 并按参考版式分组：「打开」一组，分隔线后为「关于」「退出 ⌘Q」。退出项显式设置 `Command+Q` accelerator 显示快捷键提示。菜单项只用动作词，不重复品牌名；tooltip 使用应用显示名，正式版为「浮槎」、开发版为「浮槎 Dev」。
 
-关于项不再使用系统面板：macOS 原生关于面板的图标只取自应用包，`iconPath` 仅支持 Linux/Windows，`app.dock.setIcon` 也不影响面板，因此改为自绘关于窗口（284×196，品牌图标 + 名称 + 版本，沙箱渲染，data URL）。开发版同时用 `app.dock.setIcon` 换成品牌图标；顶部应用菜单在 macOS 重建为中文精简菜单（见决策 7）。
+「关于」使用 macOS 原生 About 面板，通过 `app.setAboutPanelOptions()` 设置应用名称与版本。面板图标来自应用包：`pnpm dev` 运行 Electron.app，因此显示 Electron 图标；打包版使用应用包内的品牌图标。接受本地开发的图标差异，删除自绘 BrowserWindow 实现。开发版仍用 `app.dock.setIcon()` 换成品牌图标；顶部应用菜单在 macOS 重建为中文精简菜单（见决策 7）。
 
 底色与宽度不由应用设置：原生菜单底色跟随系统外观（参考图的深色即系统深色菜单材质），宽度由最长菜单项决定。不为了凑宽加入本应用没有的入口；若要固定宽度或自定义底色，只能换成自绘 HTML 菜单，代价是失去原生键盘导航、辅助功能与系统材质，本次不做。
 
@@ -65,9 +65,20 @@ e2e 以 `--hidden-window` 参数连续拉起多个实例（`tests/e2e/fixtures.t
 
 `Tray` 必须被强引用，否则可能被 GC 后图标消失。不拦截窗口 `close`，也不需要 `isQuitting` 标志：macOS 关窗本来就不退出，退出动作只来自菜单与系统菜单的 `app.quit()`。
 
-### 7. 应用菜单精简为两组
+### 7. 应用菜单合并窗口操作
 
-顶部应用菜单在 macOS 重建为两个菜单：应用菜单（关于、隐藏、退出）与窗口（最小化、缩放、切换全屏）。文件、编辑、显示整组删除，连同服务、替换、Speech、重载、开发者工具与角色注入项一起消失。切换全屏使用显式菜单项（⌃⌘F，`setFullScreen` 切换）而不是 `togglefullscreen` 角色：角色会让 macOS 再注入一个 fn F 的同名项，实测改为自定义项后窗口菜单只保留一项。编辑快捷键（⌘Z/⇧⌘Z/⌘X/⌘C/⌘V/⌘A）仍由 Chromium 在输入控件内处理，不依赖编辑菜单；⌘W 因没有关闭菜单项不再生效，窗口用红绿灯关闭。macOS 仍注入「退出并保留窗口」，应用不控制。菜单栏应用菜单标题由应用包决定：开发运行时显示 Electron，打包版显示浮槎，与 Dock 名称属于同一平台边界。
+macOS 顶部只保留应用名称菜单，顺序为隐藏、分隔线、最小化/缩放/切换全屏、分隔线、退出；托盘菜单保留唯一的「关于」入口。窗口操作集中在一起，退出置于末尾。文件、编辑、显示整组删除，连同服务、替换、Speech、重载、开发者工具与角色注入项一起消失。切换全屏使用显式菜单项（⌃⌘F，`setFullScreen` 切换）而不是 `togglefullscreen` 角色：角色会让 macOS 再注入一个 fn F 的同名项。编辑快捷键（⌘Z/⇧⌘Z/⌘X/⌘C/⌘V/⌘A）仍由 Chromium 在输入控件内处理，不依赖编辑菜单；⌘W 因没有关闭菜单项不再生效，窗口用红绿灯关闭。macOS 仍注入「退出并保留窗口」，应用不控制。打包应用的原生菜单名来自应用包；正式版为「浮槎」、独立打包的开发版为「浮槎 Dev」。`pnpm dev` 运行 Electron.app，不重命名它；本地开发窗口、原生 About 面板名称与托盘提示为「浮槎 Dev」，About 图标、Dock、Finder 与原生应用标签沿用 Electron 运行时图标和系统名称，Electron 的 `app.setName()` 不会修改这些 OS 标签。
+
+### 8. 应用文件名与显示名分离
+
+- `fucha` 是包名、应用包名和主可执行文件名；正式版与单独打包的开发版共用该命名。开发版仍以 Bundle ID `.dev` 和 `appData/fucha-dev` 与正式版隔离。
+- 正式版用户看到的名称为「浮槎」，开发版为「浮槎 Dev」，包括 Dock、Finder、安装包、菜单与 About 面板；`Dev` 是唯一的开发构建标识。
+- macOS 的应用包目录名为 `fucha.app`。基础 `CFBundleDisplayName` 设为 `fucha`，匹配磁盘上的包名；`CFBundleName` 保持与 electron-builder 的产品名一致，避免影响 Electron Helper 查找。`InfoPlist.strings` 为正式版提供「浮槎」，开发版提供「浮槎 Dev」。Apple [说明](https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html)：Finder 在基础显示名与包目录名相同时才采用本地化名称；原构建二者不匹配，因此回退显示目录名 `fucha`。
+- electron-builder 的 `productName` 正式版为「浮槎」、开发版为「浮槎 Dev」，用于安装器及其他平台的展示；`package.json` 的 `name` 与开发版 `extraMetadata.name` 均为 `fucha`，决定应用文件和分发文件名。
+
+### 9. 开发包统一使用 Dev 命名
+
+独立 macOS 开发包使用 `electron-builder.dev.yml`、`--mode dev`、`pnpm build:mac:dev` 和 `dist/dev`；README、发布说明与数据目录文档同步使用「Dev」名称。
 
 ## Risks / Trade-offs
 

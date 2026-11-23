@@ -8,7 +8,7 @@ const sharedAlias = { '@shared': resolve('src/shared') }
 export default defineConfig(({ mode }) => ({
   main: {
     define: {
-      'process.env.APP_CHANNEL': JSON.stringify(mode === 'debug' ? 'development' : 'production'),
+      'process.env.APP_CHANNEL': JSON.stringify(mode === 'dev' ? 'development' : 'production'),
     },
     resolve: {
       alias: sharedAlias,

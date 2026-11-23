@@ -1,0 +1,13 @@
+extends: ./electron-builder.yml
+appId: com.ls63cc.fucha.dev
+productName: 浮槎 Dev
+directories:
+  output: dist/dev
+mac:
+  extraResources:
+    - from: build/lproj-dev/zh-Hans.lproj
+      to: zh-Hans.lproj
+    - from: build/lproj-dev/zh_CN.lproj
+      to: zh_CN.lproj
+    - from: build/lproj-dev/en.lproj
+      to: en.lproj

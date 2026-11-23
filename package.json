@@ -12,7 +12,7 @@
     "build": "pnpm typecheck && electron-vite build",
     "build:linux": "pnpm build && electron-builder --linux --publish never",
     "build:mac": "pnpm build && electron-builder --mac --publish never",
-    "build:mac:debug": "pnpm typecheck && electron-vite build --mode debug && electron-builder --config electron-builder.debug.yml --mac --publish never",
+    "build:mac:dev": "pnpm typecheck && electron-vite build --mode dev && electron-builder --config electron-builder.dev.yml --mac --publish never",
     "build:unpack": "pnpm build && electron-builder --dir --publish never",
     "build:win": "pnpm build && electron-builder --win --publish never",
     "dev": "electron-vite dev --watch",

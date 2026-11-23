@@ -32,7 +32,7 @@ test.describe('应用启动', () => {
 
     const platform = await app.evaluate(() => process.platform)
     expect(['darwin', 'linux', 'win32']).toContain(platform)
-    expect(await app.evaluate(({ app: electronApp }) => electronApp.getName())).toBe('浮槎 Debug')
+    expect(await app.evaluate(({ app: electronApp }) => electronApp.getName())).toBe('浮槎 Dev')
   })
 
   test('渲染进程处于沙箱隔离状态', async ({ page }) => {

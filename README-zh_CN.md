@@ -35,12 +35,12 @@ pnpm dev
 
 ## 打包
 
-| 平台        | 命令                   |
-| ----------- | ---------------------- |
-| macOS       | `pnpm build:mac`       |
-| macOS Debug | `pnpm build:mac:debug` |
-| Windows     | `pnpm build:win`       |
-| Linux       | `pnpm build:linux`     |
+| 平台      | 命令                 |
+| --------- | -------------------- |
+| macOS     | `pnpm build:mac`     |
+| macOS Dev | `pnpm build:mac:dev` |
+| Windows   | `pnpm build:win`     |
+| Linux     | `pnpm build:linux`   |
 
 ## 发版
 
@@ -51,7 +51,6 @@ pnpm dev
 - [设计与架构](docs/design.md)
 - [排版主题](docs/theme-system.md)
 - [本地存储](docs/local-store.md)
-- [开发约定与 Agent 规则](AGENTS.md)
 
 ## 许可证
 

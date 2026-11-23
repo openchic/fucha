@@ -39,7 +39,7 @@ for (const { label, isPackaged, directory, otherDirectory, appName } of [
     isPackaged: false,
     directory: 'fucha-dev',
     otherDirectory: 'fucha',
-    appName: '浮槎 Debug',
+    appName: '浮槎 Dev',
   },
   {
     label: '正式版',

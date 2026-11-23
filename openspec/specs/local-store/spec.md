@@ -7,7 +7,7 @@
 
 ### Requirement: 开发版与生产版数据隔离
 
-正式打包版 SHALL 默认使用 `appData/fucha`。未打包运行和独立 Debug 打包版 SHALL 默认使用 `appData/fucha-dev`，Debug 身份由构建时确定，不依赖用户启动时的环境变量。数据库、偏好和图片缓存 SHALL 归各自的数据目录管理。启动参数 `--user-data-dir` SHALL 允许测试显式指定隔离目录。
+正式打包版 SHALL 默认使用 `appData/fucha`。未打包运行和独立 Dev 打包版 SHALL 默认使用 `appData/fucha-dev`，Dev 身份由构建时确定，不依赖用户启动时的环境变量。数据库、偏好和图片缓存 SHALL 归各自的数据目录管理。启动参数 `--user-data-dir` SHALL 允许测试显式指定隔离目录。
 
 #### Scenario: 两个版本同时运行
 

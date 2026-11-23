@@ -15,7 +15,7 @@
 
 Artifact 保留 30 天。上传 Release 失败时选择 **Re-run failed jobs**，复用成功构建的精确 Artifact ID；若最终提交和标签已存在，先核对来源与产物校验值，只补齐 Release，不重复提交或移动标签。不要重新构建后覆盖同版本的已记录安装包。
 
-本地打包不会自动发布，Debug 包不进入 Release，Windows 当前未签名。
+本地打包不会自动发布，Dev 包不进入 Release，Windows 当前未签名。
 
 ## changelogs.json
 

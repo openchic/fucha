@@ -4,7 +4,7 @@
 
 ## 存储边界
 
-- 正式版的 `userData` 为 `appData/fucha`；`pnpm dev` 和独立打包的 Debug 版均使用 `appData/fucha-dev`。两个目录各自保存数据库、缓存和偏好，`--user-data-dir` 可显式覆盖。
+- 正式版的 `userData` 为 `appData/fucha`；`pnpm dev` 和独立打包的 Dev 版均使用 `appData/fucha-dev`。两个目录各自保存数据库、缓存和偏好，`--user-data-dir` 可显式覆盖。
 - SQLite 文件为各自的 `userData/app.db`。
 - 图片字节仍存现有目录 `userData/article-cache/<hash>/`，不写入数据库。
 - 文章 `hash` 取 `SHA-256(finalUrl)` 前 32 位，与图片缓存目录同名。
