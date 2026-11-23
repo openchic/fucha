@@ -1,1 +1,21 @@
-[]
+[
+  {
+    "version": "0.1.0",
+    "version_type": "minor",
+    "source_sha": "798239e4142808d7fd832de03477973d05f36162",
+    "notes": {
+      "zh-CN": [
+        "添加了 macOS 系统的菜单栏托盘图标。",
+        "简化了 macOS 系统的应用程序菜单。",
+        "恢复了 macOS 系统打包后的中文显示名称。",
+        "统一了 macOS 系统的应用标识。"
+      ],
+      "en": [
+        "Added a menu bar tray icon on macOS.",
+        "Simplified the application menu on macOS.",
+        "Restored the Chinese packaged display name on macOS.",
+        "Unified the application identity on macOS."
+      ]
+    }
+  }
+]
