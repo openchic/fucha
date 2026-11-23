@@ -1,8 +1,7 @@
 [
   {
     "version": "0.1.0",
-    "version_type": "minor",
-    "source_sha": "798239e4142808d7fd832de03477973d05f36162",
+    "published_at": "2026-11-23T04:49:03.522Z",
     "notes": {
       "zh-CN": [
         "首次发版。"
@@ -10,6 +9,23 @@
       "en": [
         "First release."
       ]
+    },
+    "assets": {
+      "macos": {
+        "name": "fucha-0.1.0-macos.dmg",
+        "size": 209282660,
+        "sha256": "b513fccb78de8ec62b8fb2f816472bc1c68302050a3f83ef875f35a71f00c60b"
+      },
+      "windows": {
+        "name": "fucha-0.1.0-windows-x64.exe",
+        "size": 104804553,
+        "sha256": "9aea442146a960dc294aea634dc61cdf7b61ea01145717ea093fed8792bee75b"
+      },
+      "linux": {
+        "name": "fucha-0.1.0-linux-x64.AppImage",
+        "size": 119831093,
+        "sha256": "3f19d4b96921e354e3acbffc2c03e7b4fbc2ccddb883d02bf76af8854058d634"
+      }
     }
   }
 ]
