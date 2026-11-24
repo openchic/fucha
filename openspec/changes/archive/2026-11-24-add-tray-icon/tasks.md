@@ -32,7 +32,7 @@
 - [x] 5.4 本地开发窗口、原生 About 面板和托盘提示使用「浮槎 Dev」；`pnpm dev` 保持普通 electron-vite 启动，不复制或重签 Electron.app
 - [x] 5.5 在普通 `pnpm dev` 真实窗口确认窗口与 About 名称为「浮槎 Dev」；About 图标、macOS 系统应用名保留 Electron，并保持开发进程运行
 - [x] 5.6 统一 macOS 基础与本地化显示名；已确认正式版为「浮槎」、开发版为「浮槎 Dev」，应用包目录和可执行文件仍为 `fucha`
-- [ ] 5.7 在 Spotlight 可用的 macOS 环境确认安装新包后只显示一个中文应用结果
+- [ ] 5.7 在 Spotlight 可用的 macOS 环境确认安装新包后只显示一个中文应用结果（当前环境的 Spotlight 索引未返回该应用，且桌面控制无法打开搜索界面；需在 Spotlight 可用环境补验）
 
 ## 6. 原生 About 面板
 
