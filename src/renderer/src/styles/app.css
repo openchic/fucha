@@ -12,7 +12,7 @@
   body {
     font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif;
     color: var(--color-ink);
-    background: #ffffff;
+    background: var(--color-surface);
     -webkit-font-smoothing: antialiased;
   }
 

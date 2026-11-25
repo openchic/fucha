@@ -73,7 +73,7 @@ const Home = () => {
                 } as CSSProperties)
               : undefined
           }>
-          <div className="flex min-w-0 flex-1 flex-col overflow-hidden rounded-2xl bg-white shadow-panel">
+          <div className="flex min-w-0 flex-1 flex-col overflow-hidden rounded-2xl bg-surface shadow-panel">
             <Outlet />
           </div>
         </div>

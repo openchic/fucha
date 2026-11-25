@@ -104,7 +104,7 @@ const PreviewContent = ({ url, snapshotHash }: PreviewContentProps) => {
   }
 
   return (
-    <>
+    <div className="flex h-full min-h-0 min-w-0 flex-1 flex-col bg-surface">
       {state.view === 'loading' && !state.quiet && (
         <LoadingPanel stage={state.stage} onCancel={cancel} />
       )}
@@ -139,7 +139,9 @@ const PreviewContent = ({ url, snapshotHash }: PreviewContentProps) => {
               className="animate-fade-in"
             />
           ) : (
-            <div className="reading-viewport animate-fade-in min-h-0 flex-1 overflow-y-auto">
+            <div
+              data-appearance="light"
+              className="reading-viewport animate-fade-in min-h-0 flex-1 overflow-y-auto bg-surface">
               <style dangerouslySetInnerHTML={{ __html: previewCss }} />
               {/* html 已在提取或快照读取时经白名单净化 */}
               <div
@@ -151,7 +153,7 @@ const PreviewContent = ({ url, snapshotHash }: PreviewContentProps) => {
           )}
         </>
       )}
-    </>
+    </div>
   )
 }
 

@@ -259,13 +259,13 @@ const ThemeList = () => {
   )
 
   return (
-    <div className="flex h-full flex-col overflow-hidden bg-white">
+    <div className="flex h-full flex-col overflow-hidden bg-surface">
       <header className="flex flex-none">
         <div className="content-column flex max-w-[47.5rem] items-start justify-between gap-6 pt-10 pb-3">
           <div className="min-w-0">
             <h1 className="text-xl text-ink">主题管理</h1>
             <p className="mt-1 text-description leading-[1.6] text-ink-soft">
-              内置主题只读；自定义主题保存后，改动会同步到所有使用该主题的文章。
+              内置主题不可编辑。修改并保存现有自定义主题后，使用该主题的文章下次打开时会应用新样式。
             </p>
           </div>
           {SHOW_THEME_AUTHORING_ACTIONS && (

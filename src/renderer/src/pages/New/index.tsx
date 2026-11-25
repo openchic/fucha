@@ -39,7 +39,7 @@ const New = () => {
         <div className="content-column">
           <form onSubmit={handleSubmit} className="w-full min-w-0" noValidate>
             <div
-              className={`flex h-14 min-w-0 items-center gap-2.5 rounded-full border bg-white py-1.5 pr-1.5 pl-[18px] transition-colors duration-150 ease-out ${
+              className={`flex h-14 min-w-0 items-center gap-2.5 rounded-full border bg-surface py-1.5 pr-1.5 pl-[18px] transition-colors duration-150 ease-out ${
                 error
                   ? 'border-danger focus-within:border-danger'
                   : 'border-line focus-within:border-accent'

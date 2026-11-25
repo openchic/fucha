@@ -16,13 +16,13 @@ export const Tooltip = ({ label, shortcut, hidden, children }: TooltipProps) => 
       <span
         id={id}
         role="tooltip"
-        className={`pointer-events-none absolute top-full left-1/2 z-10 mt-1 -translate-x-1/2 whitespace-nowrap rounded-md bg-ink px-2 py-1 text-description leading-5 text-white ${
+        className={`pointer-events-none absolute top-full left-1/2 z-10 mt-1 -translate-x-1/2 whitespace-nowrap rounded-md bg-tooltip px-2 py-1 text-description leading-5 text-tooltip-ink ${
           hidden
             ? 'hidden'
             : 'opacity-0 transition-opacity duration-100 group-hover:opacity-100 group-has-[:focus-visible]:opacity-100'
         }`}>
         {label}
-        {shortcut && <span className="ml-1.5 text-white/60">{shortcut}</span>}
+        {shortcut && <span className="ml-1.5 opacity-60">{shortcut}</span>}
       </span>
     </span>
   )

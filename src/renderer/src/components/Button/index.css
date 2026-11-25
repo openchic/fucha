@@ -33,11 +33,11 @@
 
   .button-primary {
     background: var(--color-primary);
-    color: white;
+    color: var(--color-primary-foreground);
   }
 
   .button-primary:enabled:hover {
-    background: color-mix(in srgb, var(--color-primary) 92%, white);
+    background: color-mix(in srgb, var(--color-primary) 92%, var(--color-surface));
   }
 
   .button-secondary {
@@ -51,11 +51,11 @@
 
   .button-danger {
     background: var(--color-danger);
-    color: white;
+    color: var(--color-danger-foreground);
   }
 
   .button-danger:enabled:hover {
-    background: color-mix(in srgb, var(--color-danger) 88%, var(--color-ink));
+    background: color-mix(in srgb, var(--color-danger) 88%, var(--color-surface));
   }
 
   .button-back {

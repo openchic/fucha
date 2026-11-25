@@ -30,7 +30,12 @@ const Settings = () => {
     void leave(() => navigate('/settings/themes'))
   }
 
+  const goAppearance = (): void => {
+    void leave(() => navigate('/settings/appearance'))
+  }
+
   const themesActive = location.pathname.startsWith('/settings/themes')
+  const appearanceActive = location.pathname === '/settings/appearance'
 
   return (
     <div className="relative flex h-full overflow-hidden bg-panel">
@@ -51,7 +56,7 @@ const Settings = () => {
               返回
             </button>
           </div>
-          <nav className="mt-4 px-2" aria-label="设置">
+          <nav className="mt-4 flex flex-col gap-0.5 px-2" aria-label="设置">
             <button
               type="button"
               onClick={goThemes}
@@ -62,10 +67,25 @@ const Settings = () => {
                   : 'text-ink-soft hover:bg-raised hover:text-ink'
               }`}>
               <Icon
-                name="settings"
-                className={`h-3.5 w-3.5 flex-none ${themesActive ? 'text-accent' : ''}`}
+                name="layers"
+                className={`h-4 w-4 flex-none ${themesActive ? 'text-accent' : ''}`}
               />
               主题管理
+            </button>
+            <button
+              type="button"
+              onClick={goAppearance}
+              aria-current={appearanceActive ? 'page' : undefined}
+              className={`flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-body transition-colors ${
+                appearanceActive
+                  ? 'bg-accent-soft text-ink'
+                  : 'text-ink-soft hover:bg-raised hover:text-ink'
+              }`}>
+              <Icon
+                name="sun"
+                className={`h-4 w-4 flex-none ${appearanceActive ? 'text-accent' : ''}`}
+              />
+              外观
             </button>
           </nav>
         </aside>
@@ -79,7 +99,7 @@ const Settings = () => {
             ? ({ '--page-header-inset': fullscreen ? '24px' : '96px' } as CSSProperties)
             : undefined
         }>
-        <div className="flex min-w-0 flex-1 flex-col overflow-hidden rounded-2xl bg-white shadow-panel">
+        <div className="flex min-w-0 flex-1 flex-col overflow-hidden rounded-2xl bg-surface shadow-panel">
           <Outlet
             context={{
               themes: library.themes,

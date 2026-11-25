@@ -40,7 +40,7 @@ export const ArticleMeta = (props: ArticleMetaProps) => {
   return (
     <section
       aria-labelledby="article-title"
-      className="relative z-30 flex h-11 flex-none items-center gap-4 bg-white pr-6 pl-[calc(1.5rem+var(--page-header-inset,0px))] transition-[padding-left] duration-200 ease-out">
+      className="relative z-30 flex h-11 flex-none items-center gap-4 bg-surface pr-6 pl-[calc(1.5rem+var(--page-header-inset,0px))] transition-[padding-left] duration-200 ease-out">
       <div className="flex min-w-0 max-w-[55%] items-center gap-1.5">
         <h1
           id="article-title"

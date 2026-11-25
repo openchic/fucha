@@ -148,7 +148,7 @@ export const Popover = (props: PopoverProps) => {
       role={role}
       aria-label={ariaLabel}
       onKeyDown={onKeyDown}
-      className={`fixed z-50 rounded-xl border border-line bg-white p-1 shadow-[0_10px_30px_rgba(0,0,0,0.08)] ${origin} ${animation} ${className ?? ''}`}
+      className={`fixed z-50 rounded-xl border border-line bg-surface p-1 shadow-popover ${origin} ${animation} ${className ?? ''}`}
       style={{
         top: position?.top ?? 0,
         left: position?.left ?? 0,

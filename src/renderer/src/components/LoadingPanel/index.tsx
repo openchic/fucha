@@ -13,7 +13,7 @@ export const LoadingPanel = (props: LoadingPanelProps) => {
   const label = stage === 'request' ? '正在请求' : '正在解析'
   return (
     <div className="flex h-full min-h-0 flex-col" aria-busy="true">
-      <div className="relative z-30 flex h-11 flex-none items-center gap-4 bg-white pr-6 pl-[calc(1.5rem+var(--page-header-inset,0px))] transition-[padding-left] duration-200 ease-out">
+      <div className="relative z-30 flex h-11 flex-none items-center gap-4 bg-surface pr-6 pl-[calc(1.5rem+var(--page-header-inset,0px))] transition-[padding-left] duration-200 ease-out">
         <p role="status" className="flex min-w-0 flex-1 items-center">
           <span className="sr-only">{label}，请稍候…</span>
           <span

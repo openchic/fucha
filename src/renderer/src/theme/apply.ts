@@ -115,6 +115,12 @@ function previewCanvas(): string {
   ].join('\n')
 }
 
+/** `&` 根规则追加到根节点，保持与 base 同选择器、后写覆盖 */
+function rootDeclarationsOf(theme: ThemeDefinition): string {
+  const declarations = themeRootDeclarations(theme.css)
+  return declarations ? `\n${declarations}` : ''
+}
+
 function scopedThemeCss(theme: ThemeDefinition): string {
   const themeCss = [
     decorationCss(theme.token),
@@ -124,12 +130,6 @@ function scopedThemeCss(theme: ThemeDefinition): string {
     .filter(Boolean)
     .join('\n\n')
   return themeCss ? scopeCss(themeCss, '.article-body') : ''
-}
-
-/** `&` 根规则追加到根节点，保持与 base 同选择器、后写覆盖 */
-function rootDeclarationsOf(theme: ThemeDefinition): string {
-  const declarations = themeRootDeclarations(theme.css)
-  return declarations ? `\n${declarations}` : ''
 }
 
 /** 预览：token 变量 + 根规则 + base.css + 装饰 + 语法色 + theme.css，全部限定在 .article-body */

@@ -1,6 +1,8 @@
 /* 应用壳设计 token 与动画关键帧 */
 @theme {
   --color-primary: #1d1d1f;
+  --color-primary-foreground: #ffffff;
+  --color-surface: #ffffff;
   --color-accent: #718096;
   --color-accent-soft: #eef1f4;
   --color-accent-hover: #eaecef;
@@ -11,7 +13,12 @@
   --color-line: #e4e7eb;
   --color-divider: var(--color-raised);
   --color-danger: #cf3538;
+  --color-danger-foreground: #ffffff;
+  --color-overlay: rgb(0 0 0 / 18%);
+  --color-tooltip: #1d1d1f;
+  --color-tooltip-ink: #ffffff;
   --shadow-panel: 0 1px 2px color-mix(in srgb, var(--color-primary) 5%, transparent);
+  --shadow-popover: 0 10px 30px rgb(0 0 0 / 8%);
   --text-body: 0.875rem;
   --text-description: 0.75rem;
   --text-description--line-height: 1rem;
@@ -60,4 +67,54 @@
       transform: translateY(-4px) scale(0.98);
     }
   }
+}
+
+:root {
+  color-scheme: light;
+}
+
+:root[data-appearance='dark'] {
+  color-scheme: dark;
+  --color-primary: #f0f2f4;
+  --color-primary-foreground: #202226;
+  --color-surface: #232426;
+  --color-accent: #a5bad3;
+  --color-accent-soft: #303b47;
+  --color-accent-hover: #394652;
+  --color-raised: #2c3035;
+  --color-panel: #1c1d1f;
+  --color-ink-soft: #a5abb3;
+  --color-line: #3c4148;
+  --color-divider: var(--color-raised);
+  --color-danger: #ff858a;
+  --color-danger-foreground: #2b1d20;
+  --color-overlay: rgb(0 0 0 / 56%);
+  --color-tooltip: #f0f2f4;
+  --color-tooltip-ink: #202226;
+  --shadow-panel: 0 1px 3px rgb(0 0 0 / 30%);
+  --shadow-popover: 0 12px 36px rgb(0 0 0 / 42%);
+}
+
+/* Article canvases use light paper as a fallback for transparent article themes. */
+[data-appearance='light'] {
+  color-scheme: light;
+  --color-primary: #1d1d1f;
+  --color-primary-foreground: #ffffff;
+  --color-surface: #ffffff;
+  --color-accent: #718096;
+  --color-accent-soft: #eef1f4;
+  --color-accent-hover: #eaecef;
+  --color-raised: #f2f4f6;
+  --color-panel: #f8f9fa;
+  --color-ink: #1d1d1f;
+  --color-ink-soft: #6e7278;
+  --color-line: #e4e7eb;
+  --color-divider: #f2f4f6;
+  --color-danger: #cf3538;
+  --color-danger-foreground: #ffffff;
+  --color-overlay: rgb(0 0 0 / 18%);
+  --color-tooltip: #1d1d1f;
+  --color-tooltip-ink: #ffffff;
+  --shadow-panel: 0 1px 2px rgb(0 0 0 / 5%);
+  --shadow-popover: 0 10px 30px rgb(0 0 0 / 8%);
 }

@@ -11,6 +11,8 @@ export type {
 } from './useArticlePreview'
 export { useArticleTheme } from './useArticleTheme'
 export type { ArticleThemeController } from './useArticleTheme'
+export { AppearanceContext, useAppearance } from './useAppearance'
+export type { AppearanceMode, ResolvedAppearance } from './useAppearance'
 export { useConfirm } from './useConfirm'
 export type { ConfirmOptions } from './useConfirm'
 export { useThemeLibrary } from './useThemeLibrary'

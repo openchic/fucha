@@ -210,7 +210,7 @@ const ColorControl = (props: ColorControlProps) => {
             aria-controls={pickerOpen ? pickerId : undefined}
             aria-describedby={describedBy}
             onClick={() => setPickerOpen((open) => !open)}
-            className="h-7 w-11 flex-none cursor-pointer rounded-full border border-line bg-white p-0.5 transition-colors hover:border-ink-soft/50">
+            className="h-7 w-11 flex-none cursor-pointer rounded-full border border-line bg-surface p-0.5 transition-colors hover:border-ink-soft/50">
             <span
               className="block h-full w-full rounded-full"
               style={{ backgroundColor: displayColor }}
@@ -218,7 +218,7 @@ const ColorControl = (props: ColorControlProps) => {
           </button>
           <span
             aria-hidden="true"
-            className="pointer-events-none absolute top-1/2 right-full z-10 mr-2 -translate-y-1/2 rounded-md bg-ink px-2 py-1 text-description whitespace-nowrap text-white opacity-0 group-hover/color:opacity-100">
+            className="pointer-events-none absolute top-1/2 right-full z-10 mr-2 -translate-y-1/2 rounded-md bg-tooltip px-2 py-1 text-description whitespace-nowrap text-tooltip-ink opacity-0 group-hover/color:opacity-100">
             {displayColor.toUpperCase()}
           </span>
         </span>
@@ -373,7 +373,7 @@ export const ThemePanel = (props: ThemePanelProps) => {
   return (
     <section
       aria-label={title}
-      className="flex h-full min-h-0 w-[clamp(340px,32vw,400px)] flex-none flex-col bg-white">
+      className="flex h-full min-h-0 w-[clamp(340px,32vw,400px)] flex-none flex-col bg-surface">
       {header}
       <div className="mx-6 mt-5 flex-none">
         <Segmented

@@ -89,7 +89,7 @@ const ConfirmDialog = ({ options, onSettle }: ConfirmDialogProps) => {
 
   return createPortal(
     <div
-      className={`fixed inset-0 z-[60] flex items-center justify-center bg-ink/20 p-6 backdrop-blur-[4px] ${
+      className={`fixed inset-0 z-[60] flex items-center justify-center bg-overlay p-6 backdrop-blur-[4px] ${
         closing ? 'animate-fade-out pointer-events-none' : 'animate-fade-in'
       }`}
       onPointerDown={(event) => {
@@ -101,7 +101,7 @@ const ConfirmDialog = ({ options, onSettle }: ConfirmDialogProps) => {
         aria-labelledby={titleId}
         aria-describedby={description ? descriptionId : undefined}
         onKeyDown={handleKeyDown}
-        className={`max-h-[80vh] w-full max-w-[420px] overflow-y-auto rounded-2xl border border-line bg-white p-5 ${
+        className={`max-h-[80vh] w-full max-w-[420px] overflow-y-auto rounded-2xl border border-line bg-surface p-5 ${
           closing ? 'animate-popover-out' : 'animate-popover-in'
         }`}>
         <h2 id={titleId} className="text-title text-ink">

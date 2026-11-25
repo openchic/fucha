@@ -78,7 +78,7 @@ export const PhonePreview = (props: PhonePreviewProps) => {
   return (
     <section
       aria-label={ariaLabel}
-      className={`relative flex h-full min-h-0 min-w-0 flex-1 flex-col bg-white ${className ?? ''}`}>
+      className={`relative flex h-full min-h-0 min-w-0 flex-1 flex-col bg-surface ${className ?? ''}`}>
       <div className="absolute inset-x-0 top-0 z-10 flex h-11 items-center gap-3 px-6 pt-3">
         {title && (
           <h2 title={title} className="min-w-0 truncate text-body text-ink">
@@ -130,7 +130,9 @@ export const PhonePreview = (props: PhonePreviewProps) => {
               className="absolute top-[116px] -right-[3px] h-[48px] w-[3px] rounded-r-[2px] bg-[#161618]"
             />
             <style dangerouslySetInnerHTML={{ __html: styleCss }} />
-            <div className="relative flex min-h-0 flex-1 flex-col overflow-hidden rounded-[48px] bg-white">
+            <div
+              data-appearance="light"
+              className="relative flex min-h-0 flex-1 flex-col overflow-hidden rounded-[48px] bg-surface">
               <div
                 aria-hidden="true"
                 className="absolute inset-x-0 top-0 z-10 flex h-14 items-center justify-between px-6 text-ink">

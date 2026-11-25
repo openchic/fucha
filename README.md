@@ -13,7 +13,7 @@ Fucha turns a web article into a formatted article you can paste into the WeChat
 2. Pick a typography theme and review the result.
 3. Copy the article into the WeChat editor.
 
-Theme colors, type sizes, and spacing can be customized in Settings.
+Theme colors, type sizes, and spacing can be customized in Settings. App appearance can follow the system or stay light or dark.
 
 ## Development
 
