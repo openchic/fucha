@@ -104,7 +104,7 @@ jobs:
         with:
           node-version: '24'
           package-manager-cache: false
-      - name: Set package version only in the build workspace
+      - name: Set approved version only in the build workspace
         shell: bash
         env:
           VERSION: ${{ needs.check.outputs.version }}

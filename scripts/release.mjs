@@ -347,7 +347,14 @@ function gh(args, allowFailure = false) {
 }
 
 function stageVersion(version) {
-  const { packageText } = validateMerge(version)
+  parseVersion(version)
+  assertClean()
+  git('ls-files', '--error-unmatch', '--', 'package.json', 'changelogs.json')
+  const { packageText, changelogs } = readState()
+  if (changelogs[0]?.version !== version) {
+    throw new Error('Approved version must match the first changelog entry')
+  }
+  assertUnpublished(version)
   writeFileSync(resolve(ROOT, 'package.json'), replacePackageVersion(packageText, version))
   console.log(`Staged ${version} locally for packaging`)
 }
@@ -359,7 +366,7 @@ async function readArtifacts(version, artifactDir) {
   }
   const assets = {}
   for (const platform of Object.keys(PLATFORMS)) {
-    const name = `fucha-${version}-${PLATFORMS[platform].suffix}`
+    const name = assetName(version, platform)
     const path = resolve(directory, name)
     if (!lstatSync(path).isFile()) throw new Error(`${name} must be a regular file, not a symlink`)
     // O_NOFOLLOW/O_NONBLOCK also protect the open if the file changes after lstat.
@@ -417,7 +424,6 @@ function finalEntry(version, state) {
   if (!hasExactKeys(entry, ['version', 'published_at', 'notes', 'assets'])) {
     throw new Error('The final catalog entry must contain version, published_at, notes and assets')
   }
-  validateAssets(entry.assets, version)
   assertNewVersion(version, changelogs.slice(1))
   return entry
 }
@@ -593,14 +599,15 @@ async function publish(artifactDir) {
       'user.email=github-actions[bot]@users.noreply.github.com',
       'commit',
       '-m',
-      `chore: release ${tag}`
+      `chore(release): ${tag}`
     )
     git('tag', tag)
     git('push', '--atomic', 'origin', 'HEAD:refs/heads/main', `refs/tags/${tag}`)
   }
 
+  const body = renderBody(version)
   const bodyFile = join(process.env.RUNNER_TEMP ?? tmpdir(), 'release-body.md')
-  writeFileSync(bodyFile, renderBody(version))
+  writeFileSync(bodyFile, body)
   if (gh(['release', 'view', tag, '--json', 'url'], true) === null) {
     gh([
       'release',
@@ -618,18 +625,13 @@ async function publish(artifactDir) {
     'release',
     'upload',
     tag,
-    join(artifactDir, `fucha-${version}-macos.dmg`),
-    join(artifactDir, `fucha-${version}-windows-x64.exe`),
-    join(artifactDir, `fucha-${version}-linux-x64.AppImage`),
+    ...Object.keys(PLATFORMS).map((platform) => join(artifactDir, assetName(version, platform))),
     '--clobber',
   ])
   gh(['release', 'edit', tag, '--notes-file', bodyFile, '--draft=false'])
   const url = gh(['release', 'view', tag, '--json', 'url', '--jq', '.url']).trim()
   if (process.env.GITHUB_STEP_SUMMARY) {
-    appendFileSync(
-      process.env.GITHUB_STEP_SUMMARY,
-      `## [Fucha ${tag}](${url})\n\n${renderBody(version)}\n`
-    )
+    appendFileSync(process.env.GITHUB_STEP_SUMMARY, `## [Fucha ${tag}](${url})\n\n${body}\n`)
   }
   console.log(url)
 }
