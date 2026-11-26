@@ -1,8 +1,7 @@
 [
   {
     "version": "0.2.0",
-    "version_type": "minor",
-    "source_sha": "7914b6ba7f4e31b494feb77d647accc6955b366f",
+    "published_at": "2026-11-26T02:52:16.992Z",
     "notes": {
       "zh-CN": [
         "新增系统、浅色和深色外观模式支持。",
@@ -16,6 +15,23 @@
         "Unified Spotlight app names on macOS.",
         "Avoided duplicate About version on macOS."
       ]
+    },
+    "assets": {
+      "macos": {
+        "name": "fucha-0.2.0-macos.dmg",
+        "size": 209283273,
+        "sha256": "91b33b1a54239c64db16ecf3ad76a4f6f5a756e6e23e0772574b83432c0a4dd9"
+      },
+      "windows": {
+        "name": "fucha-0.2.0-windows-x64.exe",
+        "size": 104806551,
+        "sha256": "f4cb6fabe131076bb1079687d196ee6919f5b4dcdf67c5239dc8c7cc7373be7d"
+      },
+      "linux": {
+        "name": "fucha-0.2.0-linux-x64.AppImage",
+        "size": 119835238,
+        "sha256": "a456997c783b6003a4ea74212113a53737482e5f54b2b059267c874aa00c1bd0"
+      }
     }
   },
   {
