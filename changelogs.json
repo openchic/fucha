@@ -1,5 +1,24 @@
 [
   {
+    "version": "0.2.0",
+    "version_type": "minor",
+    "source_sha": "7914b6ba7f4e31b494feb77d647accc6955b366f",
+    "notes": {
+      "zh-CN": [
+        "新增系统、浅色和深色外观模式支持。",
+        "通过中文编辑菜单恢复原生 macOS 编辑快捷键。",
+        "统一 macOS 上的 Spotlight 应用名称。",
+        "避免 macOS 上出现重复的关于版本信息。"
+      ],
+      "en": [
+        "Added system, light, and dark appearance mode support.",
+        "Restored native macOS editing shortcuts through a Chinese Edit menu.",
+        "Unified Spotlight app names on macOS.",
+        "Avoided duplicate About version on macOS."
+      ]
+    }
+  },
+  {
     "version": "0.1.0",
     "published_at": "2026-11-23T04:49:03.522Z",
     "notes": {
